@@ -21,6 +21,13 @@
 
 ---
 
+### DIR-002 — Documenti trasversali committati direttamente su `develop`
+**Data:** 2026-07-03
+**Contesto:** La cartella `docs/pianificazione/` (analisi funzionale, analisi tecnica, roadmap, gestione cambiamenti, direttive) non era mai stata committata. Non essendo specifica di una singola fase, non aveva senso includerla nella PR di `feature/fase1_app-shell`.
+**Direttiva:** I documenti trasversali a tutto il progetto in `docs/pianificazione/` (aggiornamenti inclusi) si committano e pushano direttamente su `develop`, fuori dal flusso feature branch → PR. Le branch `feature/faseX_...` contengono solo codice della fase e la relativa documentazione didattica in `docs/didattica/`.
+
+---
+
 ### Template per nuove direttive
 
 ```markdown
