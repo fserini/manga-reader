@@ -4,18 +4,24 @@ import Reader from './pages/Reader.jsx';
 import Settings from './pages/Settings.jsx';
 import './App.css';
 
+const NAV_LINKS = [
+  { to: '/', label: 'Libreria', end: true },
+  { to: '/reader', label: 'Lettore' },
+  { to: '/settings', label: 'Impostazioni' },
+];
+
 function App() {
   return (
-    <div>
-      <nav>
-        <NavLink to="/">Libreria</NavLink>
-        {' | '}
-        <NavLink to="/reader">Lettore</NavLink>
-        {' | '}
-        <NavLink to="/settings">Impostazioni</NavLink>
+    <div className="app">
+      <nav className="app-nav">
+        {NAV_LINKS.map(({ to, label, end }) => (
+          <NavLink key={to} to={to} end={end} className={({ isActive }) => (isActive ? 'active' : '')}>
+            {label}
+          </NavLink>
+        ))}
       </nav>
 
-      <main>
+      <main className="app-main">
         <Routes>
           <Route path="/" element={<Library />} />
           <Route path="/reader" element={<Reader />} />

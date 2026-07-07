@@ -1,0 +1,140 @@
+.reader {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.reader-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.reader-file-input {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reader-file-input input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.mode-selector {
+  display: flex;
+  gap: 4px;
+  background: var(--surface);
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.mode-selector button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.mode-selector button.active {
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.reader-error {
+  margin: 16px 20px 0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.reader-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.reader-pages {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  background: #000;
+  overflow: auto;
+}
+
+.reader-pages--scroll {
+  flex-direction: column;
+  align-items: center;
+}
+
+.reader-pages--scroll img {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+}
+
+.reader-pages--single,
+.reader-pages--spread {
+  align-items: center;
+  padding: 16px;
+  gap: 8px;
+}
+
+.reader-pages--single img,
+.reader-pages--spread img {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.reader-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.reader-nav span {
+  color: var(--text-muted);
+  min-width: 64px;
+  text-align: center;
+}
+
+.reader-nav button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+}
+
+.reader-nav button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
