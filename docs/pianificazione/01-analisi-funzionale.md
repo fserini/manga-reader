@@ -21,6 +21,8 @@ Il progetto ha anche una finalità didattica: verrà utilizzato per studiare Rea
   - Selezione file: sia file singoli/multipli, sia cartella intera
   - Flusso: import "grezzo" di tutti i file selezionati → i file finiscono in una sezione **"Da categorizzare"** → l'utente assegna Serie/Volume/Capitolo con calma, quando vuole
   - Rilevamento duplicati: se un file sembra già presente in libreria (stesso nome/stesso capitolo già categorizzato), l'import di quel file viene **bloccato** con avviso
+  - **Libreria vuota:** invito all'import in evidenza al centro dello schermo (tap per aprire il file picker), invece del solo pulsante/voce di menu standard
+- **Catalogo:** ogni Serie/Volume/Capitolo mostrato con un'anteprima visiva (miniatura della prima pagina) e il nome, non solo testo
 - **Rimozione automatica** dei riferimenti a file non più trovati sul dispositivo (file spostati/cancellati esternamente)
 - **Rimozione manuale** (Serie / Volume / Capitolo):
   - Popup di conferma **sempre presente** prima della rimozione
@@ -42,7 +44,9 @@ Il progetto ha anche una finalità didattica: verrà utilizzato per studiare Rea
 
 ## 3. Progresso di lettura
 
-- Tracking **automatico** dell'ultima pagina letta, per ogni capitolo
+- Tracking **automatico** dell'ultima pagina letta, per ogni capitolo — riaprendo un capitolo, la lettura riparte da lì
+- **Segnalibro manuale**: icona dedicata con cui l'utente marca esplicitamente il punto in cui ha smesso di leggere, indipendente dal tracking automatico (utile per "questa è la pagina a cui voglio tornare", anche se poi si è sfogliato oltre per curiosità)
+- **Indicatore di completamento** per capitolo/volume: derivato automaticamente dal rapporto pagina-corrente/pagine-totali (percentuale o badge "completato"), nessun dato salvato a parte
 - Preferiti
 - Sezione "in corso di lettura"
 - Sezione "ultimi letti"

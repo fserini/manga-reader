@@ -44,6 +44,7 @@
 - Doppia pagina (spread)
 - Scroll verticale continuo
 - Selettore di modalità
+- Occasione per definire un linguaggio visivo più moderno (lo stile "blando" attuale è solo il template di partenza Vite/React), da riportare poi anche sulla Libreria nelle fasi successive
 
 ## Fase 6 — Controlli di navigazione in lettura
 
@@ -63,6 +64,7 @@
 - Import di più file contemporaneamente (file singoli o cartella)
 - Rilevamento duplicati con blocco import
 - UI della sezione "Da categorizzare"
+- Libreria vuota: invito all'import in evidenza al centro schermo (tap per aprire il file picker), al posto del solo pulsante standard
 
 ## Fase 9 — Categorizzazione manuale
 
@@ -73,6 +75,7 @@
 
 - Navigazione gerarchica a tre livelli
 - Collegamento tra libreria e lettore (apertura capitolo dalla libreria)
+- Anteprima visiva (miniatura della prima pagina) e nome per ogni voce del catalogo
 
 ## Fase 11 — Rimozione elementi
 
@@ -83,7 +86,9 @@
 
 ## Fase 12 — Progresso di lettura
 
-- Tracking automatico dell'ultima pagina letta per capitolo
+- Tracking automatico dell'ultima pagina letta per capitolo (segnalibro automatico: riapertura dall'ultima pagina letta)
+- Segnalibro manuale (icona dedicata per marcare esplicitamente il punto di lettura, indipendente dal tracking automatico)
+- Indicatore di completamento per capitolo/volume, derivato da pagina-corrente/pagine-totali
 - Sezione "in corso di lettura"
 - Sezione "ultimi letti"
 
