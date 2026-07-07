@@ -73,8 +73,9 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 1 — Struttura dell'app (shell)
 - [x] Fase 2 — PWA di base
 - [x] Fase 3 — Lettura di un singolo CBZ (proof of concept)
-- [ ] Fase 4 — Supporto CBR — **prossimo step**
-- [ ] Sviluppo feature per feature (Fasi 5-20)
+- [x] Fase 4 — Supporto CBR
+- [ ] Fase 5 — Modalità di lettura — **prossimo step**
+- [ ] Sviluppo feature per feature (Fasi 6-20)
 
 ---
 
