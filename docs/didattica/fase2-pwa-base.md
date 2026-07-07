@@ -113,7 +113,30 @@ Aprendo l'app da `npm run preview`, nei DevTools del browser (tab **Application*
 
 Verificato in questa fase: manifest servito correttamente su `/manifest.webmanifest`, service worker attivo, cache Workbox popolata con tutti i file dell'app shell (12 entry, ~232 KB), nessuna richiesta di rete fallita.
 
-Il test più significativo — **installazione reale sul tablet Android** — resta da fare manualmente da parte tua: aprendo l'app da Chrome su Android dovrebbe comparire il banner "Installa app" (o la voce nel menu ⋮ → "Installa app"/"Aggiungi a schermata Home").
+### Il test più significativo: installazione reale sul tablet Android
+
+Qui è emerso un vincolo tecnico importante: Chrome mostra il prompt "Installa app" (e registra il service worker) solo in un **contesto sicuro**. Per il browser, "sicuro" significa: pagina servita in **HTTPS**, oppure servita da **`localhost`** (unica eccezione, pensata apposta per lo sviluppo — un sito raggiunto tramite l'IP della rete locale, es. `http://192.168.1.x:5175`, invece **non** conta come sicuro).
+
+Il nostro server (`npm run preview`) gira in HTTP semplice sul PC: perfetto per aprirlo dal PC stesso (`localhost`), ma non abbastanza per un test realistico dal tablet, che lo raggiungerebbe via IP di rete.
+
+**Come abbiamo aggirato il problema, senza deployare nulla:** un **tunnel HTTPS temporaneo** con [cloudflared](https://github.com/cloudflare/cloudflared) (CLI gratuita di Cloudflare, senza bisogno di account per un tunnel "quick"):
+
+```
+cloudflared tunnel --url http://localhost:5175
+```
+
+Il comando crea, in pochi secondi, un URL pubblico del tipo `https://nome-casuale.trycloudflare.com` che fa da "specchio" HTTPS del server locale: chi lo apre (in questo caso il tablet) parla in HTTPS con Cloudflare, che a sua volta inoltra la richiesta al PC tramite una connessione in uscita (per questo non serve aprire porte sul router). Aperto quell'URL su Chrome Android è comparso correttamente il banner di installazione, confermando che manifest e service worker sono configurati bene.
+
+Un dettaglio tecnico incontrato lungo il percorso: Vite, per difendersi da un attacco chiamato **DNS rebinding**, per default rifiuta richieste che arrivano con un nome host che non riconosce (`Blocked request. This host is not allowed`) — il dominio `trycloudflare.com` generato al volo non è ovviamente nella lista. Soluzione (solo temporanea, **non committata**): aggiungere `preview: { allowedHosts: true }` a `vite.config.js` giusto per la durata del test, poi rimuoverla subito dopo.
+
+**Considerazioni di sicurezza su questo tipo di test:**
+
+- ✅ L'app esposta era puramente statica (pagine vuote/placeholder): nessun backend, nessun dato reale, nessuna credenziale coinvolta
+- ✅ Cloudflare fa da proxy: chi visita l'URL non vede mai l'indirizzo IP reale del PC/della rete di casa
+- ✅ L'URL generato è casuale e non indicizzato: nessuno lo trova per caso
+- ⚠️ Per la durata in cui il tunnel resta attivo, l'URL è comunque pubblico e **senza autenticazione** — chiunque lo intercettasse potrebbe aprirlo. Per questo il tunnel va tenuto acceso solo il tempo del test, e richiuso subito dopo (`Get-Process cloudflared | Stop-Process`)
+
+**Questa non è la soluzione definitiva.** È un espediente utile solo per verificare rapidamente una fase in corso d'opera. La soluzione stabile arriverà con la **Fase 20 — Deploy pubblico e rifinitura**: una volta pubblicata l'app su GitHub Pages, avrà un URL pubblico fisso e già in HTTPS, installabile sul tablet in qualsiasi momento senza tunnel, cavi o server locali accesi.
 
 ---
 
