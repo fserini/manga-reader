@@ -97,10 +97,16 @@ Non disponendo di un vero file RAR proprietario per i test, abbiamo verificato l
 
 Un dettaglio emerso durante il test: con un file **CBR corrotto** (bytes casuali rinominati `.cbr`), `libarchive.js` non genera un errore come farebbe JSZip con uno ZIP non valido — restituisce semplicemente **zero file**. Il nostro codice lo intercetta comunque (mostra "Nessuna immagine trovata in questo file"), ma il messaggio è leggermente meno preciso rispetto al caso CBZ ("non sembra un CBR valido"). Non è un problema bloccante per una fase di proof-of-concept: una gestione errori più fine è comunque prevista più avanti, alla Fase 15.
 
-Il test più affidabile resta comunque provare con un **vero file `.cbr`** (un fumetto reale, o un file RAR rinominato).
+Il test più affidabile resta comunque provare con un **vero file `.cbr`** (un fumetto reale, o un file RAR rinominato) — fatto: testato con un capitolo reale (28 pagine), tutte estratte e mostrate nell'ordine corretto.
+
+### ⚠️ Nota nota (non bloccante): impaginazione delle pagine su schermo
+
+Durante il test con il capitolo reale, su alcune combinazioni di viewport/browser le pagine sono apparse **affiancate a coppie** invece che impilate una sotto l'altra. È stato applicato un fix (`display: block` esplicito sulle `<img>`, invece di affidarsi al solo attributo HTML `width="100%"`, che da solo non basta perché il tag `<img>` di default è `display: inline`), verificato corretto in un ambiente di test ma non riprodotto in modo consistente in ogni condizione.
+
+Non abbiamo investigato oltre, per una ragione precisa: l'intera logica di **come le pagine vengono disposte a schermo** verrà riscritta da zero nella Fase 5, che introduce le vere modalità di lettura (pagina singola, doppia pagina/spread, scroll verticale continuo) con un selettore dedicato — l'attuale "sequenza verticale semplice" è comunque temporanea. Ha più senso progettare bene il layout in quella fase, con in mente tutte e tre le modalità, piuttosto che inseguire ora un dettaglio visivo destinato a essere sostituito. Da tenere presente come primo punto da verificare in Fase 5.
 
 ---
 
 ## 🔜 Prossimi passi
 
-Il Lettore ora sa leggere entrambi i formati richiesti dal progetto, ma resta un proof-of-concept: una sola modalità di visualizzazione, nessun collegamento a una libreria persistente. La Fase 5 introdurrà le vere modalità di lettura (pagina singola, doppia pagina, scroll continuo).
+Il Lettore ora sa leggere entrambi i formati richiesti dal progetto, ma resta un proof-of-concept: una sola modalità di visualizzazione (con un layout ancora da consolidare, vedi nota sopra), nessun collegamento a una libreria persistente. La Fase 5 introdurrà le vere modalità di lettura (pagina singola, doppia pagina, scroll continuo).

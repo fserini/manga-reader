@@ -67,7 +67,12 @@ function Reader() {
 
       <div>
         {pages.map((pageUrl, index) => (
-          <img key={pageUrl} src={pageUrl} alt={`Pagina ${index + 1}`} width="100%" />
+          <img
+            key={pageUrl}
+            src={pageUrl}
+            alt={`Pagina ${index + 1}`}
+            style={{ display: 'block', width: '100%' }}
+          />
         ))}
       </div>
     </div>
