@@ -1,7 +1,34 @@
 import { useState } from 'react';
 import JSZip from 'jszip';
+import { Archive } from 'libarchive.js';
+
+Archive.init({ workerUrl: '/libarchive/worker-bundle.js' });
 
 const IMAGE_EXTENSION_REGEX = /\.(jpe?g|png|gif|webp)$/i;
+
+function naturalCompare(nameA, nameB) {
+  return nameA.localeCompare(nameB, undefined, { numeric: true });
+}
+
+async function extractCbzPages(file) {
+  const zip = await JSZip.loadAsync(file);
+  const imageEntries = Object.values(zip.files)
+    .filter((entry) => !entry.dir && IMAGE_EXTENSION_REGEX.test(entry.name))
+    .sort((a, b) => naturalCompare(a.name, b.name));
+
+  return Promise.all(imageEntries.map((entry) => entry.async('blob')));
+}
+
+async function extractCbrPages(file) {
+  const archive = await Archive.open(file);
+  await archive.extractFiles();
+  const filesArray = await archive.getFilesArray();
+
+  return filesArray
+    .filter(({ file: entry }) => IMAGE_EXTENSION_REGEX.test(entry.name))
+    .sort((a, b) => naturalCompare(a.path + a.file.name, b.path + b.file.name))
+    .map(({ file: entry }) => entry);
+}
 
 function Reader() {
   const [pages, setPages] = useState([]);
@@ -15,39 +42,37 @@ function Reader() {
     setPages([]);
     setError(null);
 
-    try {
-      const zip = await JSZip.loadAsync(file);
-      const imageEntries = Object.values(zip.files)
-        .filter((entry) => !entry.dir && IMAGE_EXTENSION_REGEX.test(entry.name))
-        .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+    const isCbr = /\.cbr$/i.test(file.name);
 
-      if (imageEntries.length === 0) {
-        setError('Nessuna immagine trovata in questo file CBZ.');
+    try {
+      const images = isCbr ? await extractCbrPages(file) : await extractCbzPages(file);
+
+      if (images.length === 0) {
+        setError('Nessuna immagine trovata in questo file.');
         return;
       }
 
-      const imageUrls = await Promise.all(
-        imageEntries.map(async (entry) => {
-          const blob = await entry.async('blob');
-          return URL.createObjectURL(blob);
-        }),
-      );
-      setPages(imageUrls);
+      setPages(images.map((image) => URL.createObjectURL(image)));
     } catch {
-      setError('Impossibile leggere il file: non sembra un CBZ valido.');
+      setError(`Impossibile leggere il file: non sembra un ${isCbr ? 'CBR' : 'CBZ'} valido.`);
     }
   }
 
   return (
     <div>
       <h1>Lettore</h1>
-      <input type="file" accept=".cbz" onChange={handleFileChange} />
+      <input type="file" accept=".cbz,.cbr" onChange={handleFileChange} />
 
       {error && <p role="alert">{error}</p>}
 
       <div>
         {pages.map((pageUrl, index) => (
-          <img key={pageUrl} src={pageUrl} alt={`Pagina ${index + 1}`} width="100%" />
+          <img
+            key={pageUrl}
+            src={pageUrl}
+            alt={`Pagina ${index + 1}`}
+            style={{ display: 'block', width: '100%' }}
+          />
         ))}
       </div>
     </div>
