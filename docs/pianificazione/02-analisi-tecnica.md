@@ -71,8 +71,9 @@ Una fase della roadmap si considera completata quando:
 - [x] Roadmap delle fasi di sviluppo
 - [x] Fase 0 — Setup repository (repo GitHub, scaffolding Vite+React, ESLint+Prettier, branch `main`/`develop`, GitHub Projects, labels)
 - [x] Fase 1 — Struttura dell'app (shell)
-- [ ] Fase 2 — PWA di base — **prossimo step**
-- [ ] Sviluppo feature per feature (Fasi 3-20)
+- [x] Fase 2 — PWA di base
+- [ ] Fase 3 — Lettura di un singolo CBZ (proof of concept) — **prossimo step**
+- [ ] Sviluppo feature per feature (Fasi 4-20)
 
 ---
 
