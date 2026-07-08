@@ -44,12 +44,15 @@
 - Doppia pagina (spread)
 - Scroll verticale continuo
 - Selettore di modalità
+- Direzione di lettura LTR/RTL (default giapponese), determina ordine di split e affiancamento in doppia pagina
+- Split automatico delle pagine più larghe che alte in modalità pagina singola (canvas, formato-agnostico: stessa logica per CBZ e CBR)
 - Occasione per definire un linguaggio visivo più moderno (lo stile "blando" attuale è solo il template di partenza Vite/React), da riportare poi anche sulla Libreria nelle fasi successive
 
 ## Fase 6 — Controlli di navigazione in lettura
 
-- Tap sui bordi (pagina prec/succ)
-- Doppio tap (zoom) e pinch-to-zoom
+- Tap sui bordi → pagina prec/succ (verso dipendente dalla direzione di lettura impostata in Fase 5)
+- Doppio tap → passa da pagina singola a doppia pagina (non più zoom)
+- Pinch-to-zoom (unico gesto di zoom)
 - Tap centrale (mostra/nasconde interfaccia)
 - Rotazione libera portrait/landscape
 
