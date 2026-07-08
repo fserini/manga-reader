@@ -35,11 +35,13 @@ Il progetto ha anche una finalità didattica: verrà utilizzato per studiare Rea
   - Pagina singola
   - Doppia pagina (spread)
   - Scroll verticale continuo (stile webtoon)
+- **Direzione di lettura**: occidentale (sinistra→destra) o giapponese (destra→sinistra), scelta dall'utente — default giapponese. Determina l'ordine di taglio delle doppie pagine e l'affiancamento in modalità doppia pagina; in Fase 6 determinerà anche il verso del tap laterale
+- **Split automatico delle doppie pagine** in modalità pagina singola: se una pagina estratta risulta più larga che alta (tipico di alcune edizioni che esportano ogni tavola già come spread), viene tagliata in due pagine logiche separate — attivo di default, nessuna opzione per disattivarlo per ora (rimandata a quando sarà possibile salvare preferenze per capitolo, Fase 7+)
 - Controlli di navigazione:
-  - Tap sui bordi schermo → pagina precedente/successiva
-  - Doppio tap → zoom
+  - Tap sui bordi schermo → pagina precedente/successiva (verso dipendente dalla direzione di lettura)
+  - Doppio tap → passa da modalità pagina singola a doppia pagina (e viceversa)
   - Tap al centro → mostra/nasconde l'interfaccia (lettura immersiva)
-  - Pinch-to-zoom
+  - Pinch-to-zoom (unico gesto di zoom — il doppio tap non zooma più, vedi sopra)
 - Orientamento libero: portrait e landscape, ruota liberamente col dispositivo
 
 ## 3. Progresso di lettura
