@@ -6,6 +6,7 @@ import './Reader.css';
 Archive.init({ workerUrl: '/libarchive/worker-bundle.js' });
 
 const IMAGE_EXTENSION_REGEX = /\.(jpe?g|png|gif|webp)$/i;
+const SPREAD_ASPECT_RATIO_THRESHOLD = 1;
 
 const READING_MODES = [
   { value: 'single', label: 'Pagina singola' },
@@ -37,32 +38,71 @@ async function extractCbrPages(file) {
     .map(({ file: entry }) => entry);
 }
 
+// Alcune edizioni esportano ogni tavola già come doppia pagina (un solo file
+// più largo che alto). La tagliamo in due pagine logiche separate, sempre
+// nello stesso ordine fisico [sinistra, destra]: chi la mostra deciderà
+// l'ordine di lettura in base alla direzione scelta.
+async function splitSpreadIfNeeded(blob) {
+  const bitmap = await createImageBitmap(blob);
+  const { width, height } = bitmap;
+
+  if (width / height <= SPREAD_ASPECT_RATIO_THRESHOLD) {
+    bitmap.close();
+    return [blob];
+  }
+
+  const halfWidth = Math.round(width / 2);
+
+  const left = document.createElement('canvas');
+  left.width = halfWidth;
+  left.height = height;
+  left.getContext('2d').drawImage(bitmap, 0, 0, halfWidth, height, 0, 0, halfWidth, height);
+
+  const right = document.createElement('canvas');
+  right.width = width - halfWidth;
+  right.height = height;
+  right
+    .getContext('2d')
+    .drawImage(bitmap, halfWidth, 0, width - halfWidth, height, 0, 0, width - halfWidth, height);
+
+  bitmap.close();
+
+  return Promise.all([
+    new Promise((resolve) => left.toBlob(resolve)),
+    new Promise((resolve) => right.toBlob(resolve)),
+  ]);
+}
+
 function Reader() {
-  const [pages, setPages] = useState([]);
+  const [pageGroups, setPageGroups] = useState([]);
   const [error, setError] = useState(null);
   const [mode, setMode] = useState('single');
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [readingDirection, setReadingDirection] = useState('rtl');
+
+  const pages = pageGroups.flatMap((group) => (readingDirection === 'rtl' ? [...group].reverse() : group));
 
   async function handleFileChange(event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    pages.forEach((page) => URL.revokeObjectURL(page));
-    setPages([]);
+    pageGroups.flat().forEach((url) => URL.revokeObjectURL(url));
+    setPageGroups([]);
     setCurrentIndex(0);
     setError(null);
 
     const isCbr = /\.cbr$/i.test(file.name);
 
     try {
-      const images = isCbr ? await extractCbrPages(file) : await extractCbzPages(file);
+      const rawImages = isCbr ? await extractCbrPages(file) : await extractCbzPages(file);
 
-      if (images.length === 0) {
+      if (rawImages.length === 0) {
         setError('Nessuna immagine trovata in questo file.');
         return;
       }
 
-      setPages(images.map((image) => URL.createObjectURL(image)));
+      const splitImages = await Promise.all(rawImages.map(splitSpreadIfNeeded));
+      setPageGroups(splitImages.map((images) => images.map((image) => URL.createObjectURL(image))));
     } catch {
       setError(`Impossibile leggere il file: non sembra un ${isCbr ? 'CBR' : 'CBZ'} valido.`);
     }
@@ -83,6 +123,12 @@ function Reader() {
   function goToNext() {
     setCurrentIndex((index) => clampIndex(index + step));
   }
+
+  function toggleReadingDirection() {
+    setReadingDirection((direction) => (direction === 'rtl' ? 'ltr' : 'rtl'));
+  }
+
+  const secondPageOfSpread = pages[currentIndex + 1];
 
   return (
     <div className="reader">
@@ -105,6 +151,12 @@ function Reader() {
               </button>
             ))}
           </div>
+        )}
+
+        {pages.length > 0 && (
+          <button type="button" className="direction-toggle" onClick={toggleReadingDirection}>
+            {readingDirection === 'rtl' ? 'Lettura: giapponese (dx→sx)' : 'Lettura: occidentale (sx→dx)'}
+          </button>
         )}
       </div>
 
@@ -136,9 +188,16 @@ function Reader() {
 
       {pages.length > 0 && mode === 'spread' && (
         <div className="reader-pages reader-pages--spread">
-          <img src={pages[currentIndex]} alt={`Pagina ${currentIndex + 1}`} />
-          {pages[currentIndex + 1] && (
-            <img src={pages[currentIndex + 1]} alt={`Pagina ${currentIndex + 2}`} />
+          {readingDirection === 'rtl' ? (
+            <>
+              {secondPageOfSpread && <img src={secondPageOfSpread} alt={`Pagina ${currentIndex + 2}`} />}
+              <img src={pages[currentIndex]} alt={`Pagina ${currentIndex + 1}`} />
+            </>
+          ) : (
+            <>
+              <img src={pages[currentIndex]} alt={`Pagina ${currentIndex + 1}`} />
+              {secondPageOfSpread && <img src={secondPageOfSpread} alt={`Pagina ${currentIndex + 2}`} />}
+            </>
           )}
         </div>
       )}
@@ -150,7 +209,7 @@ function Reader() {
           </button>
           <span>
             {currentIndex + 1}
-            {mode === 'spread' && pages[currentIndex + 1] ? `-${currentIndex + 2}` : ''} / {pages.length}
+            {mode === 'spread' && secondPageOfSpread ? `-${currentIndex + 2}` : ''} / {pages.length}
           </span>
           <button type="button" onClick={goToNext} disabled={isLastPage}>
             Successiva ›
