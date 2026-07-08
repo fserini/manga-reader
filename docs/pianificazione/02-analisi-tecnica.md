@@ -76,8 +76,9 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 4 — Supporto CBR
 - [x] Fase 5 — Modalità di lettura
 - [x] Fase 6 — Controlli di navigazione in lettura
-- [ ] Fase 7 — Persistenza dati: setup IndexedDB — **prossimo step**
-- [ ] Sviluppo feature per feature (Fasi 8-20)
+- [x] Fase 7 — Persistenza dati: setup IndexedDB
+- [ ] Fase 8 — Import multiplo e sezione "Da categorizzare" — **prossimo step**
+- [ ] Sviluppo feature per feature (Fasi 9-20)
 
 ---
 
