@@ -75,8 +75,9 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 3 — Lettura di un singolo CBZ (proof of concept)
 - [x] Fase 4 — Supporto CBR
 - [x] Fase 5 — Modalità di lettura
-- [ ] Fase 6 — Controlli di navigazione in lettura — **prossimo step**
-- [ ] Sviluppo feature per feature (Fasi 7-20)
+- [x] Fase 6 — Controlli di navigazione in lettura
+- [ ] Fase 7 — Persistenza dati: setup IndexedDB — **prossimo step**
+- [ ] Sviluppo feature per feature (Fasi 8-20)
 
 ---
 
