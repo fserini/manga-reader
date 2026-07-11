@@ -18,6 +18,22 @@ db.version(1).stores({
   readingProgress: 'chapterId, lastReadAt',
 });
 
+// Versione 2 (Fase 8): la riga capitolo conserva anche "handle", un
+// FileSystemFileHandle che punta al file CBZ/CBR originale sul dispositivo
+// (l'app resta un "visore" sui file dell'utente, non ne duplica i byte).
+// L'handle è serializzabile via structured clone, quindi IndexedDB lo salva
+// nativamente; non è indicizzato perché non ci si cerca sopra.
+// Nuovo indice "fileName": serve per bloccare velocemente i duplicati in
+// import (una query indicizzata invece di leggere e filtrare tutte le righe).
+// Dexie ri-indicizza da solo le righe già presenti durante l'upgrade: non
+// serve una funzione di migrazione dei dati.
+db.version(2).stores({
+  series: '++id',
+  volumes: '++id, seriesId',
+  chapters: '++id, seriesId, volumeId, importedAt, fileName',
+  readingProgress: 'chapterId, lastReadAt',
+});
+
 export async function addSeries(title) {
   return db.series.add({ title, favorite: false });
 }
@@ -37,12 +53,41 @@ export async function addChapter({ fileName, number, seriesId = null, volumeId =
   });
 }
 
+// Aggiunge un capitolo appena importato, ancora "da categorizzare": non ha
+// serie/volume/numero (verranno assegnati in Fase 9). Conserva il fileName
+// (per il rilevamento duplicati) e l'handle al file fisico (per riaprirlo poi
+// dal Lettore, anche dopo un reload, senza doverlo re-importare).
+export async function importChapter({ fileName, handle }) {
+  return db.chapters.add({
+    fileName,
+    handle,
+    number: null,
+    seriesId: null,
+    volumeId: null,
+    categorized: false,
+    importedAt: Date.now(),
+  });
+}
+
+// True se esiste già un capitolo con quel nome file: usato in import per
+// bloccare i duplicati. Sfrutta l'indice "fileName" (query diretta nel DB).
+export async function chapterExistsByFileName(fileName) {
+  const count = await db.chapters.where('fileName').equals(fileName).count();
+  return count > 0;
+}
+
 export async function categorizeChapter(chapterId, { seriesId, volumeId }) {
   return db.chapters.update(chapterId, { seriesId, volumeId, categorized: true });
 }
 
 export async function getUncategorizedChapters() {
   return db.chapters.filter((chapter) => !chapter.categorized).toArray();
+}
+
+// Numero totale di capitoli in libreria (categorizzati o no): serve alla
+// Libreria per capire se è completamente vuota e mostrare l'invito all'import.
+export async function getChapterCount() {
+  return db.chapters.count();
 }
 
 export async function toggleFavorite(seriesId, favorite) {
