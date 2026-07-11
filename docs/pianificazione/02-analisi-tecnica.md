@@ -15,7 +15,7 @@
 | **Lettura archivi CBZ** | `JSZip` | Un file CBZ è tecnicamente uno ZIP rinominato: libreria leggera, matura e molto diffusa |
 | **Lettura archivi CBR** | `libarchive.js` (WebAssembly) | Il formato RAR è proprietario e più complesso da decomprimere via JS puro; questa libreria funziona offline nel browser |
 | **Dati locali** (libreria, progressi, preferiti) | IndexedDB tramite `Dexie.js` | L'API nativa di IndexedDB è scomoda da usare; Dexie la rende semplice e leggibile, ideale per chi è alle prime armi |
-| **Accesso ai file sul tablet** | Da definire in dettaglio (File System Access API vs File Picker classico) | Punto tecnico delicato su Android/Chrome — verrà approfondito come step dedicato prima di sviluppare questa parte |
+| **Accesso ai file sul tablet** | File System Access API — handle esterni salvati in IndexedDB (*vedi ADR-001 in `docs/decisions/`*) | L'app resta un "visore" sui file dell'utente senza duplicarne i byte; coerente con i requisiti della Fase 11. Disponibile su Chrome Android da M132. Richiede un secure context (localhost o https) |
 | **Navigazione tra schermate** | React Router | Standard de facto per gestire le viste dell'app (libreria, lettore, impostazioni) |
 | **Gestione dello stato** | Context API + Hooks (nativi di React) | Nessuna libreria esterna per ora: approccio più didattico per imparare i concetti fondamentali di React prima di introdurre librerie come Redux o Zustand |
 | **Test automatici** | Non prioritari nell'MVP | Da introdurre in una fase successiva del percorso di studio |
@@ -77,8 +77,9 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 5 — Modalità di lettura
 - [x] Fase 6 — Controlli di navigazione in lettura
 - [x] Fase 7 — Persistenza dati: setup IndexedDB
-- [ ] Fase 8 — Import multiplo e sezione "Da categorizzare" — **prossimo step**
-- [ ] Sviluppo feature per feature (Fasi 9-20)
+- [x] Fase 8 — Import multiplo e sezione "Da categorizzare"
+- [ ] Fase 9 — Categorizzazione manuale — **prossimo step**
+- [ ] Sviluppo feature per feature (Fasi 10-20)
 
 ---
 
