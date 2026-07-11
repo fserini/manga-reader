@@ -1,0 +1,139 @@
+.library-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+
+.library-actions button,
+.library-link-button {
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+
+.library-actions button:hover,
+.library-link-button:hover {
+  background: var(--surface-hover);
+}
+
+.library-feedback {
+  margin: 4px 0 16px;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+/* Avviso "attenzione" (es. duplicati saltati): informa senza allarmare. Usa
+   l'accent ambra dell'app, distinto dal rosso degli errori veri. */
+.library-notice {
+  margin: 4px 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+  background: rgba(245, 166, 35, 0.12);
+  color: var(--text);
+}
+
+/* Errore vero e proprio (accesso ai file fallito, browser non supportato). */
+.library-error {
+  margin: 12px 0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.library-section h2 {
+  font-size: 20px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.library-empty-note {
+  color: var(--text-muted);
+}
+
+.library-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.library-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.library-file-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.library-file-name {
+  word-break: break-all;
+}
+
+/* Invito a libreria vuota: occupa lo spazio disponibile, centrato. */
+.library-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  text-align: center;
+}
+
+.library-empty-invite {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 40px;
+  border: 2px dashed var(--border);
+  border-radius: 16px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
+}
+
+.library-empty-invite:hover {
+  border-color: var(--accent);
+  background: var(--surface-hover);
+}
+
+.library-empty-icon {
+  font-size: 48px;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.library-empty-title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.library-empty-hint {
+  color: var(--text-muted);
+}
