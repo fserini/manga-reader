@@ -11,6 +11,7 @@ import {
   pickFiles,
   pickDirectory,
 } from '../fileAccess.js';
+import CategorizeForm from '../components/CategorizeForm.jsx';
 import './Library.css';
 
 const supported = isFileSystemAccessSupported();
@@ -24,6 +25,8 @@ function Library() {
   // Messaggio d'errore vero e proprio (accesso ai file fallito) — distinto
   // dall'esito normale di un import con duplicati saltati.
   const [error, setError] = useState(null);
+  // Capitolo attualmente in fase di categorizzazione (mostra il form) — o null.
+  const [categorizing, setCategorizing] = useState(null);
 
   const refresh = useCallback(async () => {
     const [chapters, count] = await Promise.all([getUncategorizedChapters(), getChapterCount()]);
@@ -171,11 +174,29 @@ function Library() {
                   📄
                 </span>
                 <span className="library-file-name">{chapter.fileName}</span>
+                <button
+                  type="button"
+                  className="library-categorize-button"
+                  onClick={() => setCategorizing(chapter)}
+                >
+                  Categorizza
+                </button>
               </li>
             ))}
           </ul>
         )}
       </section>
+
+      {categorizing && (
+        <CategorizeForm
+          chapter={categorizing}
+          onCancel={() => setCategorizing(null)}
+          onDone={() => {
+            setCategorizing(null);
+            refresh();
+          }}
+        />
+      )}
     </div>
   );
 }
