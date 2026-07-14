@@ -33,18 +33,14 @@ function Library() {
 
   useEffect(() => {
     let cancelled = false;
-    async function load() {
-      const [chapters, count] = await Promise.all([getUncategorizedChapters(), getChapterCount()]);
-      if (cancelled) return;
-      setUncategorized(chapters);
-      setChapterCount(count);
-      setLoading(false);
-    }
-    load();
+    (async () => {
+      await refresh();
+      if (!cancelled) setLoading(false);
+    })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refresh]);
 
   // Prende un elenco di handle (da file o cartella), scarta i non-archivio,
   // blocca i duplicati (stesso nome file già in libreria) e importa il resto.
