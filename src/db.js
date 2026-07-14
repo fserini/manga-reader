@@ -98,6 +98,48 @@ export async function getVolumesForSeries(seriesId) {
   return volumes.sort((a, b) => a.number - b.number);
 }
 
+// I capitoli (già categorizzati) di un volume, ordinati per numero: popolano il
+// terzo livello della vista Libreria.
+export async function getChaptersForVolume(volumeId) {
+  const chapters = await db.chapters.where('volumeId').equals(volumeId).toArray();
+  return chapters.sort((a, b) => a.number - b.number);
+}
+
+export async function getSeries(seriesId) {
+  return db.series.get(seriesId);
+}
+
+export async function getVolume(volumeId) {
+  return db.volumes.get(volumeId);
+}
+
+export async function getChapter(chapterId) {
+  return db.chapters.get(chapterId);
+}
+
+// Salva la miniatura (un Blob) del capitolo, generata dal Lettore la prima
+// volta che il file viene letto. La stessa miniatura fa da "copertina" per il
+// volume e la serie, ma solo se non ne hanno già una (la prima vince).
+export async function setChapterThumbnail(chapterId, thumbnail) {
+  const chapter = await db.chapters.get(chapterId);
+  if (!chapter) return;
+
+  await db.chapters.update(chapterId, { thumbnail });
+
+  if (chapter.volumeId != null) {
+    const volume = await db.volumes.get(chapter.volumeId);
+    if (volume && !volume.coverThumbnail) {
+      await db.volumes.update(chapter.volumeId, { coverThumbnail: thumbnail });
+    }
+  }
+  if (chapter.seriesId != null) {
+    const series = await db.series.get(chapter.seriesId);
+    if (series && !series.coverThumbnail) {
+      await db.series.update(chapter.seriesId, { coverThumbnail: thumbnail });
+    }
+  }
+}
+
 // Numero totale di capitoli in libreria (categorizzati o no): serve alla
 // Libreria per capire se è completamente vuota e mostrare l'invito all'import.
 export async function getChapterCount() {

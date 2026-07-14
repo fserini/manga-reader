@@ -12,6 +12,7 @@ import {
   pickDirectory,
 } from '../fileAccess.js';
 import CategorizeForm from '../components/CategorizeForm.jsx';
+import Catalog from '../components/Catalog.jsx';
 import './Library.css';
 
 const supported = isFileSystemAccessSupported();
@@ -27,6 +28,9 @@ function Library() {
   const [error, setError] = useState(null);
   // Capitolo attualmente in fase di categorizzazione (mostra il form) — o null.
   const [categorizing, setCategorizing] = useState(null);
+  // Cambia dopo ogni categorizzazione: usato come `key` del Catalogo per
+  // forzarne il ri-montaggio (e quindi il ricaricamento dei dati).
+  const [catalogVersion, setCatalogVersion] = useState(0);
 
   const refresh = useCallback(async () => {
     const [chapters, count] = await Promise.all([getUncategorizedChapters(), getChapterCount()]);
@@ -187,6 +191,11 @@ function Library() {
         )}
       </section>
 
+      <section className="library-section" aria-labelledby="catalog-heading">
+        <h2 id="catalog-heading">Catalogo</h2>
+        <Catalog key={catalogVersion} />
+      </section>
+
       {categorizing && (
         <CategorizeForm
           chapter={categorizing}
@@ -194,6 +203,7 @@ function Library() {
           onDone={() => {
             setCategorizing(null);
             refresh();
+            setCatalogVersion((version) => version + 1);
           }}
         />
       )}
