@@ -88,6 +88,19 @@
 
 .library-file-name {
   word-break: break-all;
+  flex: 1;
+}
+
+.library-categorize-button {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 /* Invito a libreria vuota: occupa lo spazio disponibile, centrato. */

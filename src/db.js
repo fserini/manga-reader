@@ -76,12 +76,26 @@ export async function chapterExistsByFileName(fileName) {
   return count > 0;
 }
 
-export async function categorizeChapter(chapterId, { seriesId, volumeId }) {
-  return db.chapters.update(chapterId, { seriesId, volumeId, categorized: true });
+export async function categorizeChapter(chapterId, { seriesId, volumeId, number }) {
+  return db.chapters.update(chapterId, { seriesId, volumeId, number, categorized: true });
 }
 
 export async function getUncategorizedChapters() {
   return db.chapters.filter((chapter) => !chapter.categorized).toArray();
+}
+
+// Tutte le serie, in ordine alfabetico: popolano il menu a tendina del form di
+// categorizzazione (dove l'utente sceglie una serie esistente o ne crea una).
+export async function getAllSeries() {
+  const series = await db.series.toArray();
+  return series.sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
+}
+
+// I volumi di una serie, ordinati per numero: popolano il menu del form una
+// volta scelta la serie.
+export async function getVolumesForSeries(seriesId) {
+  const volumes = await db.volumes.where('seriesId').equals(seriesId).toArray();
+  return volumes.sort((a, b) => a.number - b.number);
 }
 
 // Numero totale di capitoli in libreria (categorizzati o no): serve alla
