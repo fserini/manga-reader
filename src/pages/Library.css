@@ -51,6 +51,10 @@
   color: var(--danger);
 }
 
+.library-section {
+  margin-top: 32px;
+}
+
 .library-section h2 {
   font-size: 20px;
   margin-bottom: 12px;

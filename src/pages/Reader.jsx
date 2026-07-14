@@ -1,12 +1,9 @@
-import { useRef, useState } from 'react';
-import JSZip from 'jszip';
-import { Archive } from 'libarchive.js';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { extractPageGroups, makeThumbnail } from '../comicFile.js';
+import { getChapter, setChapterThumbnail } from '../db.js';
 import './Reader.css';
 
-Archive.init({ workerUrl: '/libarchive/worker-bundle.js' });
-
-const IMAGE_EXTENSION_REGEX = /\.(jpe?g|png|gif|webp)$/i;
-const SPREAD_ASPECT_RATIO_THRESHOLD = 1;
 const DOUBLE_TAP_DELAY_MS = 300;
 const TAP_ZONE_RATIO = 0.3;
 const MIN_ZOOM = 1;
@@ -18,10 +15,6 @@ const READING_MODES = [
   { value: 'scroll', label: 'Scroll continuo' },
 ];
 
-function naturalCompare(nameA, nameB) {
-  return nameA.localeCompare(nameB, undefined, { numeric: true });
-}
-
 function clamp(value, min, max) {
   return Math.max(min, Math.min(value, max));
 }
@@ -31,62 +24,9 @@ function getTouchDistance(touches) {
   return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
 }
 
-async function extractCbzPages(file) {
-  const zip = await JSZip.loadAsync(file);
-  const imageEntries = Object.values(zip.files)
-    .filter((entry) => !entry.dir && IMAGE_EXTENSION_REGEX.test(entry.name))
-    .sort((a, b) => naturalCompare(a.name, b.name));
-
-  return Promise.all(imageEntries.map((entry) => entry.async('blob')));
-}
-
-async function extractCbrPages(file) {
-  const archive = await Archive.open(file);
-  await archive.extractFiles();
-  const filesArray = await archive.getFilesArray();
-
-  return filesArray
-    .filter(({ file: entry }) => IMAGE_EXTENSION_REGEX.test(entry.name))
-    .sort((a, b) => naturalCompare(a.path + a.file.name, b.path + b.file.name))
-    .map(({ file: entry }) => entry);
-}
-
-// Alcune edizioni esportano ogni tavola già come doppia pagina (un solo file
-// più largo che alto). La tagliamo in due pagine logiche separate, sempre
-// nello stesso ordine fisico [sinistra, destra]: chi la mostra deciderà
-// l'ordine di lettura in base alla direzione scelta.
-async function splitSpreadIfNeeded(blob) {
-  const bitmap = await createImageBitmap(blob);
-  const { width, height } = bitmap;
-
-  if (width / height <= SPREAD_ASPECT_RATIO_THRESHOLD) {
-    bitmap.close();
-    return [blob];
-  }
-
-  const halfWidth = Math.round(width / 2);
-
-  const left = document.createElement('canvas');
-  left.width = halfWidth;
-  left.height = height;
-  left.getContext('2d').drawImage(bitmap, 0, 0, halfWidth, height, 0, 0, halfWidth, height);
-
-  const right = document.createElement('canvas');
-  right.width = width - halfWidth;
-  right.height = height;
-  right
-    .getContext('2d')
-    .drawImage(bitmap, halfWidth, 0, width - halfWidth, height, 0, 0, width - halfWidth, height);
-
-  bitmap.close();
-
-  return Promise.all([
-    new Promise((resolve) => left.toBlob(resolve)),
-    new Promise((resolve) => right.toBlob(resolve)),
-  ]);
-}
-
 function Reader() {
+  const { chapterId } = useParams();
+
   const [pageGroups, setPageGroups] = useState([]);
   const [error, setError] = useState(null);
   const [mode, setMode] = useState('single');
@@ -97,34 +37,101 @@ function Reader() {
 
   const tapTimeoutRef = useRef(null);
   const pinchStateRef = useRef(null);
+  // URL oggetto attualmente in uso: li teniamo in un ref (non in stato) per
+  // poterli revocare senza dipendere dal valore corrente di pageGroups.
+  const objectUrlsRef = useRef([]);
 
   const pages = pageGroups.flatMap((group) => (readingDirection === 'rtl' ? [...group].reverse() : group));
+
+  const revokeCurrentUrls = useCallback(() => {
+    objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    objectUrlsRef.current = [];
+  }, []);
+
+  // Estrae e mostra le pagine di un file. Se chapterIdForThumb è indicato,
+  // genera anche la miniatura e la salva (copertina del catalogo).
+  const openFile = useCallback(
+    async (file, chapterIdForThumb = null) => {
+      revokeCurrentUrls();
+      setPageGroups([]);
+      setCurrentIndex(0);
+      setError(null);
+      setInterfaceVisible(true);
+
+      try {
+        const groups = await extractPageGroups(file);
+        if (groups.length === 0) {
+          setError('Nessuna immagine trovata in questo file.');
+          return;
+        }
+
+        const urlGroups = groups.map((group) =>
+          group.map((blob) => {
+            const url = URL.createObjectURL(blob);
+            objectUrlsRef.current.push(url);
+            return url;
+          }),
+        );
+        setPageGroups(urlGroups);
+
+        if (chapterIdForThumb != null && groups[0]?.[0]) {
+          makeThumbnail(groups[0][0])
+            .then((thumbnail) => thumbnail && setChapterThumbnail(chapterIdForThumb, thumbnail))
+            .catch(() => {});
+        }
+      } catch {
+        const isCbr = /\.cbr$/i.test(file.name);
+        setError(`Impossibile leggere il file: non sembra un ${isCbr ? 'CBR' : 'CBZ'} valido.`);
+      }
+    },
+    [revokeCurrentUrls],
+  );
+
+  // Apertura di un capitolo dalla Libreria (rotta /reader/:chapterId). Il
+  // permesso di lettura sull'handle è già stato concesso durante il tocco nella
+  // Libreria (serve un gesto utente); qui ci limitiamo a verificarlo e leggere.
+  useEffect(() => {
+    if (!chapterId) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const chapter = await getChapter(Number(chapterId));
+        if (cancelled) return;
+        if (!chapter || !chapter.handle) {
+          setError('Capitolo non trovato in libreria.');
+          return;
+        }
+
+        const granted = (await chapter.handle.queryPermission({ mode: 'read' })) === 'granted';
+        if (cancelled) return;
+        if (!granted) {
+          setError('Permesso di accesso al file non concesso. Torna alla libreria e tocca di nuovo il capitolo.');
+          return;
+        }
+
+        const file = await chapter.handle.getFile();
+        if (cancelled) return;
+        await openFile(file, chapter.id);
+      } catch {
+        if (!cancelled) {
+          setError('Impossibile aprire il capitolo: il file potrebbe essere stato spostato o eliminato.');
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [chapterId, openFile]);
+
+  // Alla chiusura del Lettore, libera gli URL oggetto rimasti.
+  useEffect(() => revokeCurrentUrls, [revokeCurrentUrls]);
 
   async function handleFileChange(event) {
     const file = event.target.files[0];
     if (!file) return;
-
-    pageGroups.flat().forEach((url) => URL.revokeObjectURL(url));
-    setPageGroups([]);
-    setCurrentIndex(0);
-    setError(null);
-    setInterfaceVisible(true);
-
-    const isCbr = /\.cbr$/i.test(file.name);
-
-    try {
-      const rawImages = isCbr ? await extractCbrPages(file) : await extractCbzPages(file);
-
-      if (rawImages.length === 0) {
-        setError('Nessuna immagine trovata in questo file.');
-        return;
-      }
-
-      const splitImages = await Promise.all(rawImages.map(splitSpreadIfNeeded));
-      setPageGroups(splitImages.map((images) => images.map((image) => URL.createObjectURL(image))));
-    } catch {
-      setError(`Impossibile leggere il file: non sembra un ${isCbr ? 'CBR' : 'CBZ'} valido.`);
-    }
+    await openFile(file);
   }
 
   const step = mode === 'spread' ? 2 : 1;
@@ -231,10 +238,12 @@ function Reader() {
     <div className="reader">
       {interfaceVisible && (
         <div className="reader-toolbar">
-          <label className="reader-file-input">
-            <input type="file" accept=".cbz,.cbr" onChange={handleFileChange} />
-            Scegli file
-          </label>
+          {!chapterId && (
+            <label className="reader-file-input">
+              <input type="file" accept=".cbz,.cbr" onChange={handleFileChange} />
+              Scegli file
+            </label>
+          )}
 
           {pages.length > 0 && (
             <div className="mode-selector" role="group" aria-label="Modalità di lettura">
@@ -267,7 +276,7 @@ function Reader() {
 
       {pages.length === 0 && !error && (
         <div className="reader-empty">
-          <p>Scegli un file CBZ o CBR per iniziare a leggere.</p>
+          <p>{chapterId ? 'Caricamento del capitolo…' : 'Scegli un file CBZ o CBR per iniziare a leggere.'}</p>
         </div>
       )}
 

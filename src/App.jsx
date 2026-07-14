@@ -25,6 +25,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Library />} />
           <Route path="/reader" element={<Reader />} />
+          <Route path="/reader/:chapterId" element={<Reader />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </main>
