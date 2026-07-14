@@ -79,8 +79,9 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 7 — Persistenza dati: setup IndexedDB
 - [x] Fase 8 — Import multiplo e sezione "Da categorizzare"
 - [x] Fase 9 — Categorizzazione manuale
-- [ ] Fase 10 — Vista Libreria (Serie → Volumi → Capitoli) — **prossimo step**
-- [ ] Sviluppo feature per feature (Fasi 11-20)
+- [x] Fase 10 — Vista Libreria (Serie → Volumi → Capitoli)
+- [ ] Fase 11 — Rimozione elementi — **prossimo step**
+- [ ] Sviluppo feature per feature (Fasi 12-20)
 
 ---
 
