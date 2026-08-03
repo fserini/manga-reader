@@ -1,0 +1,74 @@
+.dd-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 100;
+}
+
+.dd-panel {
+  width: 100%;
+  max-width: 420px;
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.dd-title {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.dd-note {
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.dd-question {
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.dd-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dd-actions button {
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+}
+
+.dd-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dd-secondary {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.dd-danger {
+  background: var(--danger);
+  color: #fff;
+  border-color: transparent;
+}
+
+.dd-cancel {
+  background: transparent;
+  color: var(--text-muted);
+  border-color: transparent;
+}

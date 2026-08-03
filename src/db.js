@@ -146,6 +146,42 @@ export async function getChapterCount() {
   return db.chapters.count();
 }
 
+// --- Rimozione ---
+//
+// Le funzioni di rimozione lavorano solo sul database (i riferimenti). La
+// cancellazione del file fisico è separata (fileAccess.js) e va fatta PRIMA di
+// rimuovere il capitolo dal DB, perché ci serve ancora il suo handle.
+
+// Tutti i capitoli sotto una serie o un volume: servono al chiamante per
+// raccogliere gli handle prima di un'eventuale cancellazione fisica dei file.
+export async function getChaptersUnderSeries(seriesId) {
+  return db.chapters.where('seriesId').equals(seriesId).toArray();
+}
+
+export async function getChaptersUnderVolume(volumeId) {
+  return db.chapters.where('volumeId').equals(volumeId).toArray();
+}
+
+export async function removeChapter(chapterId) {
+  await db.readingProgress.delete(chapterId);
+  await db.chapters.delete(chapterId);
+}
+
+export async function removeVolume(volumeId) {
+  const chapters = await db.chapters.where('volumeId').equals(volumeId).toArray();
+  await db.readingProgress.bulkDelete(chapters.map((chapter) => chapter.id));
+  await db.chapters.where('volumeId').equals(volumeId).delete();
+  await db.volumes.delete(volumeId);
+}
+
+export async function removeSeries(seriesId) {
+  const chapters = await db.chapters.where('seriesId').equals(seriesId).toArray();
+  await db.readingProgress.bulkDelete(chapters.map((chapter) => chapter.id));
+  await db.chapters.where('seriesId').equals(seriesId).delete();
+  await db.volumes.where('seriesId').equals(seriesId).delete();
+  await db.series.delete(seriesId);
+}
+
 export async function toggleFavorite(seriesId, favorite) {
   return db.series.update(seriesId, { favorite });
 }
