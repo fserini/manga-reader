@@ -64,3 +64,34 @@ export async function verifyPermission(handle, mode = 'read') {
 export async function readFileFromHandle(handle) {
   return handle.getFile();
 }
+
+// Verifica se il file esiste ancora sul dispositivo. getFile() lancia un
+// NotFoundError se il file è stato spostato o cancellato dall'esterno.
+export async function fileStillExists(handle) {
+  try {
+    await handle.getFile();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// La cancellazione fisica (handle.remove()) è disponibile solo su Chromium
+// recenti. La rileviamo per offrire l'opzione "elimina anche il file" solo
+// quando è davvero possibile.
+export function isFileDeletionSupported() {
+  return (
+    typeof FileSystemFileHandle !== 'undefined' &&
+    typeof FileSystemFileHandle.prototype.remove === 'function'
+  );
+}
+
+// Cancella il file fisico puntato dall'handle. Richiede il permesso in
+// scrittura (readwrite), da chiedere durante un gesto utente. Restituisce true
+// se cancellato, false se il permesso è negato.
+export async function deleteFileFromHandle(handle) {
+  const granted = await verifyPermission(handle, 'readwrite');
+  if (!granted) return false;
+  await handle.remove();
+  return true;
+}
