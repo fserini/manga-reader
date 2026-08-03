@@ -186,8 +186,17 @@ export async function toggleFavorite(seriesId, favorite) {
   return db.series.update(seriesId, { favorite });
 }
 
+export async function getReadingProgress(chapterId) {
+  return db.readingProgress.get(chapterId);
+}
+
+// Aggiorna il progresso di lettura fondendo i campi esistenti: usiamo un
+// read-modify-write invece di un put "secco" perché altrimenti sovrascriveremmo
+// (cancellandolo) il segnalibro manuale a ogni cambio pagina.
 export async function updateReadingProgress(chapterId, { lastPageRead, totalPages }) {
+  const existing = await db.readingProgress.get(chapterId);
   return db.readingProgress.put({
+    ...existing,
     chapterId,
     lastPageRead,
     totalPages,
@@ -195,15 +204,69 @@ export async function updateReadingProgress(chapterId, { lastPageRead, totalPage
   });
 }
 
+// Imposta (o cancella, con page null) il segnalibro manuale, preservando il
+// resto del progresso.
 export async function setManualBookmark(chapterId, page) {
-  return db.readingProgress.update(chapterId, { manualBookmarkPage: page });
+  const existing = await db.readingProgress.get(chapterId);
+  return db.readingProgress.put({
+    chapterId,
+    lastPageRead: existing?.lastPageRead ?? page ?? 0,
+    totalPages: existing?.totalPages ?? 0,
+    lastReadAt: existing?.lastReadAt ?? Date.now(),
+    ...existing,
+    manualBookmarkPage: page,
+  });
 }
 
-export async function getRecentlyRead(limit = 10) {
-  return db.readingProgress.orderBy('lastReadAt').reverse().limit(limit).toArray();
+// Progresso di lettura per un insieme di capitoli, come mappa {id: progresso}:
+// serve al catalogo per mostrare l'indicatore di completamento.
+export async function getReadingProgressMap(chapterIds) {
+  const rows = await db.readingProgress.bulkGet(chapterIds);
+  const map = {};
+  rows.forEach((row) => {
+    if (row) map[row.chapterId] = row;
+  });
+  return map;
 }
 
-export async function getInProgress(limit = 10) {
-  const recent = await db.readingProgress.orderBy('lastReadAt').reverse().toArray();
-  return recent.filter((progress) => progress.lastPageRead < progress.totalPages - 1).slice(0, limit);
+// Arricchisce le righe di progresso con i dati del capitolo/serie/volume, per
+// mostrarle nelle sezioni "in corso" e "ultimi letti" della Libreria. Salta i
+// progressi il cui capitolo non esiste più.
+async function enrichProgressRows(rows) {
+  const items = await Promise.all(
+    rows.map(async (progress) => {
+      const chapter = await db.chapters.get(progress.chapterId);
+      if (!chapter) return null;
+      const [series, volume] = await Promise.all([
+        chapter.seriesId != null ? db.series.get(chapter.seriesId) : null,
+        chapter.volumeId != null ? db.volumes.get(chapter.volumeId) : null,
+      ]);
+      return {
+        chapterId: chapter.id,
+        chapterNumber: chapter.number,
+        seriesTitle: series?.title ?? null,
+        volumeNumber: volume?.number ?? null,
+        thumbnail: chapter.thumbnail ?? null,
+        handle: chapter.handle ?? null,
+        lastPageRead: progress.lastPageRead,
+        totalPages: progress.totalPages,
+      };
+    }),
+  );
+  return items.filter(Boolean);
+}
+
+export async function getRecentlyReadChapters(limit = 10) {
+  const rows = await db.readingProgress.orderBy('lastReadAt').reverse().limit(limit).toArray();
+  return enrichProgressRows(rows);
+}
+
+// "In corso" = letti di recente ma non ancora completati (ultima pagina letta
+// prima dell'ultima pagina del capitolo).
+export async function getInProgressChapters(limit = 10) {
+  const rows = await db.readingProgress.orderBy('lastReadAt').reverse().toArray();
+  const inProgress = rows
+    .filter((progress) => progress.totalPages > 0 && progress.lastPageRead < progress.totalPages - 1)
+    .slice(0, limit);
+  return enrichProgressRows(inProgress);
 }
