@@ -71,11 +71,19 @@ export async function importChapter({ fileName, handle }) {
   });
 }
 
-// True se esiste già un capitolo con quel nome file: usato in import per
-// bloccare i duplicati. Sfrutta l'indice "fileName" (query diretta nel DB).
-export async function chapterExistsByFileName(fileName) {
-  const count = await db.chapters.where('fileName').equals(fileName).count();
-  return count > 0;
+// Il capitolo con quel nome file, se esiste (altrimenti undefined). Usata in
+// import sia per bloccare i duplicati sia per riconoscere un capitolo "senza
+// handle" (Fase 16: dopo un ripristino da backup) da ricollegare invece di
+// scartare. Sfrutta l'indice "fileName" (query diretta nel DB).
+export async function getChapterByFileName(fileName) {
+  return db.chapters.where('fileName').equals(fileName).first();
+}
+
+// Aggiorna solo l'handle di un capitolo già presente: usata per ricollegare
+// un capitolo "orfano" (importato da un backup, senza riferimento al file
+// fisico) re-importando lo stesso file.
+export async function setChapterHandle(chapterId, handle) {
+  return db.chapters.update(chapterId, { handle });
 }
 
 export async function categorizeChapter(chapterId, { seriesId, volumeId, number }) {
@@ -344,4 +352,108 @@ export async function getInProgressChapters(limit = 10) {
     .filter((progress) => progress.totalPages > 0 && progress.lastPageRead < progress.totalPages - 1)
     .slice(0, limit);
   return enrichProgressRows(inProgress);
+}
+
+// --- Backup e ripristino ---
+//
+// JSON non sa rappresentare i Blob delle miniature: le convertiamo in data
+// URL (stringhe) per l'esportazione, e viceversa al ripristino.
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function dataUrlToBlob(dataUrl) {
+  const response = await fetch(dataUrl);
+  return response.blob();
+}
+
+// Esporta l'intera libreria (serie, volumi, capitoli, progressi) in un
+// oggetto pronto per essere salvato come file JSON. L'handle dei capitoli
+// NON viene esportato: è un FileSystemFileHandle legato a un file preciso di
+// QUESTO browser/dispositivo, non ha alcun significato altrove — dopo un
+// ripristino i capitoli vanno ricollegati re-importando gli stessi file
+// (vedi getChapterByFileName/setChapterHandle, usate in Library.jsx).
+export async function exportBackup() {
+  const [seriesRows, volumeRows, chapterRows, progressRows] = await Promise.all([
+    db.series.toArray(),
+    db.volumes.toArray(),
+    db.chapters.toArray(),
+    db.readingProgress.toArray(),
+  ]);
+
+  const series = await Promise.all(
+    seriesRows.map(async (row) => ({
+      ...row,
+      coverThumbnail: row.coverThumbnail ? await blobToDataUrl(row.coverThumbnail) : null,
+    })),
+  );
+  const volumes = await Promise.all(
+    volumeRows.map(async (row) => ({
+      ...row,
+      coverThumbnail: row.coverThumbnail ? await blobToDataUrl(row.coverThumbnail) : null,
+    })),
+  );
+  const chapters = await Promise.all(
+    // eslint-disable-next-line no-unused-vars -- si estrae "handle" apposta per escluderlo dal risultato
+    chapterRows.map(async ({ handle, ...row }) => ({
+      ...row,
+      thumbnail: row.thumbnail ? await blobToDataUrl(row.thumbnail) : null,
+    })),
+  );
+
+  return {
+    version: 1,
+    exportedAt: Date.now(),
+    series,
+    volumes,
+    chapters,
+    readingProgress: progressRows,
+  };
+}
+
+// Sostituisce l'intera libreria con quella contenuta in un backup prodotto da
+// exportBackup: cancella le tabelle e le ripopola dentro un'unica
+// transazione (o va tutto a buon fine, o — in caso di errore a metà — non
+// resta una libreria a metà ripristinata). Gli id originali vengono
+// preservati (bulkAdd con chiave esplicita), così i collegamenti
+// serie/volume/capitolo/progresso restano coerenti.
+export async function restoreBackup(backup) {
+  const series = await Promise.all(
+    (backup.series ?? []).map(async ({ coverThumbnail, ...row }) => ({
+      ...row,
+      ...(coverThumbnail ? { coverThumbnail: await dataUrlToBlob(coverThumbnail) } : {}),
+    })),
+  );
+  const volumes = await Promise.all(
+    (backup.volumes ?? []).map(async ({ coverThumbnail, ...row }) => ({
+      ...row,
+      ...(coverThumbnail ? { coverThumbnail: await dataUrlToBlob(coverThumbnail) } : {}),
+    })),
+  );
+  const chapters = await Promise.all(
+    (backup.chapters ?? []).map(async ({ thumbnail, ...row }) => ({
+      ...row,
+      ...(thumbnail ? { thumbnail: await dataUrlToBlob(thumbnail) } : {}),
+    })),
+  );
+
+  await db.transaction('rw', db.series, db.volumes, db.chapters, db.readingProgress, async () => {
+    await Promise.all([
+      db.series.clear(),
+      db.volumes.clear(),
+      db.chapters.clear(),
+      db.readingProgress.clear(),
+    ]);
+    await Promise.all([
+      db.series.bulkAdd(series),
+      db.volumes.bulkAdd(volumes),
+      db.chapters.bulkAdd(chapters),
+      db.readingProgress.bulkAdd(backup.readingProgress ?? []),
+    ]);
+  });
 }
