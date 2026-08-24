@@ -1,0 +1,96 @@
+.reading-sections section {
+  margin-top: 24px;
+}
+
+.reading-sections h2 {
+  font-size: 20px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.rs-notice {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.rs-row {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+}
+
+.rs-row > li {
+  flex: 0 0 auto;
+}
+
+.rs-card {
+  width: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.rs-card:hover {
+  border-color: var(--accent);
+}
+
+.rs-cover {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  background: var(--bg);
+}
+
+.rs-cover--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  color: var(--text-muted);
+}
+
+.rs-card-title {
+  padding: 0 8px;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  word-break: break-word;
+}
+
+.rs-card-sub {
+  padding: 0 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.rs-progress {
+  display: block;
+  height: 4px;
+  margin: 2px 8px 0;
+  border-radius: 2px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.rs-progress-bar {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}

@@ -6,6 +6,7 @@ import {
   getChaptersForVolume,
   getChaptersUnderSeries,
   getChaptersUnderVolume,
+  getReadingProgressMap,
   removeSeries,
   removeVolume,
   removeChapter,
@@ -20,6 +21,15 @@ import DeleteDialog from './DeleteDialog.jsx';
 import './Catalog.css';
 
 const canDeleteFiles = isFileDeletionSupported();
+
+function isCompleted(progress) {
+  return Boolean(progress && progress.totalPages > 0 && progress.lastPageRead >= progress.totalPages - 1);
+}
+
+function completionPercent(progress) {
+  if (!progress || !progress.totalPages) return 0;
+  return Math.round(((progress.lastPageRead + 1) / progress.totalPages) * 100);
+}
 
 // Mostra una miniatura da un Blob (creando/revocando l'URL oggetto), oppure un
 // segnaposto se la copertina non è ancora disponibile.
@@ -49,6 +59,11 @@ function Catalog() {
   const [chapters, setChapters] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Progresso di lettura dei capitoli mostrati {chapterId: progress} e statistiche
+  // per volume {volumeId: {read, total}} per gli indicatori di completamento.
+  const [progressMap, setProgressMap] = useState({});
+  const [volumeStats, setVolumeStats] = useState({});
+
   // Livello di navigazione corrente e le voci selezionate lungo il percorso.
   const [level, setLevel] = useState('series'); // 'series' | 'volumes' | 'chapters'
   const [currentSeries, setCurrentSeries] = useState(null);
@@ -73,26 +88,48 @@ function Catalog() {
     };
   }, []);
 
+  // Calcola, per ogni volume di una serie, quanti capitoli risultano completati.
+  async function loadVolumeStats(volumeList) {
+    const stats = {};
+    await Promise.all(
+      volumeList.map(async (volume) => {
+        const volumeChapters = await getChaptersForVolume(volume.id);
+        const map = await getReadingProgressMap(volumeChapters.map((chapter) => chapter.id));
+        const read = volumeChapters.filter((chapter) => isCompleted(map[chapter.id])).length;
+        stats[volume.id] = { read, total: volumeChapters.length };
+      }),
+    );
+    return stats;
+  }
+
   // Ricarica l'elenco del livello attualmente mostrato, dopo una rimozione.
   async function reloadCurrentLevel() {
     if (level === 'series') {
       setSeries(await getAllSeries());
     } else if (level === 'volumes' && currentSeries) {
-      setVolumes(await getVolumesForSeries(currentSeries.id));
+      const volumeList = await getVolumesForSeries(currentSeries.id);
+      setVolumes(volumeList);
+      setVolumeStats(await loadVolumeStats(volumeList));
     } else if (level === 'chapters' && currentVolume) {
-      setChapters(await getChaptersForVolume(currentVolume.id));
+      const chapterList = await getChaptersForVolume(currentVolume.id);
+      setChapters(chapterList);
+      setProgressMap(await getReadingProgressMap(chapterList.map((chapter) => chapter.id)));
     }
   }
 
   async function openSeries(item) {
     setCurrentSeries(item);
-    setVolumes(await getVolumesForSeries(item.id));
+    const volumeList = await getVolumesForSeries(item.id);
+    setVolumes(volumeList);
+    setVolumeStats(await loadVolumeStats(volumeList));
     setLevel('volumes');
   }
 
   async function openVolume(volume) {
     setCurrentVolume(volume);
-    setChapters(await getChaptersForVolume(volume.id));
+    const chapterList = await getChaptersForVolume(volume.id);
+    setChapters(chapterList);
+    setProgressMap(await getReadingProgressMap(chapterList.map((chapter) => chapter.id)));
     setLevel('chapters');
   }
 
@@ -255,6 +292,11 @@ function Catalog() {
               <button type="button" className="catalog-card-main" onClick={() => openVolume(volume)}>
                 <Cover blob={volume.coverThumbnail} alt="" />
                 <span className="catalog-card-title">Volume {volume.number}</span>
+                {volumeStats[volume.id] && volumeStats[volume.id].total > 0 && (
+                  <span className="catalog-card-sub">
+                    {volumeStats[volume.id].read}/{volumeStats[volume.id].total} letti
+                  </span>
+                )}
               </button>
               <button
                 type="button"
@@ -278,6 +320,16 @@ function Catalog() {
               <button type="button" className="catalog-card-main" onClick={() => openChapter(chapter)}>
                 <Cover blob={chapter.thumbnail} alt="" />
                 <span className="catalog-card-title">Capitolo {chapter.number}</span>
+                {isCompleted(progressMap[chapter.id]) ? (
+                  <span className="catalog-card-sub catalog-card-sub--done">✓ Letto</span>
+                ) : progressMap[chapter.id] ? (
+                  <span className="catalog-progress" aria-label={`${completionPercent(progressMap[chapter.id])}% letto`}>
+                    <span
+                      className="catalog-progress-bar"
+                      style={{ width: `${completionPercent(progressMap[chapter.id])}%` }}
+                    />
+                  </span>
+                ) : null}
               </button>
               <button
                 type="button"

@@ -13,6 +13,7 @@ import {
 } from '../fileAccess.js';
 import CategorizeForm from '../components/CategorizeForm.jsx';
 import Catalog from '../components/Catalog.jsx';
+import ReadingSections from '../components/ReadingSections.jsx';
 import './Library.css';
 
 const supported = isFileSystemAccessSupported();
@@ -165,6 +166,8 @@ function Library() {
       </div>
 
       {feedbackBlock}
+
+      <ReadingSections onLibraryChanged={() => setCatalogVersion((version) => version + 1)} />
 
       <section className="library-section" aria-labelledby="uncategorized-heading">
         <h2 id="uncategorized-heading">Da categorizzare</h2>
