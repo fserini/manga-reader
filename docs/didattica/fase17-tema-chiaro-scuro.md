@@ -2,6 +2,8 @@
 
 > Documentazione didattica, scritta per chi non ha mai visto React prima. Questa fase introduce la **Context API**, il primo strumento nativo di React per condividere uno stato tra componenti lontani nell'albero, senza passarlo a mano livello per livello.
 
+> ⚠️ **Nota (Fase 21):** il toggle chiaro/scuro descritto qui è stato rimosso con la direzione grafica "Yomihon" — vedi [`ADR-001`](../decisions/ADR-001-restyling-visivo-yomihon.md) — che adotta un unico aspetto scuro fisso, senza variante chiara. `ThemeContext.jsx` non esiste più nel codice. La spiegazione della Context API qui sotto resta comunque valida come concetto React, anche se l'esempio concreto a cui si appoggiava non c'è più.
+
 ---
 
 ## 🎯 Obiettivo della fase

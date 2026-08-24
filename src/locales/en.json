@@ -160,13 +160,6 @@
   },
   "settings": {
     "title": "Settings",
-    "appearanceHeading": "Appearance",
-    "appearanceHint": "Choose the app's theme, or follow the system setting.",
-    "theme": {
-      "light": "Light",
-      "dark": "Dark",
-      "system": "System"
-    },
     "languageHeading": "Language",
     "languageHint": "Choose the interface language.",
     "language": {

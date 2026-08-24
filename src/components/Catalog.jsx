@@ -36,9 +36,11 @@ function completionPercent(progress) {
   return Math.round(((progress.lastPageRead + 1) / progress.totalPages) * 100);
 }
 
-// Mostra una miniatura da un Blob (creando/revocando l'URL oggetto), oppure un
-// segnaposto se la copertina non è ancora disponibile.
-function Cover({ blob, alt }) {
+// Mostra una miniatura da un Blob (creando/revocando l'URL oggetto). Se la
+// copertina non è ancora disponibile, il segnaposto non è una semplice icona:
+// è un "dorso" con il titolo in verticale, sullo stesso principio delle
+// copertine vere — vedi ADR-001.
+function Cover({ blob, alt, title }) {
   const url = useMemo(() => (blob ? URL.createObjectURL(blob) : null), [blob]);
 
   useEffect(() => {
@@ -49,7 +51,7 @@ function Cover({ blob, alt }) {
   if (!url) {
     return (
       <div className="catalog-cover catalog-cover--placeholder" aria-hidden="true">
-        📖
+        <span className="catalog-cover-spine">{title}</span>
       </div>
     );
   }
@@ -356,7 +358,7 @@ function Catalog({ onFavoriteChanged }) {
           {visibleSeries.map((item) => (
             <li key={item.id} className="catalog-card">
               <button type="button" className="catalog-card-main" onClick={() => openSeries(item)}>
-                <Cover blob={item.coverThumbnail} alt="" />
+                <Cover blob={item.coverThumbnail} alt="" title={item.title} />
                 <span className="catalog-card-title">{item.title}</span>
               </button>
               <button
@@ -397,7 +399,11 @@ function Catalog({ onFavoriteChanged }) {
           {visibleVolumes.map((volume) => (
             <li key={volume.id} className="catalog-card">
               <button type="button" className="catalog-card-main" onClick={() => openVolume(volume)}>
-                <Cover blob={volume.coverThumbnail} alt="" />
+                <Cover
+                  blob={volume.coverThumbnail}
+                  alt=""
+                  title={t('catalog.volumeLabel', { number: volume.number })}
+                />
                 <span className="catalog-card-title">{t('catalog.volumeLabel', { number: volume.number })}</span>
                 {volumeStats[volume.id] && volumeStats[volume.id].total > 0 && (
                   <span className="catalog-card-sub">
@@ -446,7 +452,11 @@ function Catalog({ onFavoriteChanged }) {
           {visibleChapters.map((chapter) => (
             <li key={chapter.id} className="catalog-card">
               <button type="button" className="catalog-card-main" onClick={() => openChapter(chapter)}>
-                <Cover blob={chapter.thumbnail} alt="" />
+                <Cover
+                  blob={chapter.thumbnail}
+                  alt=""
+                  title={t('catalog.chapterLabel', { number: chapter.number })}
+                />
                 <span className="catalog-card-title">{t('catalog.chapterLabel', { number: chapter.number })}</span>
                 {isCompleted(progressMap[chapter.id]) ? (
                   <span className="catalog-card-sub catalog-card-sub--done">{t('catalog.done')}</span>

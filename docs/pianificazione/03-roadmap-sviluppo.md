@@ -139,6 +139,19 @@
 
 ---
 
+## Fase 21 — Restyling grafico ("Yomihon")
+
+> Fase fuori dalla roadmap MVP originale, aperta a roadmap chiusa. Decisione e motivazioni in [`docs/decisions/ADR-001-restyling-visivo-yomihon.md`](../decisions/ADR-001-restyling-visivo-yomihon.md).
+
+- Nuovi design token (colori, font) applicati globalmente, in sostituzione dell'attuale palette generica
+- Catalogo: copertine verticali stile dorso, con titolo/eyebrow in giapponese
+- Lettura: interfaccia minimale (filo di avanzamento + numero in monospace), pannello controlli a 5 icone rivelato solo al tocco
+- Impostazioni: stessa grammatica grafica del Catalogo
+- Verifica responsive su più risoluzioni (telefono, tablet verticale/orizzontale), inclusa la nuova barra flottante dei controlli di lettura
+- Verifica della resa delle pagine manga sui vari schermi, a cura di Federico su dispositivo reale (fuori sandbox)
+
+---
+
 ## 🔮 Backlog futuro (fuori roadmap MVP)
 
 - Riconoscimento automatico di pattern nei nomi file (raggruppamento automatico capitoli → volumi)
