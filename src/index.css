@@ -22,8 +22,17 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/*
+  Il tema scuro si applica in due casi, tenuti volutamente separati:
+  1. il sistema preferisce il buio E l'utente non ha forzato "chiaro"
+     (:not([data-theme="light"]) lascia passare sia l'assenza di scelta,
+     tema "sistema", sia una scelta esplicita "scuro");
+  2. l'utente ha scelto esplicitamente "scuro", indipendentemente dal sistema
+     (ripete le stesse variabili fuori dalla media query, così vince anche
+     quando il sistema preferisce il chiaro).
+*/
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: #121212;
     --surface: #1e1e1e;
     --surface-hover: rgba(255, 255, 255, 0.08);
@@ -31,6 +40,15 @@
     --text-muted: #9a9a9f;
     --border: #2e2e33;
   }
+}
+
+:root[data-theme='dark'] {
+  --bg: #121212;
+  --surface: #1e1e1e;
+  --surface-hover: rgba(255, 255, 255, 0.08);
+  --text: #e5e5e5;
+  --text-muted: #9a9a9f;
+  --border: #2e2e33;
 }
 
 * {

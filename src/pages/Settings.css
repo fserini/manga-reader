@@ -40,6 +40,28 @@
   display: none;
 }
 
+.settings-theme-options {
+  display: flex;
+  gap: 8px;
+}
+
+.settings-theme-options button {
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.settings-theme-options button.settings-theme-active {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: transparent;
+}
+
 .settings-error {
   margin-top: 16px;
   padding: 12px 16px;
