@@ -85,8 +85,9 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 13 — Preferiti
 - [x] Fase 14 — Ricerca e ordinamento
 - [x] Fase 15 — Gestione errori
-- [ ] Fase 16 — Backup e ripristino dati — **prossimo step**
-- [ ] Sviluppo feature per feature (Fasi 17-20)
+- [x] Fase 16 — Backup e ripristino dati
+- [ ] Fase 17 — Tema chiaro/scuro — **prossimo step**
+- [ ] Sviluppo feature per feature (Fasi 18-20)
 
 ---
 
