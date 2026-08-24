@@ -81,8 +81,9 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 9 — Categorizzazione manuale
 - [x] Fase 10 — Vista Libreria (Serie → Volumi → Capitoli)
 - [x] Fase 11 — Rimozione elementi
-- [ ] Fase 12 — Progresso di lettura — **prossimo step**
-- [ ] Sviluppo feature per feature (Fasi 13-20)
+- [x] Fase 12 — Progresso di lettura
+- [ ] Fase 13 — Preferiti — **prossimo step**
+- [ ] Sviluppo feature per feature (Fasi 14-20)
 
 ---
 
