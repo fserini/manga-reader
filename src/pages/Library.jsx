@@ -11,6 +11,7 @@ import {
   pickFiles,
   pickDirectory,
 } from '../fileAccess.js';
+import { isValidArchive } from '../comicFile.js';
 import CategorizeForm from '../components/CategorizeForm.jsx';
 import Catalog from '../components/Catalog.jsx';
 import ReadingSections from '../components/ReadingSections.jsx';
@@ -56,11 +57,16 @@ function Library() {
   }, [refresh]);
 
   // Prende un elenco di handle (da file o cartella), scarta i non-archivio,
-  // blocca i duplicati (stesso nome file già in libreria) e importa il resto.
+  // blocca i duplicati (stesso nome file già in libreria), scarta gli
+  // archivi corrotti o senza immagini e importa il resto. La validazione
+  // apre il file (senza estrarne le pagine, vedi isValidArchive) solo dopo
+  // aver già escluso estensione sbagliata e duplicati — non ha senso pagare
+  // il costo dell'apertura per un file che verrebbe comunque scartato.
   async function importHandles(handles) {
     let imported = 0;
     let duplicates = 0;
     let ignored = 0;
+    let corrupted = 0;
 
     for (const handle of handles) {
       if (!isArchiveFileName(handle.name)) {
@@ -71,12 +77,19 @@ function Library() {
         duplicates += 1;
         continue;
       }
+
+      const file = await handle.getFile();
+      if (!(await isValidArchive(file))) {
+        corrupted += 1;
+        continue;
+      }
+
       await importChapter({ fileName: handle.name, handle });
       imported += 1;
     }
 
     await refresh();
-    setResult({ imported, duplicates, ignored });
+    setResult({ imported, duplicates, ignored, corrupted });
   }
 
   async function runPicker(picker) {
@@ -108,10 +121,17 @@ function Library() {
             : `${result.duplicates} file erano già in libreria e sono stati saltati.`}
         </p>
       )}
+      {result?.corrupted > 0 && (
+        <p className="library-notice" role="status">
+          ⚠ {result.corrupted === 1
+            ? '1 file non è un archivio CBZ/CBR valido (o non contiene immagini) ed è stato saltato.'
+            : `${result.corrupted} file non sono archivi CBZ/CBR validi (o non contengono immagini) e sono stati saltati.`}
+        </p>
+      )}
       {result && (
         <p className="library-feedback">
-          Importati: {result.imported} · Duplicati saltati: {result.duplicates} · Ignorati:{' '}
-          {result.ignored}
+          Importati: {result.imported} · Duplicati saltati: {result.duplicates} · Corrotti saltati:{' '}
+          {result.corrupted} · Ignorati: {result.ignored}
         </p>
       )}
     </>
