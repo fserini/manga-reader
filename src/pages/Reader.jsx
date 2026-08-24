@@ -9,6 +9,7 @@ import {
   updateReadingProgress,
   setManualBookmark,
 } from '../db.js';
+import { useAppChrome } from '../AppChromeContext.jsx';
 import './Reader.css';
 
 const DOUBLE_TAP_DELAY_MS = 300;
@@ -118,6 +119,7 @@ const MODE_ICONS = {
 function Reader() {
   const { t } = useTranslation();
   const { chapterId } = useParams();
+  const { setChromeHidden } = useAppChrome();
 
   const [pageGroups, setPageGroups] = useState([]);
   const [error, setError] = useState(null);
@@ -140,6 +142,16 @@ function Reader() {
   const pendingScrollRestoreRef = useRef(false);
 
   const pages = pageGroups.flatMap((group) => (readingDirection === 'rtl' ? [...group].reverse() : group));
+
+  // Il tocco che nasconde i controlli del Lettore nasconde anche la barra di
+  // navigazione dell'app (Libreria/Lettore/Impostazioni), non solo il
+  // pannello interno — vedi AppChromeContext.jsx. Il cleanup la ripristina
+  // sia ad ogni cambio di interfaceVisible sia, soprattutto, quando si esce
+  // dal Lettore: altrimenti la barra resterebbe nascosta anche altrove.
+  useEffect(() => {
+    setChromeHidden(!interfaceVisible);
+    return () => setChromeHidden(false);
+  }, [interfaceVisible, setChromeHidden]);
 
   const revokeCurrentUrls = useCallback(() => {
     objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));

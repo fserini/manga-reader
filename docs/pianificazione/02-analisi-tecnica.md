@@ -91,6 +91,7 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 19 — Aggiornamenti PWA
 - [x] Fase 20 — Deploy pubblico e rifinitura
 - [x] Fase 21 — Restyling grafico ("Yomihon") — vedi ADR-001
+- [ ] Fase 22 — Categorizzazione assistita e multipla — pianificata, non ancora iniziata
 
 ---
 
