@@ -1,8 +1,16 @@
 import { useRef, useState } from 'react';
 import { exportBackup, restoreBackup } from '../db.js';
+import { useTheme } from '../ThemeContext.jsx';
 import './Settings.css';
 
+const THEME_OPTIONS = [
+  { value: 'light', label: 'Chiaro' },
+  { value: 'dark', label: 'Scuro' },
+  { value: 'system', label: 'Sistema' },
+];
+
 function Settings() {
+  const { theme, setTheme } = useTheme();
   const fileInputRef = useRef(null);
 
   const [busy, setBusy] = useState(false);
@@ -74,6 +82,26 @@ function Settings() {
   return (
     <div className="page">
       <h1>Impostazioni</h1>
+
+      <section className="settings-section" aria-labelledby="theme-heading">
+        <h2 id="theme-heading">Aspetto</h2>
+        <p className="settings-hint">Scegli il tema dell&apos;app, oppure segui l&apos;impostazione del sistema.</p>
+
+        <div className="settings-theme-options" role="radiogroup" aria-labelledby="theme-heading">
+          {THEME_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="radio"
+              aria-checked={theme === option.value}
+              className={theme === option.value ? 'settings-theme-active' : ''}
+              onClick={() => setTheme(option.value)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </section>
 
       <section className="settings-section" aria-labelledby="backup-heading">
         <h2 id="backup-heading">Backup e ripristino</h2>
