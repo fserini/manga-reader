@@ -83,8 +83,9 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 11 — Rimozione elementi
 - [x] Fase 12 — Progresso di lettura
 - [x] Fase 13 — Preferiti
-- [ ] Fase 14 — Ricerca e ordinamento — **prossimo step**
-- [ ] Sviluppo feature per feature (Fasi 15-20)
+- [x] Fase 14 — Ricerca e ordinamento
+- [ ] Fase 15 — Gestione errori — **prossimo step**
+- [ ] Sviluppo feature per feature (Fasi 16-20)
 
 ---
 
