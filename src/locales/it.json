@@ -189,5 +189,10 @@
     "restoring": "Ripristino…",
     "restoreSuccess": "Libreria ripristinata. I capitoli non sono ancora leggibili: reimporta gli stessi file dalla Libreria per ricollegarli (verranno riconosciuti automaticamente, non duplicati).",
     "restoreError": "Ripristino non riuscito."
+  },
+  "pwa": {
+    "updateAvailable": "È disponibile una nuova versione dell'app.",
+    "reload": "Aggiorna",
+    "dismiss": "Più tardi"
   }
 }

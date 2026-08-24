@@ -189,5 +189,10 @@
     "restoring": "Restoring…",
     "restoreSuccess": "Library restored. Chapters aren't readable yet: re-import the same files from the Library to reconnect them (they'll be recognized automatically, not duplicated).",
     "restoreError": "Restore failed."
+  },
+  "pwa": {
+    "updateAvailable": "A new version of the app is available.",
+    "reload": "Reload",
+    "dismiss": "Later"
   }
 }

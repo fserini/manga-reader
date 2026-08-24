@@ -16,7 +16,10 @@ export default defineConfig({
     react(),
     basicSsl(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt' (non 'autoUpdate'): quando c'è una nuova versione, il nuovo
+      // service worker resta in attesa finché non è l'utente a confermare —
+      // vedi UpdatePrompt.jsx — invece di ricaricare la pagina a sua insaputa.
+      registerType: 'prompt',
       devOptions: {
         enabled: true,
       },

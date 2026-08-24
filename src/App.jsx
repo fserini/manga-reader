@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import Library from './pages/Library.jsx';
 import Reader from './pages/Reader.jsx';
 import Settings from './pages/Settings.jsx';
+import UpdatePrompt from './components/UpdatePrompt.jsx';
 import './App.css';
 
 const NAV_LINKS = [
@@ -32,6 +33,8 @@ function App() {
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </main>
+
+      <UpdatePrompt />
     </div>
   );
 }
