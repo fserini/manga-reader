@@ -89,7 +89,7 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 17 — Tema chiaro/scuro
 - [x] Fase 18 — Internazionalizzazione (i18n)
 - [x] Fase 19 — Aggiornamenti PWA
-- [ ] Fase 20 — Deploy pubblico e rifinitura — **prossimo step**
+- [x] Fase 20 — Deploy pubblico e rifinitura
 
 ---
 
