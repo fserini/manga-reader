@@ -48,6 +48,73 @@ function Page({ url, alt, style }) {
   return <img src={url} alt={alt} style={style} />;
 }
 
+// Le 5 icone del pannello controlli — vedi ADR-001. Un gruppo di icone invece
+// di tab testuali: un controllo futuro è un'icona in più da aggiungere qui,
+// non un gruppo da ridisegnare.
+const ICON_PROPS = {
+  width: 16,
+  height: 16,
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.8,
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+  'aria-hidden': true,
+};
+
+function IconSingle() {
+  return (
+    <svg {...ICON_PROPS}>
+      <rect x="7" y="3" width="10" height="18" rx="1.4" />
+    </svg>
+  );
+}
+
+function IconSpread() {
+  return (
+    <svg {...ICON_PROPS}>
+      <rect x="2.5" y="4" width="8.2" height="16" rx="1.2" />
+      <rect x="13.3" y="4" width="8.2" height="16" rx="1.2" />
+    </svg>
+  );
+}
+
+function IconScroll() {
+  return (
+    <svg {...ICON_PROPS}>
+      <rect x="6" y="2.5" width="12" height="19" rx="1.4" />
+      <line x1="8.5" y1="8.5" x2="15.5" y2="8.5" />
+      <line x1="8.5" y1="15.5" x2="15.5" y2="15.5" />
+    </svg>
+  );
+}
+
+function IconDirection() {
+  return (
+    <svg {...ICON_PROPS}>
+      <line x1="6" y1="8" x2="19" y2="8" />
+      <polyline points="9.5 4.5 6 8 9.5 11.5" />
+      <line x1="5" y1="16" x2="18" y2="16" />
+      <polyline points="14.5 12.5 18 16 14.5 19.5" />
+    </svg>
+  );
+}
+
+function IconBookmark({ filled }) {
+  return (
+    <svg {...ICON_PROPS} fill={filled ? 'currentColor' : 'none'}>
+      <path d="M7 3h10a1 1 0 0 1 1 1v16l-6-4.2L6 20V4a1 1 0 0 1 1-1z" />
+    </svg>
+  );
+}
+
+const MODE_ICONS = {
+  single: IconSingle,
+  spread: IconSpread,
+  scroll: IconScroll,
+};
+
 function Reader() {
   const { t } = useTranslation();
   const { chapterId } = useParams();
@@ -207,8 +274,6 @@ function Reader() {
   }
 
   const step = mode === 'spread' ? 2 : 1;
-  const isFirstPage = currentIndex === 0;
-  const isLastPage = currentIndex >= pages.length - 1;
 
   function clampIndex(index) {
     return clamp(index, 0, pages.length - 1);
@@ -341,57 +406,22 @@ function Reader() {
     onTouchEnd: handleTouchEnd,
   };
   const zoomStyle = zoomScale !== 1 ? { transform: `scale(${zoomScale})` } : undefined;
+  const progressPercent = pages.length > 0 ? Math.round(((currentIndex + 1) / pages.length) * 100) : 0;
+  const pageCounterLabel = `${currentIndex + 1}${
+    mode === 'spread' && secondPageOfSpread !== undefined ? `-${currentIndex + 2}` : ''
+  } / ${pages.length}`;
 
   return (
     <div className="reader">
-      {interfaceVisible && (
-        <div className="reader-toolbar">
-          {!chapterId && (
-            <label className="reader-file-input">
-              <input type="file" accept=".cbz,.cbr" onChange={handleFileChange} />
-              {t('reader.chooseFile')}
-            </label>
-          )}
-
-          {pages.length > 0 && (
-            <div className="mode-selector" role="group" aria-label={t('reader.modeGroupAria')}>
-              {READING_MODES.map(({ value, key }) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={mode === value ? 'active' : ''}
-                  onClick={() => handleModeChange(value)}
-                >
-                  {t(key)}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {pages.length > 0 && (
-            <button type="button" className="direction-toggle" onClick={toggleReadingDirection}>
-              {readingDirection === 'rtl' ? t('reader.directionRtl') : t('reader.directionLtr')}
-            </button>
-          )}
-
-          {chapterId && pages.length > 0 && (
-            <button
-              type="button"
-              className="bookmark-toggle"
-              aria-pressed={manualBookmarkPage === currentIndex}
-              onClick={toggleManualBookmark}
-              title={t('reader.bookmarkTitle')}
-            >
-              {manualBookmarkPage === currentIndex ? t('reader.bookmarkSet') : t('reader.bookmarkAdd')}
-            </button>
-          )}
-
-          {chapterId && manualBookmarkPage != null && manualBookmarkPage !== currentIndex && (
-            <button type="button" className="bookmark-goto" onClick={goToBookmark}>
-              {t('reader.gotoBookmark', { page: manualBookmarkPage + 1 })}
-            </button>
-          )}
-        </div>
+      {/* Il file input resta un caso a sé: esiste solo prima che qualunque
+          pagina sia caricata (apertura diretta del Lettore, non da un
+          capitolo di libreria), quindi non condivide lo spazio con i
+          controlli di lettura veri e propri. */}
+      {!chapterId && pages.length === 0 && (
+        <label className="reader-file-input">
+          <input type="file" accept=".cbz,.cbr" onChange={handleFileChange} />
+          {t('reader.chooseFile')}
+        </label>
       )}
 
       {error && (
@@ -445,18 +475,74 @@ function Reader() {
         </div>
       )}
 
-      {interfaceVisible && pages.length > 0 && mode !== 'scroll' && (
-        <div className="reader-nav">
-          <button type="button" onClick={goToPrevious} disabled={isFirstPage}>
-            {t('reader.previous')}
-          </button>
-          <span>
-            {currentIndex + 1}
-            {mode === 'spread' && secondPageOfSpread !== undefined ? `-${currentIndex + 2}` : ''} / {pages.length}
-          </span>
-          <button type="button" onClick={goToNext} disabled={isLastPage}>
-            {t('reader.next')}
-          </button>
+      {/* Filo di avanzamento: sempre visibile quando ci sono pagine, a
+          differenza del vecchio contatore testuale che spariva insieme al
+          resto dell'interfaccia — qui l'obiettivo è sapere sempre "a che
+          punto sono" senza dover richiamare i controlli. */}
+      {pages.length > 0 && (
+        <div className="reader-progress">
+          {chapterId && manualBookmarkPage != null && manualBookmarkPage !== currentIndex && (
+            <button
+              type="button"
+              className="reader-progress-bookmark"
+              onClick={goToBookmark}
+              aria-label={t('reader.gotoBookmark', { page: manualBookmarkPage + 1 })}
+            >
+              <IconBookmark filled />
+              <span>{manualBookmarkPage + 1}</span>
+            </button>
+          )}
+          <span className="reader-progress-count">{pageCounterLabel}</span>
+          <div className="reader-progress-bar" aria-hidden="true">
+            <div className="reader-progress-fill" style={{ width: `${progressPercent}%` }} />
+          </div>
+        </div>
+      )}
+
+      {interfaceVisible && pages.length > 0 && (
+        <div className="reader-controls">
+          <div className="reader-controls-group" role="group" aria-label={t('reader.modeGroupAria')}>
+            {READING_MODES.map(({ value, key }) => {
+              const Icon = MODE_ICONS[value];
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  className={mode === value ? 'active' : ''}
+                  aria-pressed={mode === value}
+                  aria-label={t(key)}
+                  onClick={() => handleModeChange(value)}
+                >
+                  <Icon />
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="reader-controls-divider" />
+
+          <div className="reader-controls-group reader-controls-group--actions">
+            <button
+              type="button"
+              onClick={toggleReadingDirection}
+              aria-label={readingDirection === 'rtl' ? t('reader.directionRtl') : t('reader.directionLtr')}
+              title={readingDirection === 'rtl' ? t('reader.directionRtl') : t('reader.directionLtr')}
+            >
+              <IconDirection />
+            </button>
+            {chapterId && (
+              <button
+                type="button"
+                className={manualBookmarkPage === currentIndex ? 'active' : ''}
+                aria-pressed={manualBookmarkPage === currentIndex}
+                aria-label={manualBookmarkPage === currentIndex ? t('reader.bookmarkSet') : t('reader.bookmarkAdd')}
+                title={t('reader.bookmarkTitle')}
+                onClick={toggleManualBookmark}
+              >
+                <IconBookmark filled={manualBookmarkPage === currentIndex} />
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>

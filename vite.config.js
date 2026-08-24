@@ -46,8 +46,8 @@ export default defineConfig(({ command }) => {
           display: 'standalone',
           start_url: base,
           scope: base,
-          theme_color: '#121212',
-          background_color: '#121212',
+          theme_color: '#050505',
+          background_color: '#050505',
           icons: [
             {
               src: 'pwa-64x64.png',

@@ -4,11 +4,11 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import it from './locales/it.json';
 import en from './locales/en.json';
 
-// languageDetector si occupa da solo di due cose che, per il tema (vedi
-// ThemeContext), avevamo scritto a mano: leggere la preferenza salvata (qui
-// da localStorage, chiave "i18nextLng") e, in sua assenza, dedurne una
-// ragionevole dal browser (navigator.language) — con ordine e chiave
-// configurabili in "detection" qui sotto.
+// languageDetector si occupa da solo di due cose che altrove nel progetto
+// scriviamo a mano quando serve una preferenza persistente: leggere la
+// preferenza salvata (qui da localStorage, chiave "i18nextLng") e, in sua
+// assenza, dedurne una ragionevole dal browser (navigator.language) — con
+// ordine e chiave configurabili in "detection" qui sotto.
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)

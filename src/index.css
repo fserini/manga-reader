@@ -1,54 +1,30 @@
 :root {
-  --bg: #ffffff;
-  --surface: #f4f4f5;
-  --surface-hover: rgba(0, 0, 0, 0.05);
-  --text: #1f2023;
-  --text-muted: #6b6b70;
-  --border: #e4e4e7;
-  --accent: #f5a623;
-  --accent-contrast: #121212;
-  --danger: #dc2626;
-  --danger-bg: rgba(220, 38, 38, 0.1);
+  /* Yomihon — vedi docs/decisions/ADR-001-restyling-visivo-yomihon.md.
+     Un solo aspetto, deliberatamente scuro: nessuna variante chiara, nessuno
+     switch — vedi la stessa nota nell'ADR sul perché. */
+  --bg: #050505;
+  --surface: #161411;
+  --surface-hover: rgba(255, 255, 255, 0.06);
+  --text: #ece6d8;
+  --text-muted: #8a8477;
+  --border: #262420;
+  --accent: #5fb4de;
+  --accent-contrast: #05141a;
+  --danger: #d9584f;
+  --danger-bg: rgba(217, 88, 79, 0.14);
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --sans: 'Work Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --display: 'Shippori Mincho', serif;
+  --mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
 
   font: 16px/1.5 var(--sans);
-  color-scheme: light dark;
+  color-scheme: dark;
   color: var(--text);
   background: var(--bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-/*
-  Il tema scuro si applica in due casi, tenuti volutamente separati:
-  1. il sistema preferisce il buio E l'utente non ha forzato "chiaro"
-     (:not([data-theme="light"]) lascia passare sia l'assenza di scelta,
-     tema "sistema", sia una scelta esplicita "scuro");
-  2. l'utente ha scelto esplicitamente "scuro", indipendentemente dal sistema
-     (ripete le stesse variabili fuori dalla media query, così vince anche
-     quando il sistema preferisce il chiaro).
-*/
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --bg: #121212;
-    --surface: #1e1e1e;
-    --surface-hover: rgba(255, 255, 255, 0.08);
-    --text: #e5e5e5;
-    --text-muted: #9a9a9f;
-    --border: #2e2e33;
-  }
-}
-
-:root[data-theme='dark'] {
-  --bg: #121212;
-  --surface: #1e1e1e;
-  --surface-hover: rgba(255, 255, 255, 0.08);
-  --text: #e5e5e5;
-  --text-muted: #9a9a9f;
-  --border: #2e2e33;
 }
 
 * {
@@ -67,10 +43,32 @@ body {
 
 h1,
 h2 {
-  font-weight: 600;
+  font-family: var(--display);
+  font-weight: 700;
   margin: 0;
 }
 
 p {
   margin: 0;
+}
+
+/* Intestazione di pagina con un piccolo "eyebrow" in giapponese davanti al
+   titolo (蔵書 Catalogo, 設定 Impostazioni...) — un dettaglio ricorrente
+   della direzione Yomihon, usato con parsimonia solo sui titoli di sezione
+   principali, non su ogni etichetta dell'interfaccia. */
+.page-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.page-eyebrow {
+  font-family: var(--display);
+  color: var(--accent);
+  font-size: 18px;
+}
+
+.page-heading h1 {
+  margin-bottom: 0;
 }

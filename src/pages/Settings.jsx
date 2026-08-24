@@ -1,14 +1,7 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { exportBackup, restoreBackup } from '../db.js';
-import { useTheme } from '../ThemeContext.jsx';
 import './Settings.css';
-
-const THEME_OPTIONS = [
-  { value: 'light', key: 'settings.theme.light' },
-  { value: 'dark', key: 'settings.theme.dark' },
-  { value: 'system', key: 'settings.theme.system' },
-];
 
 // Le lingue supportate, come i18n.js: qui non serve dedurre nulla, solo
 // offrire una scelta e passarla a i18n.changeLanguage.
@@ -19,7 +12,6 @@ const LANGUAGE_OPTIONS = [
 
 function Settings() {
   const { t, i18n } = useTranslation();
-  const { theme, setTheme } = useTheme();
   const fileInputRef = useRef(null);
 
   const [busy, setBusy] = useState(false);
@@ -88,40 +80,23 @@ function Settings() {
 
   return (
     <div className="page">
-      <h1>{t('settings.title')}</h1>
-
-      <section className="settings-section" aria-labelledby="theme-heading">
-        <h2 id="theme-heading">{t('settings.appearanceHeading')}</h2>
-        <p className="settings-hint">{t('settings.appearanceHint')}</p>
-
-        <div className="settings-theme-options" role="radiogroup" aria-labelledby="theme-heading">
-          {THEME_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              role="radio"
-              aria-checked={theme === option.value}
-              className={theme === option.value ? 'settings-theme-active' : ''}
-              onClick={() => setTheme(option.value)}
-            >
-              {t(option.key)}
-            </button>
-          ))}
-        </div>
-      </section>
+      <div className="page-heading">
+        <span className="page-eyebrow" aria-hidden="true">設定</span>
+        <h1>{t('settings.title')}</h1>
+      </div>
 
       <section className="settings-section" aria-labelledby="language-heading">
         <h2 id="language-heading">{t('settings.languageHeading')}</h2>
         <p className="settings-hint">{t('settings.languageHint')}</p>
 
-        <div className="settings-theme-options" role="radiogroup" aria-labelledby="language-heading">
+        <div className="settings-pill-options" role="radiogroup" aria-labelledby="language-heading">
           {LANGUAGE_OPTIONS.map((option) => (
             <button
               key={option.value}
               type="button"
               role="radio"
               aria-checked={i18n.resolvedLanguage === option.value}
-              className={i18n.resolvedLanguage === option.value ? 'settings-theme-active' : ''}
+              className={i18n.resolvedLanguage === option.value ? 'settings-pill-active' : ''}
               onClick={() => i18n.changeLanguage(option.value)}
             >
               {t(option.key)}
