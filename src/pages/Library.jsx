@@ -3,7 +3,8 @@ import {
   getUncategorizedChapters,
   getChapterCount,
   importChapter,
-  chapterExistsByFileName,
+  getChapterByFileName,
+  setChapterHandle,
 } from '../db.js';
 import {
   isFileSystemAccessSupported,
@@ -57,13 +58,19 @@ function Library() {
   }, [refresh]);
 
   // Prende un elenco di handle (da file o cartella), scarta i non-archivio,
-  // blocca i duplicati (stesso nome file già in libreria), scarta gli
-  // archivi corrotti o senza immagini e importa il resto. La validazione
+  // blocca i duplicati (stesso nome file già collegato a un handle), scarta
+  // gli archivi corrotti o senza immagini e importa il resto. La validazione
   // apre il file (senza estrarne le pagine, vedi isValidArchive) solo dopo
   // aver già escluso estensione sbagliata e duplicati — non ha senso pagare
   // il costo dell'apertura per un file che verrebbe comunque scartato.
+  //
+  // Un capitolo con lo stesso nome file può già esistere ma SENZA handle: è
+  // il caso di un capitolo ripristinato da un backup (Fase 16), il cui
+  // riferimento al file fisico non è mai esportabile. Invece di scartarlo
+  // come duplicato, lo si ricollega aggiornando solo il suo handle.
   async function importHandles(handles) {
     let imported = 0;
+    let relinked = 0;
     let duplicates = 0;
     let ignored = 0;
     let corrupted = 0;
@@ -73,7 +80,9 @@ function Library() {
         ignored += 1;
         continue;
       }
-      if (await chapterExistsByFileName(handle.name)) {
+
+      const existing = await getChapterByFileName(handle.name);
+      if (existing && existing.handle) {
         duplicates += 1;
         continue;
       }
@@ -84,12 +93,18 @@ function Library() {
         continue;
       }
 
+      if (existing) {
+        await setChapterHandle(existing.id, handle);
+        relinked += 1;
+        continue;
+      }
+
       await importChapter({ fileName: handle.name, handle });
       imported += 1;
     }
 
     await refresh();
-    setResult({ imported, duplicates, ignored, corrupted });
+    setResult({ imported, relinked, duplicates, ignored, corrupted });
   }
 
   async function runPicker(picker) {
@@ -114,6 +129,13 @@ function Library() {
           {error}
         </p>
       )}
+      {result?.relinked > 0 && (
+        <p className="library-notice" role="status">
+          🔗 {result.relinked === 1
+            ? '1 capitolo era in libreria senza il file collegato (es. da un backup ripristinato) ed è stato ricollegato.'
+            : `${result.relinked} capitoli erano in libreria senza il file collegato (es. da un backup ripristinato) e sono stati ricollegati.`}
+        </p>
+      )}
       {result?.duplicates > 0 && (
         <p className="library-notice" role="status">
           ⚠ {result.duplicates === 1
@@ -130,8 +152,8 @@ function Library() {
       )}
       {result && (
         <p className="library-feedback">
-          Importati: {result.imported} · Duplicati saltati: {result.duplicates} · Corrotti saltati:{' '}
-          {result.corrupted} · Ignorati: {result.ignored}
+          Importati: {result.imported} · Ricollegati: {result.relinked} · Duplicati saltati:{' '}
+          {result.duplicates} · Corrotti saltati: {result.corrupted} · Ignorati: {result.ignored}
         </p>
       )}
     </>
