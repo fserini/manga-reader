@@ -39,7 +39,7 @@ export async function addSeries(title) {
 }
 
 export async function addVolume(seriesId, number) {
-  return db.volumes.add({ seriesId, number });
+  return db.volumes.add({ seriesId, number, favorite: false });
 }
 
 export async function addChapter({ fileName, number, seriesId = null, volumeId = null }) {
@@ -49,6 +49,7 @@ export async function addChapter({ fileName, number, seriesId = null, volumeId =
     seriesId,
     volumeId,
     categorized: seriesId != null,
+    favorite: false,
     importedAt: Date.now(),
   });
 }
@@ -65,6 +66,7 @@ export async function importChapter({ fileName, handle }) {
     seriesId: null,
     volumeId: null,
     categorized: false,
+    favorite: false,
     importedAt: Date.now(),
   });
 }
@@ -182,8 +184,51 @@ export async function removeSeries(seriesId) {
   await db.series.delete(seriesId);
 }
 
-export async function toggleFavorite(seriesId, favorite) {
-  return db.series.update(seriesId, { favorite });
+// --- Preferiti ---
+//
+// Un "vero" toggle: legge lo stato attuale e lo inverte, così chi chiama non
+// deve tenere traccia del valore corrente. Un livello per tabella, stesso
+// schema per tutte e tre.
+
+export async function toggleSeriesFavorite(seriesId) {
+  const series = await db.series.get(seriesId);
+  if (!series) return;
+  await db.series.update(seriesId, { favorite: !series.favorite });
+}
+
+export async function toggleVolumeFavorite(volumeId) {
+  const volume = await db.volumes.get(volumeId);
+  if (!volume) return;
+  await db.volumes.update(volumeId, { favorite: !volume.favorite });
+}
+
+export async function toggleChapterFavorite(chapterId) {
+  const chapter = await db.chapters.get(chapterId);
+  if (!chapter) return;
+  await db.chapters.update(chapterId, { favorite: !chapter.favorite });
+}
+
+export async function getFavoriteSeries() {
+  const series = await db.series.filter((item) => Boolean(item.favorite)).toArray();
+  return series.sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
+}
+
+// Volumi preferiti, arricchiti col titolo della loro serie (altrimenti "Volume
+// 3" da solo non direbbe di quale manga si tratta).
+export async function getFavoriteVolumes() {
+  const volumes = await db.volumes.filter((item) => Boolean(item.favorite)).toArray();
+  return Promise.all(
+    volumes.map(async (volume) => {
+      const series = volume.seriesId != null ? await db.series.get(volume.seriesId) : null;
+      return { ...volume, seriesTitle: series?.title ?? null };
+    }),
+  );
+}
+
+export async function getFavoriteChapters() {
+  const chapters = await db.chapters.filter((item) => Boolean(item.favorite)).toArray();
+  const enriched = await Promise.all(chapters.map((chapter) => enrichChapter(chapter)));
+  return enriched.filter(Boolean);
 }
 
 export async function getReadingProgress(chapterId) {
@@ -229,28 +274,39 @@ export async function getReadingProgressMap(chapterIds) {
   return map;
 }
 
-// Arricchisce le righe di progresso con i dati del capitolo/serie/volume, per
-// mostrarle nelle sezioni "in corso" e "ultimi letti" della Libreria. Salta i
-// progressi il cui capitolo non esiste più.
+// Arricchisce un capitolo con titolo della serie e numero di volume: usata
+// ovunque serve mostrare un capitolo "fuori contesto" (fuori dal catalogo
+// gerarchico), come nelle sezioni di lettura e nei preferiti. Restituisce
+// null se il capitolo non esiste più (riferimento nel frattempo rimosso).
+async function enrichChapter(chapter, extra = {}) {
+  if (!chapter) return null;
+  const [series, volume] = await Promise.all([
+    chapter.seriesId != null ? db.series.get(chapter.seriesId) : null,
+    chapter.volumeId != null ? db.volumes.get(chapter.volumeId) : null,
+  ]);
+  return {
+    chapterId: chapter.id,
+    chapterNumber: chapter.number,
+    seriesTitle: series?.title ?? null,
+    volumeNumber: volume?.number ?? null,
+    thumbnail: chapter.thumbnail ?? null,
+    handle: chapter.handle ?? null,
+    favorite: Boolean(chapter.favorite),
+    ...extra,
+  };
+}
+
+// Arricchisce le righe di progresso, per mostrarle nelle sezioni "in corso" e
+// "ultimi letti" della Libreria. Salta i progressi il cui capitolo non esiste
+// più.
 async function enrichProgressRows(rows) {
   const items = await Promise.all(
     rows.map(async (progress) => {
       const chapter = await db.chapters.get(progress.chapterId);
-      if (!chapter) return null;
-      const [series, volume] = await Promise.all([
-        chapter.seriesId != null ? db.series.get(chapter.seriesId) : null,
-        chapter.volumeId != null ? db.volumes.get(chapter.volumeId) : null,
-      ]);
-      return {
-        chapterId: chapter.id,
-        chapterNumber: chapter.number,
-        seriesTitle: series?.title ?? null,
-        volumeNumber: volume?.number ?? null,
-        thumbnail: chapter.thumbnail ?? null,
-        handle: chapter.handle ?? null,
+      return enrichChapter(chapter, {
         lastPageRead: progress.lastPageRead,
         totalPages: progress.totalPages,
-      };
+      });
     }),
   );
   return items.filter(Boolean);
