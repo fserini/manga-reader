@@ -152,9 +152,18 @@
 
 ---
 
+## Fase 22 — Categorizzazione assistita e multipla
+
+> Pianificata, non ancora iniziata — decisa in conversazione dopo il feedback su un import di ~20 capitoli insieme, categorizzabili oggi solo uno alla volta.
+
+- **Categorizzazione singola (dialog esistente)**: Serie/Volume/Numero capitolo pre-compilati analizzando il nome del file (numero capitolo e volume via pattern tipo `c12`/`ch.12`/`v01`; suggerimento di una Serie già esistente in libreria se il nome vi somiglia) — sempre modificabile, mai un riempimento automatico bloccante; se il parsing non trova nulla, i campi restano vuoti come oggi
+- **Selezione multipla**: checkbox sulle righe di "Da categorizzare", barra azioni quando almeno un capitolo è selezionato, assegnazione della Serie in blocco a tutti i selezionati
+- **Interruttore "Stesso volume per tutti i capitoli selezionati"** (attivo di default): se attivo, un solo campo Volume per l'intero batch, poi solo i numeri di capitolo riga per riga (pre-compilati dal nome file); se disattivo, Volume torna modificabile per ogni riga insieme al numero — copre anche i batch che mischiano più volumi
+
+---
+
 ## 🔮 Backlog futuro (fuori roadmap MVP)
 
-- Riconoscimento automatico di pattern nei nomi file (raggruppamento automatico capitoli → volumi)
 - Migrazione a TypeScript
 - Statistiche di lettura
 - Eventuale introduzione di una libreria di gestione stato più avanzata (es. Zustand), se necessario
