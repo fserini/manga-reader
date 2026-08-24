@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   getFavoriteSeries,
   getFavoriteVolumes,
@@ -35,6 +36,7 @@ function ItemCover({ blob }) {
 // lettura). Il componente sta in ascolto di eventuali cambi fatti nel
 // Catalogo tramite la key passata dalla Libreria (vedi Library.jsx).
 function Favorites({ onLibraryChanged }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [series, setSeries] = useState([]);
   const [volumes, setVolumes] = useState([]);
@@ -95,23 +97,23 @@ function Favorites({ onLibraryChanged }) {
   async function openChapter(item) {
     setNotice(null);
     if (!item.handle) {
-      setNotice('File non disponibile.');
+      setNotice(t('favorites.notice.fileUnavailable'));
       return;
     }
     try {
       const granted = await verifyPermission(item.handle, 'read');
       if (!granted) {
-        setNotice('Permesso di accesso al file negato.');
+        setNotice(t('favorites.notice.permissionDenied'));
         return;
       }
       if (!(await fileStillExists(item.handle))) {
-        setNotice('Il file non è più disponibile.');
+        setNotice(t('favorites.notice.fileGone'));
         onLibraryChanged?.();
         return;
       }
       navigate(`/reader/${item.chapterId}`);
     } catch {
-      setNotice('Impossibile accedere al file.');
+      setNotice(t('favorites.notice.accessError'));
     }
   }
 
@@ -127,7 +129,7 @@ function Favorites({ onLibraryChanged }) {
 
       {series.length > 0 && (
         <section aria-labelledby="fav-series-heading">
-          <h2 id="fav-series-heading">Serie preferite</h2>
+          <h2 id="fav-series-heading">{t('favorites.seriesHeading')}</h2>
           <ul className="fav-row">
             {series.map((item) => (
               <li key={item.id}>
@@ -135,7 +137,7 @@ function Favorites({ onLibraryChanged }) {
                   type="button"
                   className="fav-card"
                   onClick={() => unstarSeries(item)}
-                  title="Togli dai preferiti"
+                  title={t('favorites.unstar')}
                 >
                   <ItemCover blob={item.coverThumbnail} />
                   <span className="fav-card-title">{item.title}</span>
@@ -151,7 +153,7 @@ function Favorites({ onLibraryChanged }) {
 
       {volumes.length > 0 && (
         <section aria-labelledby="fav-volumes-heading">
-          <h2 id="fav-volumes-heading">Volumi preferiti</h2>
+          <h2 id="fav-volumes-heading">{t('favorites.volumesHeading')}</h2>
           <ul className="fav-row">
             {volumes.map((item) => (
               <li key={item.id}>
@@ -159,11 +161,12 @@ function Favorites({ onLibraryChanged }) {
                   type="button"
                   className="fav-card"
                   onClick={() => unstarVolume(item)}
-                  title="Togli dai preferiti"
+                  title={t('favorites.unstar')}
                 >
                   <ItemCover blob={item.coverThumbnail} />
                   <span className="fav-card-title">
-                    {item.seriesTitle ? `${item.seriesTitle} · ` : ''}Volume {item.number}
+                    {item.seriesTitle ? `${item.seriesTitle} · ` : ''}
+                    {t('favorites.volumeLabel', { number: item.number })}
                   </span>
                   <span className="fav-star" aria-hidden="true">
                     ★
@@ -177,21 +180,24 @@ function Favorites({ onLibraryChanged }) {
 
       {chapters.length > 0 && (
         <section aria-labelledby="fav-chapters-heading">
-          <h2 id="fav-chapters-heading">Capitoli preferiti</h2>
+          <h2 id="fav-chapters-heading">{t('favorites.chaptersHeading')}</h2>
           <ul className="fav-row">
             {chapters.map((item) => (
               <li key={item.chapterId} className="fav-chapter">
                 <button type="button" className="fav-card" onClick={() => openChapter(item)}>
                   <ItemCover blob={item.thumbnail} />
                   <span className="fav-card-title">
-                    {item.seriesTitle ? `${item.seriesTitle} · ` : ''}Cap {item.chapterNumber}
+                    {item.seriesTitle ? `${item.seriesTitle} · ` : ''}
+                    {t('favorites.chapterLabel', { number: item.chapterNumber })}
                   </span>
-                  {item.volumeNumber != null && <span className="fav-card-sub">Volume {item.volumeNumber}</span>}
+                  {item.volumeNumber != null && (
+                    <span className="fav-card-sub">{t('favorites.volumeSub', { number: item.volumeNumber })}</span>
+                  )}
                 </button>
                 <button
                   type="button"
                   className="fav-unstar"
-                  aria-label="Togli il capitolo dai preferiti"
+                  aria-label={t('favorites.unstarChapter')}
                   onClick={() => unstarChapter(item)}
                 >
                   ★

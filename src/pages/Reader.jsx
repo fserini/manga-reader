@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { extractPageGroups, makeThumbnail } from '../comicFile.js';
 import {
   getChapter,
@@ -16,9 +17,9 @@ const MIN_ZOOM = 1;
 const MAX_ZOOM = 3;
 
 const READING_MODES = [
-  { value: 'single', label: 'Pagina singola' },
-  { value: 'spread', label: 'Doppia pagina' },
-  { value: 'scroll', label: 'Scroll continuo' },
+  { value: 'single', key: 'reader.mode.single' },
+  { value: 'spread', key: 'reader.mode.spread' },
+  { value: 'scroll', key: 'reader.mode.scroll' },
 ];
 
 function clamp(value, min, max) {
@@ -34,11 +35,13 @@ function getTouchDistance(touches) {
 // rilevata durante l'estrazione): non fa fallire la lettura del resto
 // del capitolo, si salta solo quella pagina.
 function Page({ url, alt, style }) {
+  const { t } = useTranslation();
+
   if (!url) {
     return (
       <div className="reader-page-broken">
         <span aria-hidden="true">⚠️</span>
-        <span>{alt}: immagine danneggiata</span>
+        <span>{t('reader.pageBroken', { alt })}</span>
       </div>
     );
   }
@@ -46,6 +49,7 @@ function Page({ url, alt, style }) {
 }
 
 function Reader() {
+  const { t } = useTranslation();
   const { chapterId } = useParams();
 
   const [pageGroups, setPageGroups] = useState([]);
@@ -89,7 +93,7 @@ function Reader() {
       try {
         const groups = await extractPageGroups(file);
         if (groups.length === 0) {
-          setError('Nessuna immagine trovata in questo file.');
+          setError(t('reader.noImagesFound'));
           return;
         }
 
@@ -126,10 +130,10 @@ function Reader() {
         }
       } catch {
         const isCbr = /\.cbr$/i.test(file.name);
-        setError(`Impossibile leggere il file: non sembra un ${isCbr ? 'CBR' : 'CBZ'} valido.`);
+        setError(t('reader.invalidFile', { format: isCbr ? 'CBR' : 'CBZ' }));
       }
     },
-    [revokeCurrentUrls],
+    [revokeCurrentUrls, t],
   );
 
   // Apertura di un capitolo dalla Libreria (rotta /reader/:chapterId). Il
@@ -144,14 +148,14 @@ function Reader() {
         const chapter = await getChapter(Number(chapterId));
         if (cancelled) return;
         if (!chapter || !chapter.handle) {
-          setError('Capitolo non trovato in libreria.');
+          setError(t('reader.chapterNotFound'));
           return;
         }
 
         const granted = (await chapter.handle.queryPermission({ mode: 'read' })) === 'granted';
         if (cancelled) return;
         if (!granted) {
-          setError('Permesso di accesso al file non concesso. Torna alla libreria e tocca di nuovo il capitolo.');
+          setError(t('reader.permissionNotGranted'));
           return;
         }
 
@@ -160,7 +164,7 @@ function Reader() {
         await openFile(file, chapter.id);
       } catch {
         if (!cancelled) {
-          setError('Impossibile aprire il capitolo: il file potrebbe essere stato spostato o eliminato.');
+          setError(t('reader.chapterOpenError'));
         }
       }
     })();
@@ -168,7 +172,7 @@ function Reader() {
     return () => {
       cancelled = true;
     };
-  }, [chapterId, openFile]);
+  }, [chapterId, openFile, t]);
 
   // Alla chiusura del Lettore, libera gli URL oggetto rimasti.
   useEffect(() => revokeCurrentUrls, [revokeCurrentUrls]);
@@ -345,20 +349,20 @@ function Reader() {
           {!chapterId && (
             <label className="reader-file-input">
               <input type="file" accept=".cbz,.cbr" onChange={handleFileChange} />
-              Scegli file
+              {t('reader.chooseFile')}
             </label>
           )}
 
           {pages.length > 0 && (
-            <div className="mode-selector" role="group" aria-label="Modalità di lettura">
-              {READING_MODES.map(({ value, label }) => (
+            <div className="mode-selector" role="group" aria-label={t('reader.modeGroupAria')}>
+              {READING_MODES.map(({ value, key }) => (
                 <button
                   key={value}
                   type="button"
                   className={mode === value ? 'active' : ''}
                   onClick={() => handleModeChange(value)}
                 >
-                  {label}
+                  {t(key)}
                 </button>
               ))}
             </div>
@@ -366,7 +370,7 @@ function Reader() {
 
           {pages.length > 0 && (
             <button type="button" className="direction-toggle" onClick={toggleReadingDirection}>
-              {readingDirection === 'rtl' ? 'Lettura: giapponese (dx→sx)' : 'Lettura: occidentale (sx→dx)'}
+              {readingDirection === 'rtl' ? t('reader.directionRtl') : t('reader.directionLtr')}
             </button>
           )}
 
@@ -376,15 +380,15 @@ function Reader() {
               className="bookmark-toggle"
               aria-pressed={manualBookmarkPage === currentIndex}
               onClick={toggleManualBookmark}
-              title="Segnalibro su questa pagina"
+              title={t('reader.bookmarkTitle')}
             >
-              {manualBookmarkPage === currentIndex ? '🔖 Segnalibro' : '🏷️ Segna pagina'}
+              {manualBookmarkPage === currentIndex ? t('reader.bookmarkSet') : t('reader.bookmarkAdd')}
             </button>
           )}
 
           {chapterId && manualBookmarkPage != null && manualBookmarkPage !== currentIndex && (
             <button type="button" className="bookmark-goto" onClick={goToBookmark}>
-              Vai al segnalibro (pag. {manualBookmarkPage + 1})
+              {t('reader.gotoBookmark', { page: manualBookmarkPage + 1 })}
             </button>
           )}
         </div>
@@ -398,7 +402,7 @@ function Reader() {
 
       {pages.length === 0 && !error && (
         <div className="reader-empty">
-          <p>{chapterId ? 'Caricamento del capitolo…' : 'Scegli un file CBZ o CBR per iniziare a leggere.'}</p>
+          <p>{chapterId ? t('reader.loadingChapter') : t('reader.chooseFileToStart')}</p>
         </div>
       )}
 
@@ -410,14 +414,14 @@ function Reader() {
           onClick={handlePagesClick}
         >
           {pages.map((pageUrl, index) => (
-            <Page key={pageUrl ?? `broken-${index}`} url={pageUrl} alt={`Pagina ${index + 1}`} />
+            <Page key={pageUrl ?? `broken-${index}`} url={pageUrl} alt={t('reader.pageAlt', { number: index + 1 })} />
           ))}
         </div>
       )}
 
       {pages.length > 0 && mode === 'single' && (
         <div className="reader-pages reader-pages--single" {...pagesInteractionProps}>
-          <Page url={pages[currentIndex]} alt={`Pagina ${currentIndex + 1}`} style={zoomStyle} />
+          <Page url={pages[currentIndex]} alt={t('reader.pageAlt', { number: currentIndex + 1 })} style={zoomStyle} />
         </div>
       )}
 
@@ -426,15 +430,15 @@ function Reader() {
           {readingDirection === 'rtl' ? (
             <>
               {secondPageOfSpread !== undefined && (
-                <Page url={secondPageOfSpread} alt={`Pagina ${currentIndex + 2}`} style={zoomStyle} />
+                <Page url={secondPageOfSpread} alt={t('reader.pageAlt', { number: currentIndex + 2 })} style={zoomStyle} />
               )}
-              <Page url={pages[currentIndex]} alt={`Pagina ${currentIndex + 1}`} style={zoomStyle} />
+              <Page url={pages[currentIndex]} alt={t('reader.pageAlt', { number: currentIndex + 1 })} style={zoomStyle} />
             </>
           ) : (
             <>
-              <Page url={pages[currentIndex]} alt={`Pagina ${currentIndex + 1}`} style={zoomStyle} />
+              <Page url={pages[currentIndex]} alt={t('reader.pageAlt', { number: currentIndex + 1 })} style={zoomStyle} />
               {secondPageOfSpread !== undefined && (
-                <Page url={secondPageOfSpread} alt={`Pagina ${currentIndex + 2}`} style={zoomStyle} />
+                <Page url={secondPageOfSpread} alt={t('reader.pageAlt', { number: currentIndex + 2 })} style={zoomStyle} />
               )}
             </>
           )}
@@ -444,14 +448,14 @@ function Reader() {
       {interfaceVisible && pages.length > 0 && mode !== 'scroll' && (
         <div className="reader-nav">
           <button type="button" onClick={goToPrevious} disabled={isFirstPage}>
-            ‹ Precedente
+            {t('reader.previous')}
           </button>
           <span>
             {currentIndex + 1}
             {mode === 'spread' && secondPageOfSpread !== undefined ? `-${currentIndex + 2}` : ''} / {pages.length}
           </span>
           <button type="button" onClick={goToNext} disabled={isLastPage}>
-            Successiva ›
+            {t('reader.next')}
           </button>
         </div>
       )}

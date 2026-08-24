@@ -1,15 +1,24 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { exportBackup, restoreBackup } from '../db.js';
 import { useTheme } from '../ThemeContext.jsx';
 import './Settings.css';
 
 const THEME_OPTIONS = [
-  { value: 'light', label: 'Chiaro' },
-  { value: 'dark', label: 'Scuro' },
-  { value: 'system', label: 'Sistema' },
+  { value: 'light', key: 'settings.theme.light' },
+  { value: 'dark', key: 'settings.theme.dark' },
+  { value: 'system', key: 'settings.theme.system' },
+];
+
+// Le lingue supportate, come i18n.js: qui non serve dedurre nulla, solo
+// offrire una scelta e passarla a i18n.changeLanguage.
+const LANGUAGE_OPTIONS = [
+  { value: 'it', key: 'settings.language.it' },
+  { value: 'en', key: 'settings.language.en' },
 ];
 
 function Settings() {
+  const { t, i18n } = useTranslation();
   const { theme, setTheme } = useTheme();
   const fileInputRef = useRef(null);
 
@@ -34,9 +43,9 @@ function Settings() {
       link.download = `manga-reader-backup-${new Date().toISOString().slice(0, 10)}.json`;
       link.click();
       URL.revokeObjectURL(url);
-      setMessage('Backup esportato.');
+      setMessage(t('settings.exportSuccess'));
     } catch {
-      setError('Esportazione non riuscita.');
+      setError(t('settings.exportError'));
     } finally {
       setBusy(false);
     }
@@ -55,12 +64,12 @@ function Settings() {
     try {
       const backup = JSON.parse(await file.text());
       if (!backup || !Array.isArray(backup.series)) {
-        setError('Il file scelto non è un backup valido.');
+        setError(t('settings.invalidBackupFile'));
         return;
       }
       setPendingBackup(backup);
     } catch {
-      setError('Impossibile leggere il file: non è un backup JSON valido.');
+      setError(t('settings.unreadableBackupFile'));
     }
   }
 
@@ -69,11 +78,9 @@ function Settings() {
     try {
       await restoreBackup(pendingBackup);
       setPendingBackup(null);
-      setMessage(
-        'Libreria ripristinata. I capitoli non sono ancora leggibili: reimporta gli stessi file dalla Libreria per ricollegarli (verranno riconosciuti automaticamente, non duplicati).',
-      );
+      setMessage(t('settings.restoreSuccess'));
     } catch {
-      setError('Ripristino non riuscito.');
+      setError(t('settings.restoreError'));
     } finally {
       setBusy(false);
     }
@@ -81,11 +88,11 @@ function Settings() {
 
   return (
     <div className="page">
-      <h1>Impostazioni</h1>
+      <h1>{t('settings.title')}</h1>
 
       <section className="settings-section" aria-labelledby="theme-heading">
-        <h2 id="theme-heading">Aspetto</h2>
-        <p className="settings-hint">Scegli il tema dell&apos;app, oppure segui l&apos;impostazione del sistema.</p>
+        <h2 id="theme-heading">{t('settings.appearanceHeading')}</h2>
+        <p className="settings-hint">{t('settings.appearanceHint')}</p>
 
         <div className="settings-theme-options" role="radiogroup" aria-labelledby="theme-heading">
           {THEME_OPTIONS.map((option) => (
@@ -97,25 +104,42 @@ function Settings() {
               className={theme === option.value ? 'settings-theme-active' : ''}
               onClick={() => setTheme(option.value)}
             >
-              {option.label}
+              {t(option.key)}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="settings-section" aria-labelledby="language-heading">
+        <h2 id="language-heading">{t('settings.languageHeading')}</h2>
+        <p className="settings-hint">{t('settings.languageHint')}</p>
+
+        <div className="settings-theme-options" role="radiogroup" aria-labelledby="language-heading">
+          {LANGUAGE_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="radio"
+              aria-checked={i18n.resolvedLanguage === option.value}
+              className={i18n.resolvedLanguage === option.value ? 'settings-theme-active' : ''}
+              onClick={() => i18n.changeLanguage(option.value)}
+            >
+              {t(option.key)}
             </button>
           ))}
         </div>
       </section>
 
       <section className="settings-section" aria-labelledby="backup-heading">
-        <h2 id="backup-heading">Backup e ripristino</h2>
-        <p className="settings-hint">
-          Esporta l&apos;intera libreria (serie, volumi, capitoli, progressi di lettura, preferiti)
-          in un file da conservare o trasferire su un altro dispositivo.
-        </p>
+        <h2 id="backup-heading">{t('settings.backupHeading')}</h2>
+        <p className="settings-hint">{t('settings.backupHint')}</p>
 
         <div className="settings-actions">
           <button type="button" onClick={handleExport} disabled={busy}>
-            Esporta backup
+            {t('settings.exportButton')}
           </button>
           <button type="button" onClick={() => fileInputRef.current?.click()} disabled={busy}>
-            Importa backup
+            {t('settings.importButton')}
           </button>
           <input
             ref={fileInputRef}
@@ -141,22 +165,15 @@ function Settings() {
       {pendingBackup && (
         <div className="settings-overlay" role="dialog" aria-modal="true" aria-labelledby="restore-title">
           <div className="settings-dialog">
-            <h2 id="restore-title">Ripristinare questo backup?</h2>
-            <p>
-              La libreria attuale (serie, volumi, capitoli, progressi, preferiti) verrà sostituita
-              interamente con quella del file scelto. L&apos;operazione non si può annullare.
-            </p>
-            <p className="settings-hint">
-              I capitoli ripristinati non saranno subito leggibili: gli handle ai file fisici non
-              sono mai esportabili (sono legati a questo browser/dispositivo). Vanno ricollegati
-              re-importando gli stessi file dopo il ripristino.
-            </p>
+            <h2 id="restore-title">{t('settings.restoreTitle')}</h2>
+            <p>{t('settings.restoreWarning')}</p>
+            <p className="settings-hint">{t('settings.restoreHandleHint')}</p>
             <div className="settings-dialog-actions">
               <button type="button" onClick={() => setPendingBackup(null)} disabled={busy}>
-                Annulla
+                {t('settings.cancel')}
               </button>
               <button type="button" className="settings-danger" onClick={confirmRestore} disabled={busy}>
-                {busy ? 'Ripristino…' : 'Ripristina (sostituisci tutto)'}
+                {busy ? t('settings.restoring') : t('settings.restoreConfirm')}
               </button>
             </div>
           </div>

@@ -1,22 +1,25 @@
 import { Routes, Route, NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Library from './pages/Library.jsx';
 import Reader from './pages/Reader.jsx';
 import Settings from './pages/Settings.jsx';
 import './App.css';
 
 const NAV_LINKS = [
-  { to: '/', label: 'Libreria', end: true },
-  { to: '/reader', label: 'Lettore' },
-  { to: '/settings', label: 'Impostazioni' },
+  { to: '/', key: 'nav.library', end: true },
+  { to: '/reader', key: 'nav.reader' },
+  { to: '/settings', key: 'nav.settings' },
 ];
 
 function App() {
+  const { t } = useTranslation();
+
   return (
     <div className="app">
       <nav className="app-nav">
-        {NAV_LINKS.map(({ to, label, end }) => (
+        {NAV_LINKS.map(({ to, key, end }) => (
           <NavLink key={to} to={to} end={end} className={({ isActive }) => (isActive ? 'active' : '')}>
-            {label}
+            {t(key)}
           </NavLink>
         ))}
       </nav>

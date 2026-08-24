@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getInProgressChapters, getRecentlyReadChapters } from '../db.js';
 import { verifyPermission, fileStillExists } from '../fileAccess.js';
 import './ReadingSections.css';
@@ -28,6 +29,7 @@ function ItemCover({ blob }) {
 }
 
 function ReadingSections({ onLibraryChanged }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [inProgress, setInProgress] = useState([]);
   const [recent, setRecent] = useState([]);
@@ -55,23 +57,23 @@ function ReadingSections({ onLibraryChanged }) {
   async function openItem(item) {
     setNotice(null);
     if (!item.handle) {
-      setNotice('File non disponibile.');
+      setNotice(t('readingSections.notice.fileUnavailable'));
       return;
     }
     try {
       const granted = await verifyPermission(item.handle, 'read');
       if (!granted) {
-        setNotice('Permesso di accesso al file negato.');
+        setNotice(t('readingSections.notice.permissionDenied'));
         return;
       }
       if (!(await fileStillExists(item.handle))) {
-        setNotice('Il file non è più disponibile.');
+        setNotice(t('readingSections.notice.fileGone'));
         onLibraryChanged?.();
         return;
       }
       navigate(`/reader/${item.chapterId}`);
     } catch {
-      setNotice('Impossibile accedere al file.');
+      setNotice(t('readingSections.notice.accessError'));
     }
   }
 
@@ -83,11 +85,14 @@ function ReadingSections({ onLibraryChanged }) {
             <button type="button" className="rs-card" onClick={() => openItem(item)}>
               <ItemCover blob={item.thumbnail} />
               <span className="rs-card-title">
-                {item.seriesTitle ? `${item.seriesTitle} · ` : ''}Cap {item.chapterNumber}
+                {item.seriesTitle ? `${item.seriesTitle} · ` : ''}
+                {t('readingSections.chapterLabel', { number: item.chapterNumber })}
               </span>
-              {item.volumeNumber != null && <span className="rs-card-sub">Volume {item.volumeNumber}</span>}
+              {item.volumeNumber != null && (
+                <span className="rs-card-sub">{t('readingSections.volumeSub', { number: item.volumeNumber })}</span>
+              )}
               {withProgress && (
-                <span className="rs-progress" aria-label={`${completionPercent(item)}% letto`}>
+                <span className="rs-progress" aria-label={t('readingSections.progressAria', { percent: completionPercent(item) })}>
                   <span className="rs-progress-bar" style={{ width: `${completionPercent(item)}%` }} />
                 </span>
               )}
@@ -110,14 +115,14 @@ function ReadingSections({ onLibraryChanged }) {
 
       {inProgress.length > 0 && (
         <section aria-labelledby="in-progress-heading">
-          <h2 id="in-progress-heading">In corso di lettura</h2>
+          <h2 id="in-progress-heading">{t('readingSections.inProgressHeading')}</h2>
           {renderList(inProgress, true)}
         </section>
       )}
 
       {recent.length > 0 && (
         <section aria-labelledby="recent-heading">
-          <h2 id="recent-heading">Ultimi letti</h2>
+          <h2 id="recent-heading">{t('readingSections.recentHeading')}</h2>
           {renderList(recent, false)}
         </section>
       )}

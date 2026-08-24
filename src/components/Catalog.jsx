@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   getAllSeries,
   getVolumesForSeries,
@@ -59,6 +60,7 @@ function Cover({ blob, alt }) {
 // può aggiornare la sezione dedicata (che vive in un componente sorella,
 // separato per non perdere il livello di navigazione corrente qui dentro).
 function Catalog({ onFavoriteChanged }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [series, setSeries] = useState([]);
@@ -159,18 +161,18 @@ function Catalog({ onFavoriteChanged }) {
     try {
       const granted = await verifyPermission(chapter.handle, 'read');
       if (!granted) {
-        setNotice('Permesso di accesso al file negato.');
+        setNotice(t('catalog.permissionDenied'));
         return;
       }
       if (!(await fileStillExists(chapter.handle))) {
         await removeChapter(chapter.id);
         await reloadCurrentLevel();
-        setNotice('Il file non è più disponibile ed è stato rimosso dalla libreria.');
+        setNotice(t('catalog.fileGoneRemoved'));
         return;
       }
       navigate(`/reader/${chapter.id}`);
     } catch {
-      setNotice('Impossibile accedere al file: forse è stato spostato o eliminato.');
+      setNotice(t('catalog.accessError'));
     }
   }
 
@@ -242,23 +244,21 @@ function Catalog({ onFavoriteChanged }) {
       setDeleteTarget(null);
 
       if (deletePhysical && filesFailed > 0) {
-        setNotice(
-          `Rimosso dalla libreria. ${filesFailed} file non è stato possibile eliminarlo dal dispositivo.`,
-        );
+        setNotice(t('catalog.deleteFailed', { count: filesFailed }));
       }
     } catch {
-      setNotice('Rimozione non riuscita. Riprova.');
+      setNotice(t('catalog.deleteError'));
     } finally {
       setDeleteBusy(false);
     }
   }
 
   if (loading) {
-    return <p className="catalog-empty">Caricamento del catalogo…</p>;
+    return <p className="catalog-empty">{t('catalog.loading')}</p>;
   }
 
   if (series.length === 0) {
-    return <p className="catalog-empty">Nessuna serie ancora. Categorizza i capitoli importati per popolarla.</p>;
+    return <p className="catalog-empty">{t('catalog.empty')}</p>;
   }
 
   // Filtro testuale e ordinamento: pura trasformazione degli elenchi già
@@ -275,20 +275,23 @@ function Catalog({ onFavoriteChanged }) {
     );
 
   const visibleVolumes = volumes.filter(
-    (volume) => !normalizedQuery || `volume ${volume.number}`.includes(normalizedQuery),
+    (volume) =>
+      !normalizedQuery || t('catalog.volumeLabel', { number: volume.number }).toLowerCase().includes(normalizedQuery),
   );
 
   const visibleChapters = chapters.filter(
-    (chapter) => !normalizedQuery || `capitolo ${chapter.number}`.includes(normalizedQuery),
+    (chapter) =>
+      !normalizedQuery ||
+      t('catalog.chapterLabel', { number: chapter.number }).toLowerCase().includes(normalizedQuery),
   );
 
-  const currentLevelLabel = level === 'series' ? 'serie' : level === 'volumes' ? 'volumi' : 'capitoli';
+  const currentLevelLabel = t(`catalog.level.${level}`);
 
   return (
     <div className="catalog">
-      <nav className="catalog-breadcrumb" aria-label="Percorso">
+      <nav className="catalog-breadcrumb" aria-label={t('catalog.path')}>
         <button type="button" className="catalog-crumb" onClick={goToSeries} disabled={level === 'series'}>
-          Serie
+          {t('catalog.root')}
         </button>
         {currentSeries && (
           <>
@@ -306,7 +309,9 @@ function Catalog({ onFavoriteChanged }) {
         {currentVolume && (
           <>
             <span className="catalog-crumb-sep">/</span>
-            <span className="catalog-crumb catalog-crumb--current">Volume {currentVolume.number}</span>
+            <span className="catalog-crumb catalog-crumb--current">
+              {t('catalog.volumeLabel', { number: currentVolume.number })}
+            </span>
           </>
         )}
       </nav>
@@ -317,18 +322,18 @@ function Catalog({ onFavoriteChanged }) {
           className="catalog-search"
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
-          placeholder={`Cerca tra le ${currentLevelLabel}…`}
-          aria-label={`Cerca tra le ${currentLevelLabel}`}
+          placeholder={t('catalog.searchPlaceholder', { level: currentLevelLabel })}
+          aria-label={t('catalog.searchAria', { level: currentLevelLabel })}
         />
         {level === 'series' && (
           <select
             className="catalog-sort"
             value={sortBy}
             onChange={(event) => setSortBy(event.target.value)}
-            aria-label="Ordina le serie"
+            aria-label={t('catalog.sortAria')}
           >
-            <option value="title">Alfabetico</option>
-            <option value="recent">Ultimi letti</option>
+            <option value="title">{t('catalog.sortAlphabetical')}</option>
+            <option value="recent">{t('catalog.sortRecent')}</option>
           </select>
         )}
       </div>
@@ -343,7 +348,7 @@ function Catalog({ onFavoriteChanged }) {
         ((level === 'series' && visibleSeries.length === 0) ||
           (level === 'volumes' && visibleVolumes.length === 0) ||
           (level === 'chapters' && visibleChapters.length === 0)) && (
-          <p className="catalog-empty">Nessun risultato per «{searchQuery.trim()}».</p>
+          <p className="catalog-empty">{t('catalog.noResults', { query: searchQuery.trim() })}</p>
         )}
 
       {level === 'series' && (
@@ -357,7 +362,11 @@ function Catalog({ onFavoriteChanged }) {
               <button
                 type="button"
                 className="catalog-card-favorite"
-                aria-label={item.favorite ? `Togli ${item.title} dai preferiti` : `Aggiungi ${item.title} ai preferiti`}
+                aria-label={
+                  item.favorite
+                    ? t('catalog.removeFavorite', { title: item.title })
+                    : t('catalog.addFavorite', { title: item.title })
+                }
                 aria-pressed={Boolean(item.favorite)}
                 onClick={() => toggleFavorite('series', item.id)}
               >
@@ -366,9 +375,14 @@ function Catalog({ onFavoriteChanged }) {
               <button
                 type="button"
                 className="catalog-card-delete"
-                aria-label={`Rimuovi la serie ${item.title}`}
+                aria-label={t('catalog.deleteSeries', { title: item.title })}
                 onClick={() =>
-                  askDelete('series', item, `la serie «${item.title}»`, 'Verranno rimossi anche i suoi volumi e capitoli.')
+                  askDelete(
+                    'series',
+                    item,
+                    t('catalog.deleteSeriesLabel', { title: item.title }),
+                    t('catalog.deleteSeriesNote'),
+                  )
                 }
               >
                 🗑
@@ -384,10 +398,13 @@ function Catalog({ onFavoriteChanged }) {
             <li key={volume.id} className="catalog-card">
               <button type="button" className="catalog-card-main" onClick={() => openVolume(volume)}>
                 <Cover blob={volume.coverThumbnail} alt="" />
-                <span className="catalog-card-title">Volume {volume.number}</span>
+                <span className="catalog-card-title">{t('catalog.volumeLabel', { number: volume.number })}</span>
                 {volumeStats[volume.id] && volumeStats[volume.id].total > 0 && (
                   <span className="catalog-card-sub">
-                    {volumeStats[volume.id].read}/{volumeStats[volume.id].total} letti
+                    {t('catalog.readCount', {
+                      read: volumeStats[volume.id].read,
+                      total: volumeStats[volume.id].total,
+                    })}
                   </span>
                 )}
               </button>
@@ -396,8 +413,8 @@ function Catalog({ onFavoriteChanged }) {
                 className="catalog-card-favorite"
                 aria-label={
                   volume.favorite
-                    ? `Togli il volume ${volume.number} dai preferiti`
-                    : `Aggiungi il volume ${volume.number} ai preferiti`
+                    ? t('catalog.removeFavoriteVolume', { number: volume.number })
+                    : t('catalog.addFavoriteVolume', { number: volume.number })
                 }
                 aria-pressed={Boolean(volume.favorite)}
                 onClick={() => toggleFavorite('volume', volume.id)}
@@ -407,9 +424,14 @@ function Catalog({ onFavoriteChanged }) {
               <button
                 type="button"
                 className="catalog-card-delete"
-                aria-label={`Rimuovi il volume ${volume.number}`}
+                aria-label={t('catalog.deleteVolume', { number: volume.number })}
                 onClick={() =>
-                  askDelete('volume', volume, `il volume ${volume.number}`, 'Verranno rimossi anche i suoi capitoli.')
+                  askDelete(
+                    'volume',
+                    volume,
+                    t('catalog.deleteVolumeLabel', { number: volume.number }),
+                    t('catalog.deleteVolumeNote'),
+                  )
                 }
               >
                 🗑
@@ -425,11 +447,14 @@ function Catalog({ onFavoriteChanged }) {
             <li key={chapter.id} className="catalog-card">
               <button type="button" className="catalog-card-main" onClick={() => openChapter(chapter)}>
                 <Cover blob={chapter.thumbnail} alt="" />
-                <span className="catalog-card-title">Capitolo {chapter.number}</span>
+                <span className="catalog-card-title">{t('catalog.chapterLabel', { number: chapter.number })}</span>
                 {isCompleted(progressMap[chapter.id]) ? (
-                  <span className="catalog-card-sub catalog-card-sub--done">✓ Letto</span>
+                  <span className="catalog-card-sub catalog-card-sub--done">{t('catalog.done')}</span>
                 ) : progressMap[chapter.id] ? (
-                  <span className="catalog-progress" aria-label={`${completionPercent(progressMap[chapter.id])}% letto`}>
+                  <span
+                    className="catalog-progress"
+                    aria-label={t('catalog.progressAria', { percent: completionPercent(progressMap[chapter.id]) })}
+                  >
                     <span
                       className="catalog-progress-bar"
                       style={{ width: `${completionPercent(progressMap[chapter.id])}%` }}
@@ -442,8 +467,8 @@ function Catalog({ onFavoriteChanged }) {
                 className="catalog-card-favorite"
                 aria-label={
                   chapter.favorite
-                    ? `Togli il capitolo ${chapter.number} dai preferiti`
-                    : `Aggiungi il capitolo ${chapter.number} ai preferiti`
+                    ? t('catalog.removeFavoriteChapter', { number: chapter.number })
+                    : t('catalog.addFavoriteChapter', { number: chapter.number })
                 }
                 aria-pressed={Boolean(chapter.favorite)}
                 onClick={() => toggleFavorite('chapter', chapter.id)}
@@ -453,8 +478,8 @@ function Catalog({ onFavoriteChanged }) {
               <button
                 type="button"
                 className="catalog-card-delete"
-                aria-label={`Rimuovi il capitolo ${chapter.number}`}
-                onClick={() => askDelete('chapter', chapter, `il capitolo ${chapter.number}`, null)}
+                aria-label={t('catalog.deleteChapter', { number: chapter.number })}
+                onClick={() => askDelete('chapter', chapter, t('catalog.deleteChapterLabel', { number: chapter.number }), null)}
               >
                 🗑
               </button>

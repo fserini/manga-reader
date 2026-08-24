@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getAllSeries, getVolumesForSeries, addSeries, addVolume, categorizeChapter } from '../db.js';
 import './CategorizeForm.css';
 
@@ -9,6 +10,7 @@ const NEW = 'new';
 // categorizzare". Riceve il capitolo da categorizzare e due callback: onCancel
 // (chiudi senza salvare) e onDone (salvato: la Libreria ricaricherà l'elenco).
 function CategorizeForm({ chapter, onCancel, onDone }) {
+  const { t } = useTranslation();
   const [series, setSeries] = useState([]);
   const [volumes, setVolumes] = useState([]);
 
@@ -64,16 +66,16 @@ function CategorizeForm({ chapter, onCancel, onDone }) {
     setError(null);
 
     if (seriesChoice === '') {
-      setError('Scegli una serie (o creane una nuova).');
+      setError(t('categorizeForm.errors.chooseSeries'));
       return;
     }
     if (volumeChoice === '') {
-      setError('Scegli un volume (o creane uno nuovo).');
+      setError(t('categorizeForm.errors.chooseVolume'));
       return;
     }
     const number = Number(chapterNumber);
     if (chapterNumber === '' || !Number.isFinite(number)) {
-      setError('Inserisci un numero di capitolo valido.');
+      setError(t('categorizeForm.errors.chapterNumberInvalid'));
       return;
     }
 
@@ -83,7 +85,7 @@ function CategorizeForm({ chapter, onCancel, onDone }) {
       if (creatingNewSeries) {
         const title = newSeriesTitle.trim();
         if (!title) {
-          setError('Inserisci il nome della nuova serie.');
+          setError(t('categorizeForm.errors.newSeriesNameRequired'));
           setSaving(false);
           return;
         }
@@ -96,7 +98,7 @@ function CategorizeForm({ chapter, onCancel, onDone }) {
       if (volumeChoice === NEW) {
         const volumeNumber = Number(newVolumeNumber);
         if (newVolumeNumber === '' || !Number.isFinite(volumeNumber)) {
-          setError('Inserisci un numero di volume valido.');
+          setError(t('categorizeForm.errors.newVolumeNumberInvalid'));
           setSaving(false);
           return;
         }
@@ -108,7 +110,7 @@ function CategorizeForm({ chapter, onCancel, onDone }) {
       await categorizeChapter(chapter.id, { seriesId, volumeId, number });
       onDone();
     } catch {
-      setError('Salvataggio non riuscito. Riprova.');
+      setError(t('categorizeForm.errors.saveFailed'));
       setSaving(false);
     }
   }
@@ -117,31 +119,31 @@ function CategorizeForm({ chapter, onCancel, onDone }) {
     <div className="cf-overlay" role="dialog" aria-modal="true" aria-labelledby="cf-title">
       <form className="cf-panel" onSubmit={handleSubmit}>
         <h2 id="cf-title" className="cf-title">
-          Categorizza
+          {t('categorizeForm.title')}
         </h2>
         <p className="cf-filename">{chapter.fileName}</p>
 
         <label className="cf-field">
-          <span>Serie</span>
+          <span>{t('categorizeForm.series')}</span>
           <select value={seriesChoice} onChange={(event) => handleSeriesChange(event.target.value)}>
-            <option value="">— scegli —</option>
+            <option value="">{t('categorizeForm.chooseOption')}</option>
             {series.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.title}
               </option>
             ))}
-            <option value={NEW}>➕ Nuova serie…</option>
+            <option value={NEW}>{t('categorizeForm.newSeries')}</option>
           </select>
         </label>
 
         {creatingNewSeries && (
           <label className="cf-field">
-            <span>Nome nuova serie</span>
+            <span>{t('categorizeForm.newSeriesName')}</span>
             <input
               type="text"
               value={newSeriesTitle}
               onChange={(event) => setNewSeriesTitle(event.target.value)}
-              placeholder="Es. One Piece"
+              placeholder={t('categorizeForm.newSeriesPlaceholder')}
               autoFocus
             />
           </label>
@@ -149,39 +151,39 @@ function CategorizeForm({ chapter, onCancel, onDone }) {
 
         {seriesChoice !== '' && !creatingNewSeries && (
           <label className="cf-field">
-            <span>Volume</span>
+            <span>{t('categorizeForm.volume')}</span>
             <select value={volumeChoice} onChange={(event) => setVolumeChoice(event.target.value)}>
-              <option value="">— scegli —</option>
+              <option value="">{t('categorizeForm.chooseOption')}</option>
               {volumes.map((volume) => (
                 <option key={volume.id} value={volume.id}>
-                  Volume {volume.number}
+                  {t('categorizeForm.volumeOption', { number: volume.number })}
                 </option>
               ))}
-              <option value={NEW}>➕ Nuovo volume…</option>
+              <option value={NEW}>{t('categorizeForm.newVolume')}</option>
             </select>
           </label>
         )}
 
         {volumeChoice === NEW && (
           <label className="cf-field">
-            <span>Numero nuovo volume</span>
+            <span>{t('categorizeForm.newVolumeNumber')}</span>
             <input
               type="number"
               value={newVolumeNumber}
               onChange={(event) => setNewVolumeNumber(event.target.value)}
-              placeholder="Es. 1"
+              placeholder={t('categorizeForm.newVolumeNumberPlaceholder')}
               min="0"
             />
           </label>
         )}
 
         <label className="cf-field">
-          <span>Numero capitolo</span>
+          <span>{t('categorizeForm.chapterNumber')}</span>
           <input
             type="number"
             value={chapterNumber}
             onChange={(event) => setChapterNumber(event.target.value)}
-            placeholder="Es. 1"
+            placeholder={t('categorizeForm.chapterNumberPlaceholder')}
             min="0"
             step="any"
           />
@@ -195,10 +197,10 @@ function CategorizeForm({ chapter, onCancel, onDone }) {
 
         <div className="cf-actions">
           <button type="button" className="cf-cancel" onClick={onCancel} disabled={saving}>
-            Annulla
+            {t('categorizeForm.cancel')}
           </button>
           <button type="submit" className="cf-save" disabled={saving}>
-            {saving ? 'Salvataggio…' : 'Salva'}
+            {saving ? t('categorizeForm.saving') : t('categorizeForm.save')}
           </button>
         </div>
       </form>
