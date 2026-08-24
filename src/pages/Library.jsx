@@ -237,7 +237,10 @@ function Library() {
       </section>
 
       <section className="library-section" aria-labelledby="catalog-heading">
-        <h2 id="catalog-heading">{t('library.catalogHeading')}</h2>
+        <div className="page-heading">
+          <span className="page-eyebrow" aria-hidden="true">蔵書</span>
+          <h2 id="catalog-heading">{t('library.catalogHeading')}</h2>
+        </div>
         <Catalog
           key={catalogVersion}
           onFavoriteChanged={() => setFavoritesVersion((version) => version + 1)}
