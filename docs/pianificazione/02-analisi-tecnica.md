@@ -90,6 +90,7 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 18 — Internazionalizzazione (i18n)
 - [x] Fase 19 — Aggiornamenti PWA
 - [x] Fase 20 — Deploy pubblico e rifinitura
+- [ ] Fase 21 — Restyling grafico ("Yomihon") — **prossimo step**, vedi ADR-001
 
 ---
 
