@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   getUncategorizedChapters,
   getChapterCount,
@@ -22,6 +23,7 @@ import './Library.css';
 const supported = isFileSystemAccessSupported();
 
 function Library() {
+  const { t } = useTranslation();
   const [uncategorized, setUncategorized] = useState([]);
   const [chapterCount, setChapterCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -116,7 +118,7 @@ function Library() {
     } catch (err) {
       // L'utente ha chiuso il picker senza scegliere: non è un errore.
       if (err.name === 'AbortError') return;
-      setError("Import non riuscito: qualcosa è andato storto durante l'accesso ai file.");
+      setError(t('library.importError'));
     }
   }
 
@@ -131,41 +133,29 @@ function Library() {
       )}
       {result?.relinked > 0 && (
         <p className="library-notice" role="status">
-          🔗 {result.relinked === 1
-            ? '1 capitolo era in libreria senza il file collegato (es. da un backup ripristinato) ed è stato ricollegato.'
-            : `${result.relinked} capitoli erano in libreria senza il file collegato (es. da un backup ripristinato) e sono stati ricollegati.`}
+          🔗 {t('library.notice.relinked', { count: result.relinked })}
         </p>
       )}
       {result?.duplicates > 0 && (
         <p className="library-notice" role="status">
-          ⚠ {result.duplicates === 1
-            ? '1 file era già in libreria ed è stato saltato.'
-            : `${result.duplicates} file erano già in libreria e sono stati saltati.`}
+          ⚠ {t('library.notice.duplicates', { count: result.duplicates })}
         </p>
       )}
       {result?.corrupted > 0 && (
         <p className="library-notice" role="status">
-          ⚠ {result.corrupted === 1
-            ? '1 file non è un archivio CBZ/CBR valido (o non contiene immagini) ed è stato saltato.'
-            : `${result.corrupted} file non sono archivi CBZ/CBR validi (o non contengono immagini) e sono stati saltati.`}
+          ⚠ {t('library.notice.corrupted', { count: result.corrupted })}
         </p>
       )}
-      {result && (
-        <p className="library-feedback">
-          Importati: {result.imported} · Ricollegati: {result.relinked} · Duplicati saltati:{' '}
-          {result.duplicates} · Corrotti saltati: {result.corrupted} · Ignorati: {result.ignored}
-        </p>
-      )}
+      {result && <p className="library-feedback">{t('library.feedback', result)}</p>}
     </>
   );
 
   if (!supported) {
     return (
       <div className="page">
-        <h1>Libreria</h1>
+        <h1>{t('library.title')}</h1>
         <p className="library-error" role="alert">
-          Questo browser non supporta l'accesso ai file necessario per importare i manga. Usa
-          Chrome o Edge (anche su Android).
+          {t('library.unsupportedBrowser')}
         </p>
       </div>
     );
@@ -174,8 +164,8 @@ function Library() {
   if (loading) {
     return (
       <div className="page">
-        <h1>Libreria</h1>
-        <p>Caricamento…</p>
+        <h1>{t('library.title')}</h1>
+        <p>{t('library.loading')}</p>
       </div>
     );
   }
@@ -188,11 +178,11 @@ function Library() {
           <span className="library-empty-icon" aria-hidden="true">
             ＋
           </span>
-          <span className="library-empty-title">La tua libreria è vuota</span>
-          <span className="library-empty-hint">Tocca per importare file CBZ o CBR</span>
+          <span className="library-empty-title">{t('library.emptyTitle')}</span>
+          <span className="library-empty-hint">{t('library.emptyHint')}</span>
         </button>
         <button type="button" className="library-link-button" onClick={() => runPicker(pickDirectory)}>
-          …oppure importa un'intera cartella
+          {t('library.importFolderLink')}
         </button>
         {feedbackBlock}
       </div>
@@ -201,14 +191,14 @@ function Library() {
 
   return (
     <div className="page">
-      <h1>Libreria</h1>
+      <h1>{t('library.title')}</h1>
 
       <div className="library-actions">
         <button type="button" onClick={() => runPicker(pickFiles)}>
-          Importa file
+          {t('library.importFiles')}
         </button>
         <button type="button" onClick={() => runPicker(pickDirectory)}>
-          Importa cartella
+          {t('library.importFolder')}
         </button>
       </div>
 
@@ -222,9 +212,9 @@ function Library() {
       <ReadingSections onLibraryChanged={() => setCatalogVersion((version) => version + 1)} />
 
       <section className="library-section" aria-labelledby="uncategorized-heading">
-        <h2 id="uncategorized-heading">Da categorizzare</h2>
+        <h2 id="uncategorized-heading">{t('library.uncategorizedHeading')}</h2>
         {uncategorized.length === 0 ? (
-          <p className="library-empty-note">Nessun capitolo in attesa di categorizzazione.</p>
+          <p className="library-empty-note">{t('library.noUncategorized')}</p>
         ) : (
           <ul className="library-list">
             {uncategorized.map((chapter) => (
@@ -238,7 +228,7 @@ function Library() {
                   className="library-categorize-button"
                   onClick={() => setCategorizing(chapter)}
                 >
-                  Categorizza
+                  {t('library.categorize')}
                 </button>
               </li>
             ))}
@@ -247,7 +237,7 @@ function Library() {
       </section>
 
       <section className="library-section" aria-labelledby="catalog-heading">
-        <h2 id="catalog-heading">Catalogo</h2>
+        <h2 id="catalog-heading">{t('library.catalogHeading')}</h2>
         <Catalog
           key={catalogVersion}
           onFavoriteChanged={() => setFavoritesVersion((version) => version + 1)}
