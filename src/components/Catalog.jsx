@@ -7,6 +7,7 @@ import {
   getChaptersUnderSeries,
   getChaptersUnderVolume,
   getReadingProgressMap,
+  getSeriesLastReadMap,
   removeSeries,
   removeVolume,
   removeChapter,
@@ -75,6 +76,13 @@ function Catalog({ onFavoriteChanged }) {
   const [currentSeries, setCurrentSeries] = useState(null);
   const [currentVolume, setCurrentVolume] = useState(null);
 
+  // Ricerca testuale (si applica all'elenco del livello corrente) e
+  // ordinamento delle serie. seriesLastRead è {seriesId: lastReadAt}, per
+  // l'ordinamento "ultimi letti".
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('title'); // 'title' | 'recent'
+  const [seriesLastRead, setSeriesLastRead] = useState({});
+
   const [notice, setNotice] = useState(null);
   // Elemento in attesa di conferma rimozione: { kind, item, label, note } o null.
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -83,9 +91,10 @@ function Catalog({ onFavoriteChanged }) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const list = await getAllSeries();
+      const [list, lastRead] = await Promise.all([getAllSeries(), getSeriesLastReadMap()]);
       if (!cancelled) {
         setSeries(list);
+        setSeriesLastRead(lastRead);
         setLoading(false);
       }
     })();
@@ -112,6 +121,7 @@ function Catalog({ onFavoriteChanged }) {
   async function reloadCurrentLevel() {
     if (level === 'series') {
       setSeries(await getAllSeries());
+      setSeriesLastRead(await getSeriesLastReadMap());
     } else if (level === 'volumes' && currentSeries) {
       const volumeList = await getVolumesForSeries(currentSeries.id);
       setVolumes(volumeList);
@@ -129,6 +139,7 @@ function Catalog({ onFavoriteChanged }) {
     setVolumes(volumeList);
     setVolumeStats(await loadVolumeStats(volumeList));
     setLevel('volumes');
+    setSearchQuery('');
   }
 
   async function openVolume(volume) {
@@ -137,6 +148,7 @@ function Catalog({ onFavoriteChanged }) {
     setChapters(chapterList);
     setProgressMap(await getReadingProgressMap(chapterList.map((chapter) => chapter.id)));
     setLevel('chapters');
+    setSearchQuery('');
   }
 
   // Il permesso di lettura sull'handle va (ri)chiesto durante un gesto utente:
@@ -166,11 +178,13 @@ function Catalog({ onFavoriteChanged }) {
     setLevel('series');
     setCurrentSeries(null);
     setCurrentVolume(null);
+    setSearchQuery('');
   }
 
   function goToVolumes() {
     setLevel('volumes');
     setCurrentVolume(null);
+    setSearchQuery('');
   }
 
   function askDelete(kind, item, label, note) {
@@ -247,6 +261,29 @@ function Catalog({ onFavoriteChanged }) {
     return <p className="catalog-empty">Nessuna serie ancora. Categorizza i capitoli importati per popolarla.</p>;
   }
 
+  // Filtro testuale e ordinamento: pura trasformazione degli elenchi già
+  // caricati, ricalcolata ad ogni render — nessuno stato/effetto dedicato,
+  // sono pochi elementi e il calcolo è economico.
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+
+  const visibleSeries = series
+    .filter((item) => !normalizedQuery || item.title.toLowerCase().includes(normalizedQuery))
+    .sort((a, b) =>
+      sortBy === 'recent'
+        ? (seriesLastRead[b.id] ?? 0) - (seriesLastRead[a.id] ?? 0)
+        : a.title.localeCompare(b.title, undefined, { numeric: true }),
+    );
+
+  const visibleVolumes = volumes.filter(
+    (volume) => !normalizedQuery || `volume ${volume.number}`.includes(normalizedQuery),
+  );
+
+  const visibleChapters = chapters.filter(
+    (chapter) => !normalizedQuery || `capitolo ${chapter.number}`.includes(normalizedQuery),
+  );
+
+  const currentLevelLabel = level === 'series' ? 'serie' : level === 'volumes' ? 'volumi' : 'capitoli';
+
   return (
     <div className="catalog">
       <nav className="catalog-breadcrumb" aria-label="Percorso">
@@ -274,15 +311,44 @@ function Catalog({ onFavoriteChanged }) {
         )}
       </nav>
 
+      <div className="catalog-toolbar">
+        <input
+          type="search"
+          className="catalog-search"
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          placeholder={`Cerca tra le ${currentLevelLabel}…`}
+          aria-label={`Cerca tra le ${currentLevelLabel}`}
+        />
+        {level === 'series' && (
+          <select
+            className="catalog-sort"
+            value={sortBy}
+            onChange={(event) => setSortBy(event.target.value)}
+            aria-label="Ordina le serie"
+          >
+            <option value="title">Alfabetico</option>
+            <option value="recent">Ultimi letti</option>
+          </select>
+        )}
+      </div>
+
       {notice && (
         <p className="catalog-error" role="alert">
           {notice}
         </p>
       )}
 
+      {normalizedQuery &&
+        ((level === 'series' && visibleSeries.length === 0) ||
+          (level === 'volumes' && visibleVolumes.length === 0) ||
+          (level === 'chapters' && visibleChapters.length === 0)) && (
+          <p className="catalog-empty">Nessun risultato per «{searchQuery.trim()}».</p>
+        )}
+
       {level === 'series' && (
         <ul className="catalog-grid">
-          {series.map((item) => (
+          {visibleSeries.map((item) => (
             <li key={item.id} className="catalog-card">
               <button type="button" className="catalog-card-main" onClick={() => openSeries(item)}>
                 <Cover blob={item.coverThumbnail} alt="" />
@@ -314,7 +380,7 @@ function Catalog({ onFavoriteChanged }) {
 
       {level === 'volumes' && (
         <ul className="catalog-grid">
-          {volumes.map((volume) => (
+          {visibleVolumes.map((volume) => (
             <li key={volume.id} className="catalog-card">
               <button type="button" className="catalog-card-main" onClick={() => openVolume(volume)}>
                 <Cover blob={volume.coverThumbnail} alt="" />
@@ -355,7 +421,7 @@ function Catalog({ onFavoriteChanged }) {
 
       {level === 'chapters' && (
         <ul className="catalog-grid">
-          {chapters.map((chapter) => (
+          {visibleChapters.map((chapter) => (
             <li key={chapter.id} className="catalog-card">
               <button type="button" className="catalog-card-main" onClick={() => openChapter(chapter)}>
                 <Cover blob={chapter.thumbnail} alt="" />

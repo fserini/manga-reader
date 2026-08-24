@@ -93,6 +93,25 @@ export async function getAllSeries() {
   return series.sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
 }
 
+// Ultima data di lettura per ogni serie (la più recente tra i suoi
+// capitoli), come mappa {seriesId: lastReadAt}: usata dal catalogo per
+// l'ordinamento "ultimi letti". Le serie mai lette non compaiono nella
+// mappa (il chiamante le tratta come "meno recenti di tutte").
+export async function getSeriesLastReadMap() {
+  const progressRows = await db.readingProgress.toArray();
+  const chapters = await db.chapters.bulkGet(progressRows.map((progress) => progress.chapterId));
+
+  const map = {};
+  progressRows.forEach((progress, index) => {
+    const chapter = chapters[index];
+    if (!chapter || chapter.seriesId == null) return;
+    if (!map[chapter.seriesId] || progress.lastReadAt > map[chapter.seriesId]) {
+      map[chapter.seriesId] = progress.lastReadAt;
+    }
+  });
+  return map;
+}
+
 // I volumi di una serie, ordinati per numero: popolano il menu del form una
 // volta scelta la serie.
 export async function getVolumesForSeries(seriesId) {
