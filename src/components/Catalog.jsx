@@ -10,6 +10,9 @@ import {
   removeSeries,
   removeVolume,
   removeChapter,
+  toggleSeriesFavorite,
+  toggleVolumeFavorite,
+  toggleChapterFavorite,
 } from '../db.js';
 import {
   verifyPermission,
@@ -51,7 +54,10 @@ function Cover({ blob, alt }) {
   return <img className="catalog-cover" src={url} alt={alt} />;
 }
 
-function Catalog() {
+// onFavoriteChanged: chiamata dopo ogni cambio di preferito, così la Libreria
+// può aggiornare la sezione dedicata (che vive in un componente sorella,
+// separato per non perdere il livello di navigazione corrente qui dentro).
+function Catalog({ onFavoriteChanged }) {
   const navigate = useNavigate();
 
   const [series, setSeries] = useState([]);
@@ -172,6 +178,18 @@ function Catalog() {
     setDeleteTarget({ kind, item, label, note });
   }
 
+  const FAVORITE_TOGGLES = {
+    series: toggleSeriesFavorite,
+    volume: toggleVolumeFavorite,
+    chapter: toggleChapterFavorite,
+  };
+
+  async function toggleFavorite(kind, id) {
+    await FAVORITE_TOGGLES[kind](id);
+    await reloadCurrentLevel();
+    onFavoriteChanged?.();
+  }
+
   // Raccoglie gli handle di tutti i file coinvolti dalla rimozione (per la
   // cancellazione fisica). Va fatto PRIMA di rimuovere dal DB.
   async function collectHandles({ kind, item }) {
@@ -272,6 +290,15 @@ function Catalog() {
               </button>
               <button
                 type="button"
+                className="catalog-card-favorite"
+                aria-label={item.favorite ? `Togli ${item.title} dai preferiti` : `Aggiungi ${item.title} ai preferiti`}
+                aria-pressed={Boolean(item.favorite)}
+                onClick={() => toggleFavorite('series', item.id)}
+              >
+                {item.favorite ? '★' : '☆'}
+              </button>
+              <button
+                type="button"
                 className="catalog-card-delete"
                 aria-label={`Rimuovi la serie ${item.title}`}
                 onClick={() =>
@@ -297,6 +324,19 @@ function Catalog() {
                     {volumeStats[volume.id].read}/{volumeStats[volume.id].total} letti
                   </span>
                 )}
+              </button>
+              <button
+                type="button"
+                className="catalog-card-favorite"
+                aria-label={
+                  volume.favorite
+                    ? `Togli il volume ${volume.number} dai preferiti`
+                    : `Aggiungi il volume ${volume.number} ai preferiti`
+                }
+                aria-pressed={Boolean(volume.favorite)}
+                onClick={() => toggleFavorite('volume', volume.id)}
+              >
+                {volume.favorite ? '★' : '☆'}
               </button>
               <button
                 type="button"
@@ -330,6 +370,19 @@ function Catalog() {
                     />
                   </span>
                 ) : null}
+              </button>
+              <button
+                type="button"
+                className="catalog-card-favorite"
+                aria-label={
+                  chapter.favorite
+                    ? `Togli il capitolo ${chapter.number} dai preferiti`
+                    : `Aggiungi il capitolo ${chapter.number} ai preferiti`
+                }
+                aria-pressed={Boolean(chapter.favorite)}
+                onClick={() => toggleFavorite('chapter', chapter.id)}
+              >
+                {chapter.favorite ? '★' : '☆'}
               </button>
               <button
                 type="button"

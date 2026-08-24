@@ -14,6 +14,7 @@ import {
 import CategorizeForm from '../components/CategorizeForm.jsx';
 import Catalog from '../components/Catalog.jsx';
 import ReadingSections from '../components/ReadingSections.jsx';
+import Favorites from '../components/Favorites.jsx';
 import './Library.css';
 
 const supported = isFileSystemAccessSupported();
@@ -32,6 +33,10 @@ function Library() {
   // Cambia dopo ogni categorizzazione: usato come `key` del Catalogo per
   // forzarne il ri-montaggio (e quindi il ricaricamento dei dati).
   const [catalogVersion, setCatalogVersion] = useState(0);
+  // Stesso trucco per i Preferiti: cambia quando un preferito viene
+  // aggiunto/tolto dal Catalogo, così la sezione dedicata si aggiorna senza
+  // dover far perdere al Catalogo il livello di navigazione in cui si trova.
+  const [favoritesVersion, setFavoritesVersion] = useState(0);
 
   const refresh = useCallback(async () => {
     const [chapters, count] = await Promise.all([getUncategorizedChapters(), getChapterCount()]);
@@ -167,6 +172,11 @@ function Library() {
 
       {feedbackBlock}
 
+      <Favorites
+        key={favoritesVersion}
+        onLibraryChanged={() => setCatalogVersion((version) => version + 1)}
+      />
+
       <ReadingSections onLibraryChanged={() => setCatalogVersion((version) => version + 1)} />
 
       <section className="library-section" aria-labelledby="uncategorized-heading">
@@ -196,7 +206,10 @@ function Library() {
 
       <section className="library-section" aria-labelledby="catalog-heading">
         <h2 id="catalog-heading">Catalogo</h2>
-        <Catalog key={catalogVersion} />
+        <Catalog
+          key={catalogVersion}
+          onFavoriteChanged={() => setFavoritesVersion((version) => version + 1)}
+        />
       </section>
 
       {categorizing && (

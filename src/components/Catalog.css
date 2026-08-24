@@ -107,6 +107,28 @@
   background: var(--danger);
 }
 
+.catalog-card-favorite {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.catalog-card-favorite[aria-pressed='true'] {
+  color: #f5c518;
+}
+
 .catalog-cover {
   width: 100%;
   aspect-ratio: 3 / 4;
