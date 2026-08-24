@@ -23,13 +23,25 @@ function isCbrFileName(fileName) {
   return /\.cbr$/i.test(fileName);
 }
 
+// Estrae il contenuto di una singola voce, senza propagare l'errore verso
+// l'alto: se quella pagina è danneggiata (dati compressi corrotti), il resto
+// dell'archivio resta comunque leggibile. `null` è il segnale "pagina
+// illeggibile", riconosciuto più avanti dal Lettore.
+async function extractEntrySafely(entry) {
+  try {
+    return await entry.async('blob');
+  } catch {
+    return null;
+  }
+}
+
 async function extractCbzPages(file) {
   const zip = await JSZip.loadAsync(file);
   const imageEntries = Object.values(zip.files)
     .filter((entry) => !entry.dir && IMAGE_EXTENSION_REGEX.test(entry.name))
     .sort((a, b) => naturalCompare(a.name, b.name));
 
-  return Promise.all(imageEntries.map((entry) => entry.async('blob')));
+  return Promise.all(imageEntries.map((entry) => extractEntrySafely(entry)));
 }
 
 async function extractCbrPages(file) {
@@ -40,7 +52,24 @@ async function extractCbrPages(file) {
   return filesArray
     .filter(({ file: entry }) => IMAGE_EXTENSION_REGEX.test(entry.name))
     .sort((a, b) => naturalCompare(a.path + a.file.name, b.path + b.file.name))
-    .map(({ file: entry }) => entry);
+    .map(({ file: entry }) => entry); // già estratti da extractFiles(): mai null qui
+}
+
+// Verifica che il file sia un archivio apribile e contenga almeno
+// un'immagine, SENZA estrarre le pagine — usata in fase di import, dove
+// estrarre pesa inutilmente se poi l'utente non legge subito quel capitolo.
+export async function isValidArchive(file) {
+  try {
+    if (isCbrFileName(file.name)) {
+      const archive = await Archive.open(file);
+      const filesArray = await archive.getFilesArray(); // solo elenco, nessuna estrazione
+      return filesArray.some(({ file: entry }) => IMAGE_EXTENSION_REGEX.test(entry.name));
+    }
+    const zip = await JSZip.loadAsync(file);
+    return Object.values(zip.files).some((entry) => !entry.dir && IMAGE_EXTENSION_REGEX.test(entry.name));
+  } catch {
+    return false;
+  }
 }
 
 // Alcune edizioni esportano ogni tavola già come doppia pagina (un solo file
@@ -79,13 +108,25 @@ async function splitSpreadIfNeeded(blob) {
 }
 
 // Estrae tutte le pagine come "gruppi" di Blob. Lancia un errore se il file
-// non è un archivio valido; il chiamante lo intercetta per mostrare un messaggio.
+// non è affatto un archivio valido (l'intero capitolo è illeggibile); il
+// chiamante lo intercetta per mostrare un messaggio. Una singola pagina
+// danneggiata, invece, NON fa fallire tutto: diventa un gruppo [null], che il
+// Lettore riconosce e mostra come "pagina non disponibile".
 export async function extractPageGroups(file) {
   const rawImages = isCbrFileName(file.name)
     ? await extractCbrPages(file)
     : await extractCbzPages(file);
 
-  return Promise.all(rawImages.map(splitSpreadIfNeeded));
+  return Promise.all(
+    rawImages.map(async (blob) => {
+      if (!blob) return [null];
+      try {
+        return await splitSpreadIfNeeded(blob);
+      } catch {
+        return [null];
+      }
+    }),
+  );
 }
 
 // Genera una miniatura (Blob JPEG) da un'immagine di pagina, ridimensionata a

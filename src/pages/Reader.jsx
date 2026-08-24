@@ -30,6 +30,21 @@ function getTouchDistance(touches) {
   return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
 }
 
+// Una pagina, o un segnaposto se url è null (immagine danneggiata,
+// rilevata durante l'estrazione): non fa fallire la lettura del resto
+// del capitolo, si salta solo quella pagina.
+function Page({ url, alt, style }) {
+  if (!url) {
+    return (
+      <div className="reader-page-broken">
+        <span aria-hidden="true">⚠️</span>
+        <span>{alt}: immagine danneggiata</span>
+      </div>
+    );
+  }
+  return <img src={url} alt={alt} style={style} />;
+}
+
 function Reader() {
   const { chapterId } = useParams();
 
@@ -80,6 +95,7 @@ function Reader() {
 
         const urlGroups = groups.map((group) =>
           group.map((blob) => {
+            if (!blob) return null; // pagina illeggibile: nessun URL da creare/revocare
             const url = URL.createObjectURL(blob);
             objectUrlsRef.current.push(url);
             return url;
@@ -394,14 +410,14 @@ function Reader() {
           onClick={handlePagesClick}
         >
           {pages.map((pageUrl, index) => (
-            <img key={pageUrl} src={pageUrl} alt={`Pagina ${index + 1}`} />
+            <Page key={pageUrl ?? `broken-${index}`} url={pageUrl} alt={`Pagina ${index + 1}`} />
           ))}
         </div>
       )}
 
       {pages.length > 0 && mode === 'single' && (
         <div className="reader-pages reader-pages--single" {...pagesInteractionProps}>
-          <img src={pages[currentIndex]} alt={`Pagina ${currentIndex + 1}`} style={zoomStyle} />
+          <Page url={pages[currentIndex]} alt={`Pagina ${currentIndex + 1}`} style={zoomStyle} />
         </div>
       )}
 
@@ -409,16 +425,16 @@ function Reader() {
         <div className="reader-pages reader-pages--spread" {...pagesInteractionProps}>
           {readingDirection === 'rtl' ? (
             <>
-              {secondPageOfSpread && (
-                <img src={secondPageOfSpread} alt={`Pagina ${currentIndex + 2}`} style={zoomStyle} />
+              {secondPageOfSpread !== undefined && (
+                <Page url={secondPageOfSpread} alt={`Pagina ${currentIndex + 2}`} style={zoomStyle} />
               )}
-              <img src={pages[currentIndex]} alt={`Pagina ${currentIndex + 1}`} style={zoomStyle} />
+              <Page url={pages[currentIndex]} alt={`Pagina ${currentIndex + 1}`} style={zoomStyle} />
             </>
           ) : (
             <>
-              <img src={pages[currentIndex]} alt={`Pagina ${currentIndex + 1}`} style={zoomStyle} />
-              {secondPageOfSpread && (
-                <img src={secondPageOfSpread} alt={`Pagina ${currentIndex + 2}`} style={zoomStyle} />
+              <Page url={pages[currentIndex]} alt={`Pagina ${currentIndex + 1}`} style={zoomStyle} />
+              {secondPageOfSpread !== undefined && (
+                <Page url={secondPageOfSpread} alt={`Pagina ${currentIndex + 2}`} style={zoomStyle} />
               )}
             </>
           )}
@@ -432,7 +448,7 @@ function Reader() {
           </button>
           <span>
             {currentIndex + 1}
-            {mode === 'spread' && secondPageOfSpread ? `-${currentIndex + 2}` : ''} / {pages.length}
+            {mode === 'spread' && secondPageOfSpread !== undefined ? `-${currentIndex + 2}` : ''} / {pages.length}
           </span>
           <button type="button" onClick={goToNext} disabled={isLastPage}>
             Successiva ›
