@@ -9,7 +9,11 @@ import { ThemeProvider } from './ThemeContext.jsx';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ThemeProvider>
-      <BrowserRouter>
+      {/* basename: su GitHub Pages l'app vive sotto /manga-reader/, non alla
+          radice del dominio — vedi "base" in vite.config.js. import.meta.env.BASE_URL
+          è quello stesso valore, esposto da Vite a runtime; in sviluppo è "/",
+          quindi qui non cambia nulla rispetto a prima. */}
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <App />
       </BrowserRouter>
     </ThemeProvider>
