@@ -123,7 +123,7 @@ Non è un problema del codice dell'app — è la prova che la pagina 1×1 di pro
 Verificato con archivi costruiti ad hoc:
 
 - **`isValidArchive`**: `true` per un archivio con almeno un'immagine (anche se quell'immagine non è poi decodificabile — la validazione è solo strutturale, di proposito); `false` per un archivio senza immagini, e `false` per un file che non è affatto uno zip valido.
-- **Resilienza per-pagina**: un CBZ con una pagina reale e una pagina "immagine" con dati casuali produce due gruppi distinti — quello buono con il/i Blob attesi, quello rotto come `[null]` — senza che l'estrazione fallisca nel suo complesso.
+- **Resilienza per-pagina**: sia un CBZ sia un CBR (con una pagina reale e una pagina "immagine" con dati casuali) producono due gruppi distinti — quello buono con il/i Blob attesi, quello rotto come `[null]` — senza che l'estrazione fallisca nel suo complesso. Per il CBR è stata anche una verifica utile su `extractFiles()` di libarchive.js: non fa fallire l'intero archivio se una voce contiene dati che non sono davvero un'immagine — il fallimento emerge solo dopo, al momento di decodificarla (`createImageBitmap`), esattamente dove il codice già lo intercetta.
 - **Nel Lettore**: la pagina rotta mostra il segnaposto "⚠️ immagine danneggiata" in tutte e tre le modalità (singola, doppia, scroll); il contatore pagine riconosce correttamente una pagina rotta come "seconda" di uno spread (es. "2-3 / 3"), grazie alla distinzione `null`/`undefined`.
 - Nessun errore in console durante nessuno di questi scenari.
 
