@@ -1,0 +1,198 @@
+{
+  "nav": {
+    "library": "Library",
+    "reader": "Reader",
+    "settings": "Settings"
+  },
+  "library": {
+    "title": "Library",
+    "unsupportedBrowser": "This browser doesn't support the file access needed to import manga. Use Chrome or Edge (also on Android).",
+    "loading": "Loading…",
+    "emptyTitle": "Your library is empty",
+    "emptyHint": "Tap to import CBZ or CBR files",
+    "importFolderLink": "…or import an entire folder",
+    "importFiles": "Import files",
+    "importFolder": "Import folder",
+    "notice": {
+      "relinked_one": "1 chapter was in the library without its linked file (e.g. from a restored backup) and has been reconnected.",
+      "relinked_other": "{{count}} chapters were in the library without their linked file (e.g. from a restored backup) and have been reconnected.",
+      "duplicates_one": "1 file was already in the library and was skipped.",
+      "duplicates_other": "{{count}} files were already in the library and were skipped.",
+      "corrupted_one": "1 file is not a valid CBZ/CBR archive (or contains no images) and was skipped.",
+      "corrupted_other": "{{count}} files are not valid CBZ/CBR archives (or contain no images) and were skipped."
+    },
+    "feedback": "Imported: {{imported}} · Reconnected: {{relinked}} · Duplicates skipped: {{duplicates}} · Corrupted skipped: {{corrupted}} · Ignored: {{ignored}}",
+    "importError": "Import failed: something went wrong while accessing the files.",
+    "uncategorizedHeading": "To categorize",
+    "noUncategorized": "No chapters waiting to be categorized.",
+    "categorize": "Categorize",
+    "catalogHeading": "Catalog"
+  },
+  "catalog": {
+    "path": "Path",
+    "root": "Series",
+    "volumeLabel": "Volume {{number}}",
+    "chapterLabel": "Chapter {{number}}",
+    "searchPlaceholder": "Search {{level}}…",
+    "searchAria": "Search {{level}}",
+    "level": {
+      "series": "series",
+      "volumes": "volumes",
+      "chapters": "chapters"
+    },
+    "sortAria": "Sort series",
+    "sortAlphabetical": "Alphabetical",
+    "sortRecent": "Recently read",
+    "noResults": "No results for “{{query}}”.",
+    "loading": "Loading catalog…",
+    "empty": "No series yet. Categorize imported chapters to populate it.",
+    "readCount": "{{read}}/{{total}} read",
+    "done": "✓ Read",
+    "progressAria": "{{percent}}% read",
+    "addFavorite": "Add {{title}} to favorites",
+    "removeFavorite": "Remove {{title}} from favorites",
+    "addFavoriteVolume": "Add volume {{number}} to favorites",
+    "removeFavoriteVolume": "Remove volume {{number}} from favorites",
+    "addFavoriteChapter": "Add chapter {{number}} to favorites",
+    "removeFavoriteChapter": "Remove chapter {{number}} from favorites",
+    "deleteSeries": "Remove series {{title}}",
+    "deleteVolume": "Remove volume {{number}}",
+    "deleteChapter": "Remove chapter {{number}}",
+    "deleteSeriesLabel": "series “{{title}}”",
+    "deleteSeriesNote": "Its volumes and chapters will be removed too.",
+    "deleteVolumeLabel": "volume {{number}}",
+    "deleteVolumeNote": "Its chapters will be removed too.",
+    "deleteChapterLabel": "chapter {{number}}",
+    "permissionDenied": "File access permission denied.",
+    "fileGoneRemoved": "The file is no longer available and was removed from the library.",
+    "accessError": "Couldn't access the file: it may have been moved or deleted.",
+    "deleteFailed_one": "Removed from the library. {{count}} file couldn't be deleted from the device.",
+    "deleteFailed_other": "Removed from the library. {{count}} files couldn't be deleted from the device.",
+    "deleteError": "Removal failed. Please try again."
+  },
+  "deleteDialog": {
+    "title": "Remove {{label}}?",
+    "question": "The physical file on the device:",
+    "keepFile": "Keep the file (remove from library only)",
+    "deleteFile": "Also delete the file from the device",
+    "cancel": "Cancel"
+  },
+  "categorizeForm": {
+    "title": "Categorize",
+    "series": "Series",
+    "chooseOption": "— choose —",
+    "newSeries": "➕ New series…",
+    "newSeriesName": "New series name",
+    "newSeriesPlaceholder": "E.g. One Piece",
+    "volume": "Volume",
+    "volumeOption": "Volume {{number}}",
+    "newVolume": "➕ New volume…",
+    "newVolumeNumber": "New volume number",
+    "newVolumeNumberPlaceholder": "E.g. 1",
+    "chapterNumber": "Chapter number",
+    "chapterNumberPlaceholder": "E.g. 1",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "errors": {
+      "chooseSeries": "Choose a series (or create a new one).",
+      "chooseVolume": "Choose a volume (or create a new one).",
+      "chapterNumberInvalid": "Enter a valid chapter number.",
+      "newSeriesNameRequired": "Enter the new series name.",
+      "newVolumeNumberInvalid": "Enter a valid volume number.",
+      "saveFailed": "Save failed. Please try again."
+    }
+  },
+  "favorites": {
+    "seriesHeading": "Favorite series",
+    "volumesHeading": "Favorite volumes",
+    "chaptersHeading": "Favorite chapters",
+    "unstar": "Remove from favorites",
+    "unstarChapter": "Remove chapter from favorites",
+    "volumeLabel": "Volume {{number}}",
+    "chapterLabel": "Ch. {{number}}",
+    "volumeSub": "Volume {{number}}",
+    "notice": {
+      "fileUnavailable": "File unavailable.",
+      "permissionDenied": "File access permission denied.",
+      "fileGone": "The file is no longer available.",
+      "accessError": "Couldn't access the file."
+    }
+  },
+  "readingSections": {
+    "inProgressHeading": "In progress",
+    "recentHeading": "Recently read",
+    "chapterLabel": "Ch. {{number}}",
+    "volumeSub": "Volume {{number}}",
+    "progressAria": "{{percent}}% read",
+    "notice": {
+      "fileUnavailable": "File unavailable.",
+      "permissionDenied": "File access permission denied.",
+      "fileGone": "The file is no longer available.",
+      "accessError": "Couldn't access the file."
+    }
+  },
+  "reader": {
+    "chooseFile": "Choose file",
+    "mode": {
+      "single": "Single page",
+      "spread": "Double page",
+      "scroll": "Continuous scroll"
+    },
+    "modeGroupAria": "Reading mode",
+    "directionRtl": "Reading: Japanese (right→left)",
+    "directionLtr": "Reading: Western (left→right)",
+    "bookmarkSet": "🔖 Bookmarked",
+    "bookmarkAdd": "🏷️ Mark page",
+    "bookmarkTitle": "Bookmark this page",
+    "gotoBookmark": "Go to bookmark (p. {{page}})",
+    "noImagesFound": "No images found in this file.",
+    "invalidFile": "Couldn't read the file: it doesn't look like a valid {{format}}.",
+    "chapterNotFound": "Chapter not found in library.",
+    "permissionNotGranted": "File access permission not granted. Go back to the library and tap the chapter again.",
+    "chapterOpenError": "Couldn't open the chapter: the file may have been moved or deleted.",
+    "loadingChapter": "Loading chapter…",
+    "chooseFileToStart": "Choose a CBZ or CBR file to start reading.",
+    "previous": "‹ Previous",
+    "next": "Next ›",
+    "pageAlt": "Page {{number}}",
+    "pageBroken": "{{alt}}: damaged image"
+  },
+  "settings": {
+    "title": "Settings",
+    "appearanceHeading": "Appearance",
+    "appearanceHint": "Choose the app's theme, or follow the system setting.",
+    "theme": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "languageHeading": "Language",
+    "languageHint": "Choose the interface language.",
+    "language": {
+      "it": "Italiano",
+      "en": "English"
+    },
+    "backupHeading": "Backup and restore",
+    "backupHint": "Export your entire library (series, volumes, chapters, reading progress, favorites) to a file you can keep or transfer to another device.",
+    "exportButton": "Export backup",
+    "importButton": "Import backup",
+    "exportSuccess": "Backup exported.",
+    "exportError": "Export failed.",
+    "invalidBackupFile": "The chosen file is not a valid backup.",
+    "unreadableBackupFile": "Couldn't read the file: it's not a valid JSON backup.",
+    "restoreTitle": "Restore this backup?",
+    "restoreWarning": "The current library (series, volumes, chapters, progress, favorites) will be entirely replaced with the one from the chosen file. This action cannot be undone.",
+    "restoreHandleHint": "Restored chapters won't be readable right away: handles to physical files can never be exported (they're tied to this browser/device). Re-import the same files after restoring to reconnect them.",
+    "cancel": "Cancel",
+    "restoreConfirm": "Restore (replace everything)",
+    "restoring": "Restoring…",
+    "restoreSuccess": "Library restored. Chapters aren't readable yet: re-import the same files from the Library to reconnect them (they'll be recognized automatically, not duplicated).",
+    "restoreError": "Restore failed."
+  },
+  "pwa": {
+    "updateAvailable": "A new version of the app is available.",
+    "reload": "Reload",
+    "dismiss": "Later"
+  }
+}

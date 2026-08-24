@@ -1,0 +1,44 @@
+.update-prompt {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 200;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.update-prompt p {
+  color: var(--text);
+  margin: 0;
+}
+
+.update-prompt-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.update-prompt-actions button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.update-prompt-actions button.update-prompt-reload {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: transparent;
+}

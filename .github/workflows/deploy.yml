@@ -1,0 +1,53 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Permette di rilanciare il deploy a mano dalla tab "Actions" di GitHub,
+  # senza dover creare un commit vuoto solo per far ripartire la pipeline.
+  workflow_dispatch:
+
+# Un solo deploy alla volta: se arriva un nuovo push mentre uno precedente è
+# ancora in corso, quello vecchio viene annullato invece di lasciarli correre
+# in parallelo (che potrebbe pubblicare le due versioni fuori ordine).
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+# Il job di deploy si autentica su GitHub Pages tramite un token OIDC di
+# breve durata invece di un segreto salvato a mano: "pages" e "id-token"
+# sono i permessi minimi richiesti da actions/deploy-pages per ottenerlo.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

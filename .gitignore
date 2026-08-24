@@ -10,7 +10,11 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dev-dist
 *.local
+
+# File di test personali (fumetti reali, non versionare: copyright)
+/test-files
 
 # Editor directories and files
 .vscode/*

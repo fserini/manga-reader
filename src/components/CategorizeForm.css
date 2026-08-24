@@ -1,0 +1,97 @@
+.cf-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 100;
+}
+
+.cf-panel {
+  width: 100%;
+  max-width: 420px;
+  max-height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.cf-title {
+  font-size: 22px;
+}
+
+.cf-filename {
+  margin-top: -8px;
+  color: var(--text-muted);
+  word-break: break-all;
+  font-size: 14px;
+}
+
+.cf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cf-field > span {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.cf-field select,
+.cf-field input {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.cf-error {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.cf-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.cf-cancel,
+.cf-save {
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cf-cancel {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.cf-save {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: transparent;
+}
+
+.cf-cancel:disabled,
+.cf-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -1,0 +1,198 @@
+{
+  "nav": {
+    "library": "Libreria",
+    "reader": "Lettore",
+    "settings": "Impostazioni"
+  },
+  "library": {
+    "title": "Libreria",
+    "unsupportedBrowser": "Questo browser non supporta l'accesso ai file necessario per importare i manga. Usa Chrome o Edge (anche su Android).",
+    "loading": "Caricamento…",
+    "emptyTitle": "La tua libreria è vuota",
+    "emptyHint": "Tocca per importare file CBZ o CBR",
+    "importFolderLink": "…oppure importa un'intera cartella",
+    "importFiles": "Importa file",
+    "importFolder": "Importa cartella",
+    "notice": {
+      "relinked_one": "1 capitolo era in libreria senza il file collegato (es. da un backup ripristinato) ed è stato ricollegato.",
+      "relinked_other": "{{count}} capitoli erano in libreria senza il file collegato (es. da un backup ripristinato) e sono stati ricollegati.",
+      "duplicates_one": "1 file era già in libreria ed è stato saltato.",
+      "duplicates_other": "{{count}} file erano già in libreria e sono stati saltati.",
+      "corrupted_one": "1 file non è un archivio CBZ/CBR valido (o non contiene immagini) ed è stato saltato.",
+      "corrupted_other": "{{count}} file non sono archivi CBZ/CBR validi (o non contengono immagini) e sono stati saltati."
+    },
+    "feedback": "Importati: {{imported}} · Ricollegati: {{relinked}} · Duplicati saltati: {{duplicates}} · Corrotti saltati: {{corrupted}} · Ignorati: {{ignored}}",
+    "importError": "Import non riuscito: qualcosa è andato storto durante l'accesso ai file.",
+    "uncategorizedHeading": "Da categorizzare",
+    "noUncategorized": "Nessun capitolo in attesa di categorizzazione.",
+    "categorize": "Categorizza",
+    "catalogHeading": "Catalogo"
+  },
+  "catalog": {
+    "path": "Percorso",
+    "root": "Serie",
+    "volumeLabel": "Volume {{number}}",
+    "chapterLabel": "Capitolo {{number}}",
+    "searchPlaceholder": "Cerca tra le {{level}}…",
+    "searchAria": "Cerca tra le {{level}}",
+    "level": {
+      "series": "serie",
+      "volumes": "volumi",
+      "chapters": "capitoli"
+    },
+    "sortAria": "Ordina le serie",
+    "sortAlphabetical": "Alfabetico",
+    "sortRecent": "Ultimi letti",
+    "noResults": "Nessun risultato per «{{query}}».",
+    "loading": "Caricamento del catalogo…",
+    "empty": "Nessuna serie ancora. Categorizza i capitoli importati per popolarla.",
+    "readCount": "{{read}}/{{total}} letti",
+    "done": "✓ Letto",
+    "progressAria": "{{percent}}% letto",
+    "addFavorite": "Aggiungi {{title}} ai preferiti",
+    "removeFavorite": "Togli {{title}} dai preferiti",
+    "addFavoriteVolume": "Aggiungi il volume {{number}} ai preferiti",
+    "removeFavoriteVolume": "Togli il volume {{number}} dai preferiti",
+    "addFavoriteChapter": "Aggiungi il capitolo {{number}} ai preferiti",
+    "removeFavoriteChapter": "Togli il capitolo {{number}} dai preferiti",
+    "deleteSeries": "Rimuovi la serie {{title}}",
+    "deleteVolume": "Rimuovi il volume {{number}}",
+    "deleteChapter": "Rimuovi il capitolo {{number}}",
+    "deleteSeriesLabel": "la serie «{{title}}»",
+    "deleteSeriesNote": "Verranno rimossi anche i suoi volumi e capitoli.",
+    "deleteVolumeLabel": "il volume {{number}}",
+    "deleteVolumeNote": "Verranno rimossi anche i suoi capitoli.",
+    "deleteChapterLabel": "il capitolo {{number}}",
+    "permissionDenied": "Permesso di accesso al file negato.",
+    "fileGoneRemoved": "Il file non è più disponibile ed è stato rimosso dalla libreria.",
+    "accessError": "Impossibile accedere al file: forse è stato spostato o eliminato.",
+    "deleteFailed_one": "Rimosso dalla libreria. {{count}} file non è stato possibile eliminarlo dal dispositivo.",
+    "deleteFailed_other": "Rimosso dalla libreria. {{count}} file non è stato possibile eliminarli dal dispositivo.",
+    "deleteError": "Rimozione non riuscita. Riprova."
+  },
+  "deleteDialog": {
+    "title": "Rimuovere {{label}}?",
+    "question": "Il file fisico sul dispositivo:",
+    "keepFile": "Mantieni il file (rimuovi solo dalla libreria)",
+    "deleteFile": "Elimina anche il file dal dispositivo",
+    "cancel": "Annulla"
+  },
+  "categorizeForm": {
+    "title": "Categorizza",
+    "series": "Serie",
+    "chooseOption": "— scegli —",
+    "newSeries": "➕ Nuova serie…",
+    "newSeriesName": "Nome nuova serie",
+    "newSeriesPlaceholder": "Es. One Piece",
+    "volume": "Volume",
+    "volumeOption": "Volume {{number}}",
+    "newVolume": "➕ Nuovo volume…",
+    "newVolumeNumber": "Numero nuovo volume",
+    "newVolumeNumberPlaceholder": "Es. 1",
+    "chapterNumber": "Numero capitolo",
+    "chapterNumberPlaceholder": "Es. 1",
+    "cancel": "Annulla",
+    "save": "Salva",
+    "saving": "Salvataggio…",
+    "errors": {
+      "chooseSeries": "Scegli una serie (o creane una nuova).",
+      "chooseVolume": "Scegli un volume (o creane uno nuovo).",
+      "chapterNumberInvalid": "Inserisci un numero di capitolo valido.",
+      "newSeriesNameRequired": "Inserisci il nome della nuova serie.",
+      "newVolumeNumberInvalid": "Inserisci un numero di volume valido.",
+      "saveFailed": "Salvataggio non riuscito. Riprova."
+    }
+  },
+  "favorites": {
+    "seriesHeading": "Serie preferite",
+    "volumesHeading": "Volumi preferiti",
+    "chaptersHeading": "Capitoli preferiti",
+    "unstar": "Togli dai preferiti",
+    "unstarChapter": "Togli il capitolo dai preferiti",
+    "volumeLabel": "Volume {{number}}",
+    "chapterLabel": "Cap {{number}}",
+    "volumeSub": "Volume {{number}}",
+    "notice": {
+      "fileUnavailable": "File non disponibile.",
+      "permissionDenied": "Permesso di accesso al file negato.",
+      "fileGone": "Il file non è più disponibile.",
+      "accessError": "Impossibile accedere al file."
+    }
+  },
+  "readingSections": {
+    "inProgressHeading": "In corso di lettura",
+    "recentHeading": "Ultimi letti",
+    "chapterLabel": "Cap {{number}}",
+    "volumeSub": "Volume {{number}}",
+    "progressAria": "{{percent}}% letto",
+    "notice": {
+      "fileUnavailable": "File non disponibile.",
+      "permissionDenied": "Permesso di accesso al file negato.",
+      "fileGone": "Il file non è più disponibile.",
+      "accessError": "Impossibile accedere al file."
+    }
+  },
+  "reader": {
+    "chooseFile": "Scegli file",
+    "mode": {
+      "single": "Pagina singola",
+      "spread": "Doppia pagina",
+      "scroll": "Scroll continuo"
+    },
+    "modeGroupAria": "Modalità di lettura",
+    "directionRtl": "Lettura: giapponese (dx→sx)",
+    "directionLtr": "Lettura: occidentale (sx→dx)",
+    "bookmarkSet": "🔖 Segnalibro",
+    "bookmarkAdd": "🏷️ Segna pagina",
+    "bookmarkTitle": "Segnalibro su questa pagina",
+    "gotoBookmark": "Vai al segnalibro (pag. {{page}})",
+    "noImagesFound": "Nessuna immagine trovata in questo file.",
+    "invalidFile": "Impossibile leggere il file: non sembra un {{format}} valido.",
+    "chapterNotFound": "Capitolo non trovato in libreria.",
+    "permissionNotGranted": "Permesso di accesso al file non concesso. Torna alla libreria e tocca di nuovo il capitolo.",
+    "chapterOpenError": "Impossibile aprire il capitolo: il file potrebbe essere stato spostato o eliminato.",
+    "loadingChapter": "Caricamento del capitolo…",
+    "chooseFileToStart": "Scegli un file CBZ o CBR per iniziare a leggere.",
+    "previous": "‹ Precedente",
+    "next": "Successiva ›",
+    "pageAlt": "Pagina {{number}}",
+    "pageBroken": "{{alt}}: immagine danneggiata"
+  },
+  "settings": {
+    "title": "Impostazioni",
+    "appearanceHeading": "Aspetto",
+    "appearanceHint": "Scegli il tema dell'app, oppure segui l'impostazione del sistema.",
+    "theme": {
+      "light": "Chiaro",
+      "dark": "Scuro",
+      "system": "Sistema"
+    },
+    "languageHeading": "Lingua",
+    "languageHint": "Scegli la lingua dell'interfaccia.",
+    "language": {
+      "it": "Italiano",
+      "en": "English"
+    },
+    "backupHeading": "Backup e ripristino",
+    "backupHint": "Esporta l'intera libreria (serie, volumi, capitoli, progressi di lettura, preferiti) in un file da conservare o trasferire su un altro dispositivo.",
+    "exportButton": "Esporta backup",
+    "importButton": "Importa backup",
+    "exportSuccess": "Backup esportato.",
+    "exportError": "Esportazione non riuscita.",
+    "invalidBackupFile": "Il file scelto non è un backup valido.",
+    "unreadableBackupFile": "Impossibile leggere il file: non è un backup JSON valido.",
+    "restoreTitle": "Ripristinare questo backup?",
+    "restoreWarning": "La libreria attuale (serie, volumi, capitoli, progressi, preferiti) verrà sostituita interamente con quella del file scelto. L'operazione non si può annullare.",
+    "restoreHandleHint": "I capitoli ripristinati non saranno subito leggibili: gli handle ai file fisici non sono mai esportabili (sono legati a questo browser/dispositivo). Vanno ricollegati re-importando gli stessi file dopo il ripristino.",
+    "cancel": "Annulla",
+    "restoreConfirm": "Ripristina (sostituisci tutto)",
+    "restoring": "Ripristino…",
+    "restoreSuccess": "Libreria ripristinata. I capitoli non sono ancora leggibili: reimporta gli stessi file dalla Libreria per ricollegarli (verranno riconosciuti automaticamente, non duplicati).",
+    "restoreError": "Ripristino non riuscito."
+  },
+  "pwa": {
+    "updateAvailable": "È disponibile una nuova versione dell'app.",
+    "reload": "Aggiorna",
+    "dismiss": "Più tardi"
+  }
+}

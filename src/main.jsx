@@ -1,10 +1,21 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import './index.css';
+import './i18n.js';
+import App from './App.jsx';
+import { ThemeProvider } from './ThemeContext.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <App />
+    <ThemeProvider>
+      {/* basename: su GitHub Pages l'app vive sotto /manga-reader/, non alla
+          radice del dominio — vedi "base" in vite.config.js. import.meta.env.BASE_URL
+          è quello stesso valore, esposto da Vite a runtime; in sviluppo è "/",
+          quindi qui non cambia nulla rispetto a prima. */}
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
+        <App />
+      </BrowserRouter>
+    </ThemeProvider>
   </StrictMode>,
-)
+);
