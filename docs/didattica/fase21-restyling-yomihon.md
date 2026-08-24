@@ -160,6 +160,36 @@ Deliberatamente, questo dettaglio non è stato applicato al Lettore: aggiungerlo
 
 ---
 
+## 🩹 Due ritocchi dopo il primo feedback sul dispositivo reale
+
+Testata la fase su tablet, sono emersi due difetti non visibili in sandbox — corretti nello stesso branch di fix, non come nuova fase numerata (sono rifiniture della Fase 21, non una funzionalità nuova).
+
+### L'alone blu al tocco
+
+Chrome disegna di serie un rettangolo semitrasparente sopra qualunque elemento cliccabile quando lo si tocca — un residuo dello stile nativo del browser, quasi invisibile su desktop col mouse ma molto evidente su tablet. Si toglie con una riga in `index.css`:
+
+```css
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+```
+
+### La barra di navigazione non si nascondeva in Lettura
+
+Il tocco al centro dello schermo, in Lettura, nasconde da sempre i controlli *interni* del Lettore (Fase 6, poi il pannello a icone della Fase 21) — ma non la barra Libreria/Lettore/Impostazioni in cima, perché quella vive in `App.jsx`, un componente che non sapeva nulla di cosa succedesse dentro `Reader.jsx`. Serviva un canale tra i due — [`AppChromeContext.jsx`](../../src/AppChromeContext.jsx), una seconda applicazione della Context API dopo quella (ormai rimossa) della Fase 17, qui usata per uno scopo diverso: non condividere un *dato* (come il tema), ma inviare un *comando* ("nascondi la barra") da un componente profondo nell'albero a uno più in alto.
+
+```jsx
+// Reader.jsx
+useEffect(() => {
+  setChromeHidden(!interfaceVisible);
+  return () => setChromeHidden(false);
+}, [interfaceVisible, setChromeHidden]);
+```
+
+Il dettaglio che conta è il valore restituito dall'effetto (la funzione di **cleanup**): gira ogni volta che `interfaceVisible` cambia, ma soprattutto **quando il componente viene smontato** — cioè quando si esce dal Lettore per tornare alla Libreria. Senza quel `return () => setChromeHidden(false)`, uscire dal Lettore con l'interfaccia nascosta lascerebbe la barra sparita anche nelle altre schermate, perché lo stato "nascosta" resterebbe impostato per sempre.
+
+---
+
 ## ✅ Come verificare che funzioni
 
 Verificato nell'ambiente sandbox:
@@ -167,16 +197,21 @@ Verificato nell'ambiente sandbox:
 - Catalogo: copertina segnaposto con sfumatura e testo verticale in Shippori Mincho, raggio degli angoli ridotto, proporzione 2:3.
 - Impostazioni: sezione "Aspetto" rimossa, eyebrow 設定 presente, pillola attiva colorata con il nuovo accento.
 - Lettore: struttura corretta nello stato senza capitolo caricato (selettore file, messaggio d'attesa); nessun riferimento residuo alle vecchie classi CSS (`reader-toolbar`, `mode-selector`, `reader-nav`, ecc.) in tutto il codice sorgente.
+- `-webkit-tap-highlight-color` risulta `transparent` nello stile calcolato.
+- `AppChromeContext`: la barra di navigazione resta corretta navigando Libreria → Lettore (senza capitolo) → Libreria, nessun errore in nessuno dei due sensi (verifica del montaggio/smontaggio dell'effetto, non del tocco per nasconderla — vedi sotto).
 - `npm run lint` e `npm run build` puliti.
 - Nessun errore in console in nessuno degli scenari sopra.
 
 Non verificabile in sandbox (limite dell'ambiente):
 - **La resa visiva reale delle pagine di un capitolo con file veri** (proporzioni, split automatico, il pannello controlli e il filo di avanzamento sovrapposti a un'immagine reale) — l'ambiente sandbox non permette di aprire un file tramite il picker nativo. Come da accordi, questa verifica la farai tu sul dispositivo reale.
 - **Verifica responsive su più risoluzioni** (telefono, tablet verticale/orizzontale) — in particolare il comportamento della barra flottante dei controlli e del filo di avanzamento su schermi larghi.
+- **Il tocco al centro che nasconde davvero tutto insieme** (controlli del Lettore + barra di navigazione), con pagine reali caricate — la correzione di `AppChromeContext` è verificata via codice e via montaggio/smontaggio della pagina, ma l'interazione di tocco vera e propria richiede un capitolo aperto con file reali.
+- **L'alone blu al tocco**, sparito nello stile calcolato ma da confermare visivamente su un vero schermo touch (in sandbox non c'è un dito reale che tocca lo schermo).
 
 ## 🔎 Scoperto durante la fase, non risolto
 
 - `public/favicon.svg` (l'icona reale usata dal browser e dalla PWA) non corrisponde affatto al concetto "libro" descritto in `src/assets/pwa-icon-source.svg`: è un logo completamente diverso, probabilmente un placeholder mai sostituito dalla Fase 2. Ridisegnare un'icona coerente con Yomihon è un lavoro di design a sé, non una modifica di codice — rimane da fare.
+- **Categorizzazione di massa**: import di molti capitoli insieme (es. 20) richiede oggi di categorizzarli uno per uno in un dialog modale — funzionale ma pesante all'uso reale. Idee raccolte in conversazione (selezione multipla, numero capitolo dedotto dal nome file, raggruppamento automatico per pattern — quest'ultimo già nel backlog originale del progetto), nessuna ancora decisa/implementata.
 
 ---
 

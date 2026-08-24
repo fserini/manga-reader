@@ -29,6 +29,10 @@
 
 * {
   box-sizing: border-box;
+  /* Il rettangolo blu/grigio che Chrome disegna di default sopra qualunque
+     elemento cliccabile al tocco (soprattutto visibile su Android): un
+     residuo dello stile nativo del browser, non un effetto voluto. */
+  -webkit-tap-highlight-color: transparent;
 }
 
 html,

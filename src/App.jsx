@@ -4,6 +4,7 @@ import Library from './pages/Library.jsx';
 import Reader from './pages/Reader.jsx';
 import Settings from './pages/Settings.jsx';
 import UpdatePrompt from './components/UpdatePrompt.jsx';
+import { useAppChrome } from './AppChromeContext.jsx';
 import './App.css';
 
 const NAV_LINKS = [
@@ -14,16 +15,19 @@ const NAV_LINKS = [
 
 function App() {
   const { t } = useTranslation();
+  const { chromeHidden } = useAppChrome();
 
   return (
     <div className="app">
-      <nav className="app-nav">
-        {NAV_LINKS.map(({ to, key, end }) => (
-          <NavLink key={to} to={to} end={end} className={({ isActive }) => (isActive ? 'active' : '')}>
-            {t(key)}
-          </NavLink>
-        ))}
-      </nav>
+      {!chromeHidden && (
+        <nav className="app-nav">
+          {NAV_LINKS.map(({ to, key, end }) => (
+            <NavLink key={to} to={to} end={end} className={({ isActive }) => (isActive ? 'active' : '')}>
+              {t(key)}
+            </NavLink>
+          ))}
+        </nav>
+      )}
 
       <main className="app-main">
         <Routes>
