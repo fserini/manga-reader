@@ -134,6 +134,19 @@ export async function getChaptersForVolume(volumeId) {
   return chapters.sort((a, b) => a.number - b.number);
 }
 
+// Il capitolo che segue quello indicato, per numero, nello stesso volume — o
+// null se non esiste (ultimo del volume, o capitolo non categorizzato).
+// Usata dal Lettore per l'invito "Capitolo successivo" a fine lettura (Fase 24).
+export async function getNextChapterInVolume(chapterId) {
+  const chapter = await db.chapters.get(chapterId);
+  if (!chapter || chapter.volumeId == null) return null;
+
+  const siblings = await getChaptersForVolume(chapter.volumeId);
+  const index = siblings.findIndex((sibling) => sibling.id === chapterId);
+  if (index === -1 || index === siblings.length - 1) return null;
+  return siblings[index + 1];
+}
+
 export async function getSeries(seriesId) {
   return db.series.get(seriesId);
 }

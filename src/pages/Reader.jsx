@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { extractPageGroups, makeThumbnail } from '../comicFile.js';
 import {
@@ -8,6 +8,7 @@ import {
   getReadingProgress,
   updateReadingProgress,
   setManualBookmark,
+  getNextChapterInVolume,
 } from '../db.js';
 import { useAppChrome } from '../AppChromeContext.jsx';
 import './Reader.css';
@@ -16,12 +17,43 @@ const DOUBLE_TAP_DELAY_MS = 300;
 const TAP_ZONE_RATIO = 0.3;
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 3;
+const SWIPE_THRESHOLD_PX = 50;
+const SWIPE_MAX_VERTICAL_PX = 60;
+// Livelli ciclici del filtro notte (0 = spento): tre passi coprono le
+// situazioni comuni senza la complessità di uno slider su un pannello già
+// piccolo — vedi Fase 24.
+const DIM_LEVELS = [0, 0.3, 0.6];
 
 const READING_MODES = [
   { value: 'single', key: 'reader.mode.single' },
   { value: 'spread', key: 'reader.mode.spread' },
   { value: 'scroll', key: 'reader.mode.scroll' },
 ];
+
+// Preferenze di lettura (modalità, direzione, filtro notte) ricordate tra un
+// capitolo e l'altro — vedi Fase 24. Scritte solo dalle scelte esplicite
+// dell'utente (mai dallo spread automatico in landscape), lette una sola
+// volta all'avvio come stato iniziale dei relativi useState.
+const READING_PREFS_KEY = 'manga-reader:reading-prefs';
+
+function loadReadingPrefs() {
+  try {
+    const raw = localStorage.getItem(READING_PREFS_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function updateReadingPrefs(partial) {
+  try {
+    const current = loadReadingPrefs() ?? {};
+    localStorage.setItem(READING_PREFS_KEY, JSON.stringify({ ...current, ...partial }));
+  } catch {
+    // Storage pieno o non disponibile (es. navigazione privata): la
+    // preferenza semplicemente non persiste, non è un errore bloccante.
+  }
+}
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(value, max));
@@ -110,6 +142,15 @@ function IconBookmark({ filled }) {
   );
 }
 
+function IconDim() {
+  return (
+    <svg {...ICON_PROPS}>
+      <circle cx="12" cy="12" r="4.5" />
+      <path d="M12 12a4.5 4.5 0 0 0 0-9 9 9 0 1 0 0 18 4.5 4.5 0 0 0 0-9z" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 const MODE_ICONS = {
   single: IconSingle,
   spread: IconSpread,
@@ -119,20 +160,41 @@ const MODE_ICONS = {
 function Reader() {
   const { t } = useTranslation();
   const { chapterId } = useParams();
+  const navigate = useNavigate();
   const { setChromeHidden } = useAppChrome();
 
   const [pageGroups, setPageGroups] = useState([]);
   const [error, setError] = useState(null);
-  const [mode, setMode] = useState('single');
+  // Modalità, direzione e filtro notte: valore iniziale dall'ultima
+  // preferenza salvata (Fase 24), letta una sola volta all'avvio.
+  const [mode, setMode] = useState(() => loadReadingPrefs()?.mode ?? 'single');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [readingDirection, setReadingDirection] = useState('rtl');
+  const [readingDirection, setReadingDirection] = useState(() => loadReadingPrefs()?.direction ?? 'rtl');
   const [interfaceVisible, setInterfaceVisible] = useState(true);
   const [zoomScale, setZoomScale] = useState(1);
+  const [dimLevel, setDimLevel] = useState(() => loadReadingPrefs()?.dim ?? 0);
   // Pagina del segnalibro manuale (indice nell'elenco pages), o null.
   const [manualBookmarkPage, setManualBookmarkPage] = useState(null);
+  // Capitolo successivo nello stesso volume, per l'invito a fine lettura — o null.
+  const [nextChapter, setNextChapter] = useState(null);
 
   const tapTimeoutRef = useRef(null);
   const pinchStateRef = useRef(null);
+  // Tocco singolo in corso (per riconoscere uno swipe orizzontale) — vedi
+  // handleTouchStart/handleTouchEnd. Azzerato appena un secondo dito entra in
+  // gioco (diventa un pinch) o al termine del gesto.
+  const swipeStateRef = useRef(null);
+  // Uno swipe appena gestito genera comunque un "click" sintetico subito dopo
+  // il touchend: va ignorato, altrimenti si naviga due volte.
+  const ignoreNextClickRef = useRef(false);
+  // true dal momento in cui l'utente sceglie esplicitamente una modalità per
+  // QUESTO capitolo: da lì in poi lo spread automatico in landscape non la
+  // sovrascrive più. Azzerato ad ogni apertura di capitolo, in openFile.
+  const explicitModeThisChapterRef = useRef(false);
+  // Specchio di `mode` leggibile dentro il listener di orientamento, che non
+  // deve ri-registrarsi ad ogni cambio di modalità (altrimenti l'effetto
+  // dovrebbe avere `mode` tra le dipendenze, riattivandosi di continuo).
+  const modeRef = useRef(mode);
   // URL oggetto attualmente in uso: li teniamo in un ref (non in stato) per
   // poterli revocare senza dipendere dal valore corrente di pageGroups.
   const objectUrlsRef = useRef([]);
@@ -140,6 +202,10 @@ function Reader() {
   // posizione una volta sola dopo l'apertura di un capitolo.
   const scrollContainerRef = useRef(null);
   const pendingScrollRestoreRef = useRef(false);
+
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
 
   const pages = pageGroups.flatMap((group) => (readingDirection === 'rtl' ? [...group].reverse() : group));
 
@@ -152,6 +218,37 @@ function Reader() {
     setChromeHidden(!interfaceVisible);
     return () => setChromeHidden(false);
   }, [interfaceVisible, setChromeHidden]);
+
+  // Riarma "nessuna scelta esplicita ancora" ad ogni nuovo capitolo. Un
+  // effetto a sé, sincrono rispetto al cambio di chapterId — a differenza del
+  // reset dentro openFile, che avviene dopo alcuni await (lettura permesso,
+  // apertura file) e quindi arriverebbe troppo tardi per l'effetto di
+  // orientamento qui sotto, che deve vedere subito il valore azzerato.
+  useEffect(() => {
+    explicitModeThisChapterRef.current = false;
+  }, [chapterId]);
+
+  // Spread automatico in landscape (Fase 24): solo finché l'utente non ha
+  // scelto esplicitamente una modalità per QUESTO capitolo, e solo tra
+  // singola/doppia — la modalità scroll non è coinvolta. Tornando in
+  // portrait, si ripristina l'ultima preferenza salvata (non per forza
+  // "singola").
+  useEffect(() => {
+    const query = window.matchMedia('(orientation: landscape)');
+
+    function applyOrientation(isLandscape) {
+      if (explicitModeThisChapterRef.current || modeRef.current === 'scroll') return;
+      setMode(isLandscape ? 'spread' : (loadReadingPrefs()?.mode ?? 'single'));
+    }
+
+    function handleChange(event) {
+      applyOrientation(event.matches);
+    }
+
+    applyOrientation(query.matches);
+    query.addEventListener('change', handleChange);
+    return () => query.removeEventListener('change', handleChange);
+  }, [chapterId]);
 
   const revokeCurrentUrls = useCallback(() => {
     objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
@@ -166,8 +263,10 @@ function Reader() {
       setPageGroups([]);
       setCurrentIndex(0);
       setManualBookmarkPage(null);
+      setNextChapter(null);
       setError(null);
       setInterfaceVisible(true);
+      explicitModeThisChapterRef.current = false;
 
       try {
         const groups = await extractPageGroups(file);
@@ -241,6 +340,8 @@ function Reader() {
         const file = await chapter.handle.getFile();
         if (cancelled) return;
         await openFile(file, chapter.id);
+        if (cancelled) return;
+        setNextChapter(await getNextChapterInVolume(chapter.id));
       } catch {
         if (!cancelled) {
           setError(t('reader.chapterOpenError'));
@@ -302,12 +403,32 @@ function Reader() {
   }
 
   function toggleReadingDirection() {
-    setReadingDirection((direction) => (direction === 'rtl' ? 'ltr' : 'rtl'));
+    setReadingDirection((direction) => {
+      const next = direction === 'rtl' ? 'ltr' : 'rtl';
+      updateReadingPrefs({ direction: next });
+      return next;
+    });
   }
 
+  // Unico punto da cui l'utente sceglie esplicitamente una modalità (pannello
+  // controlli o doppio tap): segna la scelta per questo capitolo, così lo
+  // spread automatico in landscape non la sovrascrive più, e la ricorda per
+  // i prossimi capitoli.
   function handleModeChange(nextMode) {
+    explicitModeThisChapterRef.current = true;
     setMode(nextMode);
     setZoomScale(1);
+    updateReadingPrefs({ mode: nextMode });
+  }
+
+  // Filtro notte: ciclo tra i livelli invece di uno slider, per restare
+  // semplice da toccare nel pannello controlli già compatto — vedi Fase 24.
+  function cycleDim() {
+    setDimLevel((level) => {
+      const next = DIM_LEVELS[(DIM_LEVELS.indexOf(level) + 1) % DIM_LEVELS.length];
+      updateReadingPrefs({ dim: next });
+      return next;
+    });
   }
 
   function toggleManualBookmark() {
@@ -367,6 +488,13 @@ function Reader() {
   }
 
   function handlePagesClick(event) {
+    // Uno swipe appena gestito in handleTouchEnd genera comunque questo
+    // click sintetico subito dopo: va ignorato una volta sola, altrimenti si
+    // naviga due volte per lo stesso gesto.
+    if (ignoreNextClickRef.current) {
+      ignoreNextClickRef.current = false;
+      return;
+    }
     if (zoomScale !== 1) return; // con l'immagine ingrandita si preferisce lo scroll per spostarsi, non il tap
 
     if (tapTimeoutRef.current) {
@@ -392,6 +520,10 @@ function Reader() {
         initialDistance: getTouchDistance(event.touches),
         initialScale: zoomScale,
       };
+      swipeStateRef.current = null; // un secondo dito trasforma il gesto in pinch, non più in swipe
+    } else if (event.touches.length === 1 && zoomScale === 1) {
+      const touch = event.touches[0];
+      swipeStateRef.current = { startX: touch.clientX, startY: touch.clientY };
     }
   }
 
@@ -404,9 +536,29 @@ function Reader() {
     }
   }
 
+  // Swipe orizzontale oltre al tap sui bordi (Fase 24): non sostituisce il
+  // tap, lo affianca. Solo per singola/doppia pagina — in scroll il gesto
+  // orizzontale non ha senso, si scorre verticalmente.
   function handleTouchEnd(event) {
     if (event.touches.length < 2) {
       pinchStateRef.current = null;
+    }
+
+    const swipe = swipeStateRef.current;
+    swipeStateRef.current = null;
+    if (!swipe || event.touches.length > 0 || mode === 'scroll') return;
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - swipe.startX;
+    const deltaY = touch.clientY - swipe.startY;
+    if (Math.abs(deltaX) < SWIPE_THRESHOLD_PX || Math.abs(deltaY) > SWIPE_MAX_VERTICAL_PX) return;
+
+    ignoreNextClickRef.current = true;
+    const isNextSwipe = readingDirection === 'rtl' ? deltaX < 0 : deltaX > 0;
+    if (isNextSwipe) {
+      goToNext();
+    } else {
+      goToPrevious();
     }
   }
 
@@ -422,6 +574,10 @@ function Reader() {
   const pageCounterLabel = `${currentIndex + 1}${
     mode === 'spread' && secondPageOfSpread !== undefined ? `-${currentIndex + 2}` : ''
   } / ${pages.length}`;
+  // Ultima pagina (o ultimo spread) del capitolo: soglia per l'invito al
+  // capitolo successivo — vedi Fase 24.
+  const isAtChapterEnd = pages.length > 0 && currentIndex + step >= pages.length;
+  const DIM_LABEL_KEYS = { 0: 'reader.dimOff', 0.3: 'reader.dimLow', 0.6: 'reader.dimHigh' };
 
   return (
     <div className="reader">
@@ -487,6 +643,27 @@ function Reader() {
         </div>
       )}
 
+      {/* Filtro notte: un velo scuro sopra le pagine, sotto filo di
+          avanzamento e controlli — vedi Fase 24. */}
+      {pages.length > 0 && dimLevel > 0 && (
+        <div className="reader-dim-overlay" style={{ opacity: dimLevel }} aria-hidden="true" />
+      )}
+
+      {/* Invito al capitolo successivo: compare da solo arrivati all'ultima
+          pagina (o ultimo spread) del capitolo, indipendentemente dal
+          pannello controlli — vedi Fase 24. */}
+      {isAtChapterEnd && nextChapter && (
+        <div className="reader-next-chapter-bar">
+          <button
+            type="button"
+            className="reader-next-chapter"
+            onClick={() => navigate(`/reader/${nextChapter.id}`)}
+          >
+            {t('reader.nextChapter', { number: nextChapter.number })}
+          </button>
+        </div>
+      )}
+
       {/* Filo di avanzamento: sempre visibile quando ci sono pagine, a
           differenza del vecchio contatore testuale che spariva insieme al
           resto dell'interfaccia — qui l'obiettivo è sapere sempre "a che
@@ -541,6 +718,16 @@ function Reader() {
               title={readingDirection === 'rtl' ? t('reader.directionRtl') : t('reader.directionLtr')}
             >
               <IconDirection />
+            </button>
+            <button
+              type="button"
+              className={dimLevel > 0 ? 'active' : ''}
+              aria-pressed={dimLevel > 0}
+              aria-label={t(DIM_LABEL_KEYS[dimLevel])}
+              title={t(DIM_LABEL_KEYS[dimLevel])}
+              onClick={cycleDim}
+            >
+              <IconDim />
             </button>
             {chapterId && (
               <button

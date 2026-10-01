@@ -93,7 +93,7 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 21 — Restyling grafico ("Yomihon") — vedi ADR-001
 - [x] Fase 22 — Coda di categorizzazione dedicata e copertine per livello
 - [ ] Fase 23 — Categorizzazione assistita e multipla — pianificata, non ancora iniziata
-- [ ] Fase 24 — Comfort di lettura — pianificata, non ancora iniziata
+- [x] Fase 24 — Comfort di lettura
 - [ ] Fase 25 — Organizzazione e scoperta — pianificata, non ancora iniziata
 - [ ] Fase 26 — Rifiniture grafiche moderne — pianificata, non ancora iniziata
 - [ ] Fase 27 — Qualità — pianificata, non ancora iniziata
