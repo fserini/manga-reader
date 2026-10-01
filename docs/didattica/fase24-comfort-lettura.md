@@ -89,6 +89,14 @@ L'invito compare da solo, indipendentemente dal pannello controlli (che può ess
 
 Un velo scuro (`<div>` assoluto, `pointer-events: none`) sopra le sole pagine, non sopra filo di avanzamento e pannello controlli. Invece di uno slider — che avrebbe richiesto un popover su un pannello già compatto a 5 icone — un ciclo a tre livelli (spento/leggero/forte) su un'unica icona, sullo stesso principio del segnalibro (tocca per cambiare stato, icona che riflette lo stato attivo).
 
+## 🩹 Aggiunta durante la fase: rimozione manuale da "In corso" e "Ultimi letti"
+
+Richiesta emersa mentre si lavorava sul Lettore: non c'era modo di togliere un capitolo da "In corso di lettura" o "Ultimi letti" se non continuando a leggerlo fino alla fine (o smettendo semplicemente di vederlo lì, cosa che non succedeva mai da solo). Entrambe le sezioni sono derivate dalla tabella `readingProgress` (ordinata per `lastReadAt`, filtrata per completamento): una nuova `clearReadingProgress(chapterId)` in `db.js` cancella semplicemente quella riga.
+
+Un dettaglio del modello dati: il segnalibro manuale (Fase 12) vive nella **stessa riga** di `readingProgress` del progresso automatico — non sono due cose separate. Rimuovere il progresso rimuove quindi anche un eventuale segnalibro manuale su quel capitolo; il capitolo stesso, e la sua posizione nel Catalogo, non sono invece toccati per nulla.
+
+A differenza della rimozione dal Catalogo (Fase 11, `DeleteDialog`), qui non ha senso offrire la scelta "elimina anche il file fisico": non si sta rimuovendo nulla dalla libreria, solo da due elenchi derivati. Per questo la conferma è un dialog minimale dedicato (`rs-confirm-*` in `ReadingSections.css`), non una riproposizione di `DeleteDialog` con opzioni che non si applicherebbero al caso.
+
 ## Cosa NON è cambiato
 
 - Il pannello controlli resta lo stesso contenitore a icone di Fase 21: l'icona del filtro notte si aggiunge al gruppo azioni esistente, non richiede un redesign (era proprio l'intento dichiarato nel commento originale su `ICON_PROPS`).
@@ -103,5 +111,6 @@ Verificato in sandbox costruendo a mano un piccolo CBZ di test (un file ZIP "sto
 - filtro notte: clic sull'icona cicla i livelli, overlay con l'opacità corretta, preferenza salvata in `localStorage`
 - swipe orizzontale: avanza pagina, nessuna doppia navigazione dal click sintetico successivo
 - preferenze di modalità/filtro persistono tra una riapertura e l'altra del Lettore
+- rimozione manuale: il pulsante "✕" apre il dialog di conferma minimale, il capitolo sparisce da entrambe le sezioni e resta nel Catalogo
 
 **Da verificare su dispositivo reale** (Federico, fuori sandbox): l'invito "Capitolo successivo" (richiede l'apertura di un vero capitolo di libreria con `FileSystemFileHandle`, non simulabile in sandbox) e la rotazione fisica del tablet (qui solo emulata via resize del viewport).

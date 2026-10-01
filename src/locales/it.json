@@ -131,6 +131,11 @@
     "chapterLabel": "Cap {{number}}",
     "volumeSub": "Volume {{number}}",
     "progressAria": "{{percent}}% letto",
+    "removeAria": "Rimuovi il capitolo {{number}} dall'elenco",
+    "removeTitle": "Rimuovere il capitolo {{number}} dall'elenco?",
+    "removeNote": "Il capitolo resta in libreria: esce solo da \"In corso di lettura\" e \"Ultimi letti\", insieme a un eventuale segnalibro manuale.",
+    "cancel": "Annulla",
+    "remove": "Rimuovi",
     "notice": {
       "fileUnavailable": "File non disponibile.",
       "permissionDenied": "Permesso di accesso al file negato.",

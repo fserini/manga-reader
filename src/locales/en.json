@@ -131,6 +131,11 @@
     "chapterLabel": "Ch. {{number}}",
     "volumeSub": "Volume {{number}}",
     "progressAria": "{{percent}}% read",
+    "removeAria": "Remove chapter {{number}} from the list",
+    "removeTitle": "Remove chapter {{number}} from the list?",
+    "removeNote": "The chapter stays in the library: it only leaves \"In progress\" and \"Recently read\", along with any manual bookmark.",
+    "cancel": "Cancel",
+    "remove": "Remove",
     "notice": {
       "fileUnavailable": "File unavailable.",
       "permissionDenied": "File access permission denied.",

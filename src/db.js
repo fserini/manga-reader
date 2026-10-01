@@ -367,6 +367,14 @@ export async function getInProgressChapters(limit = 10) {
   return enrichProgressRows(inProgress);
 }
 
+// Toglie un capitolo da "In corso di lettura" e "Ultimi letti" — rimuove
+// SOLO il progresso (pagina raggiunta, data ultima lettura, segnalibro
+// manuale incluso: condivide la stessa riga), non il capitolo stesso, che
+// resta in libreria. Usata dalla rimozione manuale in ReadingSections.
+export async function clearReadingProgress(chapterId) {
+  return db.readingProgress.delete(chapterId);
+}
+
 // --- Backup e ripristino ---
 //
 // JSON non sa rappresentare i Blob delle miniature: le convertiamo in data
