@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getInProgressChapters, getRecentlyReadChapters } from '../db.js';
+import { getInProgressChapters, getRecentlyReadChapters, clearReadingProgress } from '../db.js';
 import { verifyPermission, fileStillExists } from '../fileAccess.js';
 import './ReadingSections.css';
 
@@ -34,23 +34,40 @@ function ReadingSections({ onLibraryChanged }) {
   const [inProgress, setInProgress] = useState([]);
   const [recent, setRecent] = useState([]);
   const [notice, setNotice] = useState(null);
+  // Capitolo in attesa di conferma per la rimozione manuale (dalle liste, non
+  // dalla libreria) — o null.
+  const [removing, setRemoving] = useState(null);
+
+  const loadSections = useCallback(async () => {
+    const [progressItems, recentItems] = await Promise.all([
+      getInProgressChapters(),
+      getRecentlyReadChapters(),
+    ]);
+    return { progressItems, recentItems };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [progressItems, recentItems] = await Promise.all([
-        getInProgressChapters(),
-        getRecentlyReadChapters(),
-      ]);
-      if (!cancelled) {
-        setInProgress(progressItems);
-        setRecent(recentItems);
-      }
+      const { progressItems, recentItems } = await loadSections();
+      if (cancelled) return;
+      setInProgress(progressItems);
+      setRecent(recentItems);
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadSections]);
+
+  // Rimuove solo il progresso (vedi clearReadingProgress in db.js): il
+  // capitolo resta in libreria, esce solo da queste due sezioni.
+  async function confirmRemove() {
+    await clearReadingProgress(removing.chapterId);
+    setRemoving(null);
+    const { progressItems, recentItems } = await loadSections();
+    setInProgress(progressItems);
+    setRecent(recentItems);
+  }
 
   // Come nel Catalogo: permesso durante il gesto, poi apertura. Se il file non
   // c'è più, avvisa e chiede alla Libreria di aggiornarsi.
@@ -97,6 +114,14 @@ function ReadingSections({ onLibraryChanged }) {
                 </span>
               )}
             </button>
+            <button
+              type="button"
+              className="rs-remove"
+              aria-label={t('readingSections.removeAria', { number: item.chapterNumber })}
+              onClick={() => setRemoving(item)}
+            >
+              ✕
+            </button>
           </li>
         ))}
       </ul>
@@ -125,6 +150,25 @@ function ReadingSections({ onLibraryChanged }) {
           <h2 id="recent-heading">{t('readingSections.recentHeading')}</h2>
           {renderList(recent, false)}
         </section>
+      )}
+
+      {removing && (
+        <div className="rs-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="rs-confirm-title">
+          <div className="rs-confirm-panel">
+            <h2 id="rs-confirm-title">
+              {t('readingSections.removeTitle', { number: removing.chapterNumber })}
+            </h2>
+            <p className="rs-confirm-note">{t('readingSections.removeNote')}</p>
+            <div className="rs-confirm-actions">
+              <button type="button" onClick={() => setRemoving(null)}>
+                {t('readingSections.cancel')}
+              </button>
+              <button type="button" className="rs-confirm-danger" onClick={confirmRemove}>
+                {t('readingSections.remove')}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

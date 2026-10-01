@@ -218,3 +218,34 @@
   width: 13px;
   height: 13px;
 }
+
+/* Filtro notte: un velo scuro sopra le pagine soltanto, non interattivo —
+   filo di avanzamento e controlli restano sempre leggibili sopra. Fase 24. */
+.reader-dim-overlay {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  pointer-events: none;
+}
+
+.reader-next-chapter-bar {
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+}
+
+.reader-next-chapter {
+  margin: 10px 0 0;
+  padding: 10px 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reader-next-chapter:hover {
+  border-color: var(--accent);
+}
