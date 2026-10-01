@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   getUncategorizedChapters,
@@ -14,7 +15,6 @@ import {
   pickDirectory,
 } from '../fileAccess.js';
 import { isValidArchive } from '../comicFile.js';
-import CategorizeForm from '../components/CategorizeForm.jsx';
 import Catalog from '../components/Catalog.jsx';
 import ReadingSections from '../components/ReadingSections.jsx';
 import Favorites from '../components/Favorites.jsx';
@@ -32,8 +32,6 @@ function Library() {
   // Messaggio d'errore vero e proprio (accesso ai file fallito) — distinto
   // dall'esito normale di un import con duplicati saltati.
   const [error, setError] = useState(null);
-  // Capitolo attualmente in fase di categorizzazione (mostra il form) — o null.
-  const [categorizing, setCategorizing] = useState(null);
   // Cambia dopo ogni categorizzazione: usato come `key` del Catalogo per
   // forzarne il ri-montaggio (e quindi il ricaricamento dei dati).
   const [catalogVersion, setCatalogVersion] = useState(0);
@@ -211,30 +209,20 @@ function Library() {
 
       <ReadingSections onLibraryChanged={() => setCatalogVersion((version) => version + 1)} />
 
-      <section className="library-section" aria-labelledby="uncategorized-heading">
-        <h2 id="uncategorized-heading">{t('library.uncategorizedHeading')}</h2>
-        {uncategorized.length === 0 ? (
-          <p className="library-empty-note">{t('library.noUncategorized')}</p>
-        ) : (
-          <ul className="library-list">
-            {uncategorized.map((chapter) => (
-              <li key={chapter.id} className="library-list-item">
-                <span className="library-file-icon" aria-hidden="true">
-                  📄
-                </span>
-                <span className="library-file-name">{chapter.fileName}</span>
-                <button
-                  type="button"
-                  className="library-categorize-button"
-                  onClick={() => setCategorizing(chapter)}
-                >
-                  {t('library.categorize')}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {uncategorized.length > 0 && (
+        <Link to="/uncategorized" className="library-uncategorized-card">
+          <span className="library-uncategorized-icon" aria-hidden="true">
+            📄
+          </span>
+          <span className="library-uncategorized-text">
+            <strong>{t('library.uncategorizedCount', { count: uncategorized.length })}</strong>
+            <span>{t('library.uncategorizedCta')}</span>
+          </span>
+          <span className="library-uncategorized-arrow" aria-hidden="true">
+            ›
+          </span>
+        </Link>
+      )}
 
       <section className="library-section" aria-labelledby="catalog-heading">
         <div className="page-heading">
@@ -246,18 +234,6 @@ function Library() {
           onFavoriteChanged={() => setFavoritesVersion((version) => version + 1)}
         />
       </section>
-
-      {categorizing && (
-        <CategorizeForm
-          chapter={categorizing}
-          onCancel={() => setCategorizing(null)}
-          onDone={() => {
-            setCategorizing(null);
-            refresh();
-            setCatalogVersion((version) => version + 1);
-          }}
-        />
-      )}
     </div>
   );
 }
