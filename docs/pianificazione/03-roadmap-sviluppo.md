@@ -172,10 +172,52 @@
 
 ---
 
+## Fase 24 — Comfort di lettura
+
+> Decisa in conversazione dopo un'analisi complessiva dell'app alla ricerca di funzionalità mancanti e rifiniture — prima fase di un gruppo di quattro (24-27) nate dalla stessa discussione. Tocca soprattutto il Lettore.
+
+- **Preferenze di lettura persistenti**: modalità (singola/doppia/scroll) e direzione (RTL/LTR) oggi ripartono sempre dai valori di default ad ogni apertura di un capitolo; l'ultima scelta dell'utente viene ricordata (salvata localmente) invece di essere richiesta ogni volta
+- **Spread automatico in landscape**: ruotando il tablet in orizzontale, passaggio automatico a doppia pagina se l'utente non ha scelto esplicitamente un'altra modalità per quel capitolo
+- **Swipe oltre al tap**: uno swipe orizzontale per cambiare pagina, in aggiunta (non in sostituzione) al tap sui bordi già esistente — convive con il pinch-to-zoom
+- **Vai al capitolo successivo a fine lettura**: arrivati all'ultima pagina di un capitolo, invito ad aprire il capitolo successivo del volume (se esiste)
+- **Filtro luminosità/notte**: overlay scuro regolabile sopra le pagine, per lettura in ambienti poco illuminati
+
+---
+
+## Fase 25 — Organizzazione e scoperta
+
+> Seconda fase del gruppo nato dall'analisi complessiva (vedi Fase 24). Tocca principalmente Catalogo e `db.js`.
+
+- **Ricerca globale nella libreria**: oggi la ricerca nel Catalogo è limitata al livello corrente (solo tra le serie, o solo tra i volumi di una serie già aperta); una ricerca che attraversi l'intera libreria
+- **Copertina personalizzata per Serie/Volume**: la Fase 22 ha tolto la copertina automatica da Serie e Volumi (livelli senza un'immagine propria); qui si dà all'utente la possibilità di assegnarne una manualmente (scegliendola tra le copertine dei capitoli contenuti, o caricandone una propria)
+- **Tag/generi liberi sulle serie**: un campo libero per filtrare oltre ad alfabetico/ultimi letti
+- **Segna tutto il volume come letto**: azione rapida per i volumi già letti altrove, senza aprire capitolo per capitolo
+
+---
+
+## Fase 26 — Rifiniture grafiche moderne
+
+> Terza fase del gruppo nato dall'analisi complessiva (vedi Fase 24). Principalmente CSS/UX, nessuna nuova logica di dati.
+
+- **Skeleton loading**: placeholder animati in stile Yomihon (dorso-libro) al posto dei testi "Caricamento…" in Catalogo/Libreria
+- **Transizioni tra i livelli del Catalogo**: una transizione breve (slide laterale) nel passaggio Serie → Volumi → Capitoli, oggi istantaneo
+- **Stato vuoto curato per Preferiti/In corso**: quelle sezioni oggi scompaiono del tutto se vuote (corretto per non essere invasive); per un utente nuovo, un piccolo invito illustrato alla prima apertura
+- **Pull-to-refresh / ricontrollo file**: un modo rapido per far ricontrollare all'app lo stato dei file collegati (rimossi/spostati), senza aspettare che emerga aprendo un capitolo
+
+---
+
+## Fase 27 — Qualità
+
+> Quarta e ultima fase del gruppo nato dall'analisi complessiva (vedi Fase 24).
+
+- **Statistiche di lettura**: pagine lette, tempo stimato, serie più lette — una nuova sezione in Impostazioni
+- **Rinomina Serie/Volume**: oggi non esiste modo di correggere un titolo sbagliato se non rimuovendo e ricategorizzando
+
+---
+
 ## 🔮 Backlog futuro (fuori roadmap MVP)
 
 - Migrazione a TypeScript
-- Statistiche di lettura
 - Eventuale introduzione di una libreria di gestione stato più avanzata (es. Zustand), se necessario
 - Test automatici (unit test)
 
