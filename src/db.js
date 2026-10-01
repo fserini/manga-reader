@@ -134,6 +134,19 @@ export async function getChaptersForVolume(volumeId) {
   return chapters.sort((a, b) => a.number - b.number);
 }
 
+// Il capitolo che segue quello indicato, per numero, nello stesso volume — o
+// null se non esiste (ultimo del volume, o capitolo non categorizzato).
+// Usata dal Lettore per l'invito "Capitolo successivo" a fine lettura (Fase 24).
+export async function getNextChapterInVolume(chapterId) {
+  const chapter = await db.chapters.get(chapterId);
+  if (!chapter || chapter.volumeId == null) return null;
+
+  const siblings = await getChaptersForVolume(chapter.volumeId);
+  const index = siblings.findIndex((sibling) => sibling.id === chapterId);
+  if (index === -1 || index === siblings.length - 1) return null;
+  return siblings[index + 1];
+}
+
 export async function getSeries(seriesId) {
   return db.series.get(seriesId);
 }
@@ -352,6 +365,14 @@ export async function getInProgressChapters(limit = 10) {
     .filter((progress) => progress.totalPages > 0 && progress.lastPageRead < progress.totalPages - 1)
     .slice(0, limit);
   return enrichProgressRows(inProgress);
+}
+
+// Toglie un capitolo da "In corso di lettura" e "Ultimi letti" — rimuove
+// SOLO il progresso (pagina raggiunta, data ultima lettura, segnalibro
+// manuale incluso: condivide la stessa riga), non il capitolo stesso, che
+// resta in libreria. Usata dalla rimozione manuale in ReadingSections.
+export async function clearReadingProgress(chapterId) {
+  return db.readingProgress.delete(chapterId);
 }
 
 // --- Backup e ripristino ---
