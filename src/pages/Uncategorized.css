@@ -50,3 +50,23 @@
   font-weight: 600;
   cursor: pointer;
 }
+
+.uncategorized-delete {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.uncategorized-delete:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+}

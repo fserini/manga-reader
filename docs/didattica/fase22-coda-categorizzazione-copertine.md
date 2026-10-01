@@ -76,6 +76,10 @@ Le azioni (preferito, rimozione) restano le stesse di prima: cambia solo che non
 - Il Catalogo a livello Capitolo è pixel-identico a prima (stessa griglia, stesso componente `Cover`, stesso CSS).
 - Nessuna migrazione dati: `categorized`/`coverThumbnail`/`thumbnail` nello schema Dexie non cambiano.
 
+## 🩹 Ritocco dopo il primo feedback
+
+La vista dedicata, nella prima versione, offriva solo "Categorizza" per riga: nessun modo di togliere dalla coda un capitolo importato per errore (es. un duplicato sfuggito al controllo nome-file, o un file sbagliato). Aggiunto un pulsante di rimozione per riga che riusa lo stesso `DeleteDialog` già visto nel Catalogo — mantieni il file fisico o eliminalo anche dal dispositivo — invece di inventare un flusso nuovo.
+
 ## Verifica
 
 Verificato in sandbox popolando `IndexedDB` manualmente (niente file picker nativo in questo ambiente, quindi niente CBZ reali — vedi la stessa limitazione già incontrata in Fase 20):
