@@ -30,6 +30,8 @@
     "backToLibrary": "‹ Libreria",
     "noUncategorized": "Nessun capitolo in attesa di categorizzazione.",
     "categorize": "Categorizza",
+    "deleteUncategorized": "Rimuovi {{fileName}} dalla coda di categorizzazione",
+    "deleteUncategorizedLabel": "«{{fileName}}»",
     "catalogHeading": "Catalogo"
   },
   "catalog": {

@@ -30,6 +30,8 @@
     "backToLibrary": "‹ Library",
     "noUncategorized": "No chapters waiting to be categorized.",
     "categorize": "Categorize",
+    "deleteUncategorized": "Remove {{fileName}} from the categorization queue",
+    "deleteUncategorizedLabel": "“{{fileName}}”",
     "catalogHeading": "Catalog"
   },
   "catalog": {
