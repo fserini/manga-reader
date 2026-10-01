@@ -152,9 +152,19 @@
 
 ---
 
-## Fase 22 — Categorizzazione assistita e multipla
+## Fase 22 — Coda di categorizzazione dedicata e copertine per livello
 
-> Pianificata, non ancora iniziata — decisa in conversazione dopo il feedback su un import di ~20 capitoli insieme, categorizzabili oggi solo uno alla volta.
+> Decisa in conversazione dopo il primo utilizzo reale: con un import di ~20 capitoli insieme, la lista "Da categorizzare" occupava per intero la pagina principale della Libreria; inoltre la stessa copertina (reale o segnaposto "dorso") veniva mostrata identica a livello Serie, Volume e Capitolo, rendendo i tre livelli difficili da distinguere a colpo d'occhio.
+
+- **Coda di categorizzazione spostata fuori dalla pagina principale**: in Libreria resta solo un riquadro riepilogo ("N capitoli da categorizzare" + invito), non invasivo e assente del tutto quando non c'è nulla in sospeso; tocandolo si apre una vista dedicata (`/uncategorized`) con l'elenco completo e il form di categorizzazione esistente, invariato nella logica
+- **Copertine solo a livello Capitolo**: Serie e Volumi, livelli di sola aggregazione senza un'immagine propria, passano da griglia-di-copertine a elenco testuale (titolo/numero, stato letti, preferito, rimozione); la copertina reale (o il segnaposto "dorso") resta solo sul Capitolo, l'unico livello che ha davvero un'immagine associata
+- Base su cui innestare, in una fase successiva, la selezione multipla e il riconoscimento automatico da nome file (vedi Fase 23)
+
+---
+
+## Fase 23 — Categorizzazione assistita e multipla
+
+> Pianificata, non ancora iniziata — decisa in conversazione dopo il feedback su un import di ~20 capitoli insieme, categorizzabili oggi solo uno alla volta. Si appoggia alla vista dedicata introdotta in Fase 22.
 
 - **Categorizzazione singola (dialog esistente)**: Serie/Volume/Numero capitolo pre-compilati analizzando il nome del file (numero capitolo e volume via pattern tipo `c12`/`ch.12`/`v01`; suggerimento di una Serie già esistente in libreria se il nome vi somiglia) — sempre modificabile, mai un riempimento automatico bloccante; se il parsing non trova nulla, i campi restano vuoti come oggi
 - **Selezione multipla**: checkbox sulle righe di "Da categorizzare", barra azioni quando almeno un capitolo è selezionato, assegnazione della Serie in blocco a tutti i selezionati

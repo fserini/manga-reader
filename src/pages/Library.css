@@ -66,45 +66,56 @@
   color: var(--text-muted);
 }
 
-.library-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.library-list-item {
+/* Riquadro riepilogo della coda "Da categorizzare" (Fase 22): al posto della
+   lista intera, un solo invito compatto che sparisce del tutto quando non
+   c'è nulla in sospeso — la lista vera vive nella vista dedicata
+   /uncategorized (vedi src/pages/Uncategorized.jsx). */
+.library-uncategorized-card {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 14px;
+  margin-top: 24px;
+  padding: 16px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
 }
 
-.library-file-icon {
-  font-size: 20px;
-  line-height: 1;
+.library-uncategorized-card:hover {
+  border-color: var(--accent);
+  background: var(--surface-hover);
 }
 
-.library-file-name {
-  word-break: break-all;
+.library-uncategorized-icon {
+  font-size: 22px;
+  color: var(--accent);
+}
+
+.library-uncategorized-text {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.library-categorize-button {
-  flex-shrink: 0;
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  background: var(--accent);
-  color: var(--accent-contrast);
-  font: inherit;
+.library-uncategorized-text strong {
+  font-size: 15px;
   font-weight: 600;
-  cursor: pointer;
+}
+
+.library-uncategorized-text span:last-child {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.library-uncategorized-arrow {
+  font-size: 22px;
+  color: var(--text-muted);
 }
 
 /* Invito a libreria vuota: occupa lo spazio disponibile, centrato. */

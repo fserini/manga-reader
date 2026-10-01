@@ -1,6 +1,7 @@
 import { Routes, Route, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Library from './pages/Library.jsx';
+import Uncategorized from './pages/Uncategorized.jsx';
 import Reader from './pages/Reader.jsx';
 import Settings from './pages/Settings.jsx';
 import UpdatePrompt from './components/UpdatePrompt.jsx';
@@ -32,6 +33,7 @@ function App() {
       <main className="app-main">
         <Routes>
           <Route path="/" element={<Library />} />
+          <Route path="/uncategorized" element={<Uncategorized />} />
           <Route path="/reader" element={<Reader />} />
           <Route path="/reader/:chapterId" element={<Reader />} />
           <Route path="/settings" element={<Settings />} />
