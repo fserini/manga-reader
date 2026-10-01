@@ -39,7 +39,10 @@ function completionPercent(progress) {
 // Mostra una miniatura da un Blob (creando/revocando l'URL oggetto). Se la
 // copertina non è ancora disponibile, il segnaposto non è una semplice icona:
 // è un "dorso" con il titolo in verticale, sullo stesso principio delle
-// copertine vere — vedi ADR-001.
+// copertine vere — vedi ADR-001. Usato solo a livello Capitolo (Fase 22):
+// Serie e Volumi sono livelli di sola aggregazione, senza un'immagine
+// propria — mostrarci sopra la stessa copertina (reale o segnaposto) li
+// rendeva indistinguibili dal Capitolo, tutti con lo stesso "punto" cliccabile.
 function Cover({ blob, alt, title }) {
   const url = useMemo(() => (blob ? URL.createObjectURL(blob) : null), [blob]);
 
@@ -354,59 +357,55 @@ function Catalog({ onFavoriteChanged }) {
         )}
 
       {level === 'series' && (
-        <ul className="catalog-grid">
+        <ul className="catalog-index">
           {visibleSeries.map((item) => (
-            <li key={item.id} className="catalog-card">
-              <button type="button" className="catalog-card-main" onClick={() => openSeries(item)}>
-                <Cover blob={item.coverThumbnail} alt="" title={item.title} />
-                <span className="catalog-card-title">{item.title}</span>
+            <li key={item.id} className="catalog-index-row">
+              <button type="button" className="catalog-index-main" onClick={() => openSeries(item)}>
+                <span className="catalog-index-title">{item.title}</span>
               </button>
-              <button
-                type="button"
-                className="catalog-card-favorite"
-                aria-label={
-                  item.favorite
-                    ? t('catalog.removeFavorite', { title: item.title })
-                    : t('catalog.addFavorite', { title: item.title })
-                }
-                aria-pressed={Boolean(item.favorite)}
-                onClick={() => toggleFavorite('series', item.id)}
-              >
-                {item.favorite ? '★' : '☆'}
-              </button>
-              <button
-                type="button"
-                className="catalog-card-delete"
-                aria-label={t('catalog.deleteSeries', { title: item.title })}
-                onClick={() =>
-                  askDelete(
-                    'series',
-                    item,
-                    t('catalog.deleteSeriesLabel', { title: item.title }),
-                    t('catalog.deleteSeriesNote'),
-                  )
-                }
-              >
-                🗑
-              </button>
+              <div className="catalog-index-actions">
+                <button
+                  type="button"
+                  className="catalog-index-favorite"
+                  aria-label={
+                    item.favorite
+                      ? t('catalog.removeFavorite', { title: item.title })
+                      : t('catalog.addFavorite', { title: item.title })
+                  }
+                  aria-pressed={Boolean(item.favorite)}
+                  onClick={() => toggleFavorite('series', item.id)}
+                >
+                  {item.favorite ? '★' : '☆'}
+                </button>
+                <button
+                  type="button"
+                  className="catalog-index-delete"
+                  aria-label={t('catalog.deleteSeries', { title: item.title })}
+                  onClick={() =>
+                    askDelete(
+                      'series',
+                      item,
+                      t('catalog.deleteSeriesLabel', { title: item.title }),
+                      t('catalog.deleteSeriesNote'),
+                    )
+                  }
+                >
+                  🗑
+                </button>
+              </div>
             </li>
           ))}
         </ul>
       )}
 
       {level === 'volumes' && (
-        <ul className="catalog-grid">
+        <ul className="catalog-index">
           {visibleVolumes.map((volume) => (
-            <li key={volume.id} className="catalog-card">
-              <button type="button" className="catalog-card-main" onClick={() => openVolume(volume)}>
-                <Cover
-                  blob={volume.coverThumbnail}
-                  alt=""
-                  title={t('catalog.volumeLabel', { number: volume.number })}
-                />
-                <span className="catalog-card-title">{t('catalog.volumeLabel', { number: volume.number })}</span>
+            <li key={volume.id} className="catalog-index-row">
+              <button type="button" className="catalog-index-main" onClick={() => openVolume(volume)}>
+                <span className="catalog-index-title">{t('catalog.volumeLabel', { number: volume.number })}</span>
                 {volumeStats[volume.id] && volumeStats[volume.id].total > 0 && (
-                  <span className="catalog-card-sub">
+                  <span className="catalog-index-sub">
                     {t('catalog.readCount', {
                       read: volumeStats[volume.id].read,
                       total: volumeStats[volume.id].total,
@@ -414,34 +413,36 @@ function Catalog({ onFavoriteChanged }) {
                   </span>
                 )}
               </button>
-              <button
-                type="button"
-                className="catalog-card-favorite"
-                aria-label={
-                  volume.favorite
-                    ? t('catalog.removeFavoriteVolume', { number: volume.number })
-                    : t('catalog.addFavoriteVolume', { number: volume.number })
-                }
-                aria-pressed={Boolean(volume.favorite)}
-                onClick={() => toggleFavorite('volume', volume.id)}
-              >
-                {volume.favorite ? '★' : '☆'}
-              </button>
-              <button
-                type="button"
-                className="catalog-card-delete"
-                aria-label={t('catalog.deleteVolume', { number: volume.number })}
-                onClick={() =>
-                  askDelete(
-                    'volume',
-                    volume,
-                    t('catalog.deleteVolumeLabel', { number: volume.number }),
-                    t('catalog.deleteVolumeNote'),
-                  )
-                }
-              >
-                🗑
-              </button>
+              <div className="catalog-index-actions">
+                <button
+                  type="button"
+                  className="catalog-index-favorite"
+                  aria-label={
+                    volume.favorite
+                      ? t('catalog.removeFavoriteVolume', { number: volume.number })
+                      : t('catalog.addFavoriteVolume', { number: volume.number })
+                  }
+                  aria-pressed={Boolean(volume.favorite)}
+                  onClick={() => toggleFavorite('volume', volume.id)}
+                >
+                  {volume.favorite ? '★' : '☆'}
+                </button>
+                <button
+                  type="button"
+                  className="catalog-index-delete"
+                  aria-label={t('catalog.deleteVolume', { number: volume.number })}
+                  onClick={() =>
+                    askDelete(
+                      'volume',
+                      volume,
+                      t('catalog.deleteVolumeLabel', { number: volume.number }),
+                      t('catalog.deleteVolumeNote'),
+                    )
+                  }
+                >
+                  🗑
+                </button>
+              </div>
             </li>
           ))}
         </ul>

@@ -73,6 +73,8 @@
   color: var(--danger);
 }
 
+/* Griglia di copertine: solo a livello Capitolo (Fase 22), l'unico con
+   un'immagine propria — vedi il commento su Cover in Catalog.jsx. */
 .catalog-grid {
   list-style: none;
   margin: 0;
@@ -80,6 +82,92 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 12px;
+}
+
+/* Elenco testuale: Serie e Volumi, livelli di sola aggregazione senza una
+   copertina propria (Fase 22) — un indice, non una griglia di immagini. */
+.catalog-index {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.catalog-index-row {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  transition: border-color 0.15s;
+}
+
+.catalog-index-row:hover {
+  border-color: var(--accent);
+}
+
+.catalog-index-main {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.catalog-index-title {
+  font-family: var(--display);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.catalog-index-sub {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.catalog-index-actions {
+  display: flex;
+  gap: 2px;
+  padding-right: 8px;
+  flex-shrink: 0;
+}
+
+.catalog-index-favorite,
+.catalog-index-delete {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.catalog-index-favorite[aria-pressed='true'] {
+  color: #e0b23f;
+}
+
+.catalog-index-delete:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .catalog-card {

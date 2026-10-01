@@ -24,6 +24,10 @@
     "feedback": "Importati: {{imported}} · Ricollegati: {{relinked}} · Duplicati saltati: {{duplicates}} · Corrotti saltati: {{corrupted}} · Ignorati: {{ignored}}",
     "importError": "Import non riuscito: qualcosa è andato storto durante l'accesso ai file.",
     "uncategorizedHeading": "Da categorizzare",
+    "uncategorizedCount_one": "1 capitolo da categorizzare",
+    "uncategorizedCount_other": "{{count}} capitoli da categorizzare",
+    "uncategorizedCta": "Tocca per assegnarli a una serie",
+    "backToLibrary": "‹ Libreria",
     "noUncategorized": "Nessun capitolo in attesa di categorizzazione.",
     "categorize": "Categorizza",
     "catalogHeading": "Catalogo"

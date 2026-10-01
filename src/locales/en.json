@@ -24,6 +24,10 @@
     "feedback": "Imported: {{imported}} · Reconnected: {{relinked}} · Duplicates skipped: {{duplicates}} · Corrupted skipped: {{corrupted}} · Ignored: {{ignored}}",
     "importError": "Import failed: something went wrong while accessing the files.",
     "uncategorizedHeading": "To categorize",
+    "uncategorizedCount_one": "1 chapter to categorize",
+    "uncategorizedCount_other": "{{count}} chapters to categorize",
+    "uncategorizedCta": "Tap to assign them to a series",
+    "backToLibrary": "‹ Library",
     "noUncategorized": "No chapters waiting to be categorized.",
     "categorize": "Categorize",
     "catalogHeading": "Catalog"
