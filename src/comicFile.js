@@ -9,7 +9,10 @@
 import JSZip from 'jszip';
 import { Archive } from 'libarchive.js';
 
-Archive.init({ workerUrl: '/libarchive/worker-bundle.js' });
+// BASE_URL e non un percorso assoluto: in produzione l'app vive sotto
+// /manga-reader/ (GitHub Pages), dove "/libarchive/..." non esiste. Se il worker
+// non si carica, Archive.open resta in attesa per sempre, senza errori.
+Archive.init({ workerUrl: `${import.meta.env.BASE_URL}libarchive/worker-bundle.js` });
 
 const IMAGE_EXTENSION_REGEX = /\.(jpe?g|png|gif|webp)$/i;
 const SPREAD_ASPECT_RATIO_THRESHOLD = 1;
