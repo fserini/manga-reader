@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getInProgressChapters, getRecentlyReadChapters, clearReadingProgress } from '../db.js';
-import { verifyPermission, fileStillExists } from '../fileAccess.js';
+import { useChapterOpener } from '../useChapterOpener.js';
+import { useObjectUrl } from '../useObjectUrl.js';
+import { chapterLabel } from '../chapterLabel.js';
 import ConfirmDialog from './ConfirmDialog.jsx';
 import Icon from './Icon.jsx';
 import './ReadingSections.css';
@@ -14,11 +15,7 @@ function completionPercent(item) {
 
 // Miniatura di un elemento, con URL oggetto gestito (come nel Catalogo).
 function ItemCover({ blob }) {
-  const url = useMemo(() => (blob ? URL.createObjectURL(blob) : null), [blob]);
-  useEffect(() => {
-    if (!url) return undefined;
-    return () => URL.revokeObjectURL(url);
-  }, [url]);
+  const url = useObjectUrl(blob);
 
   if (!url) {
     return (
@@ -30,15 +27,18 @@ function ItemCover({ blob }) {
   return <img className="rs-cover" src={url} alt="" />;
 }
 
-function ReadingSections({ onLibraryChanged }) {
+// "In corso di lettura" e "Ultimi letti": dal 29b vivono nella scheda Lettore
+// (ADR-002), non più in Libreria. onChanged: chiamata dopo una rimozione
+// manuale, perché chi la ospita possa aggiornare ciò che dipende dallo stesso
+// progresso (la card "Continua a leggere").
+function ReadingSections({ onChanged }) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [inProgress, setInProgress] = useState([]);
   const [recent, setRecent] = useState([]);
-  const [notice, setNotice] = useState(null);
   // Capitolo in attesa di conferma per la rimozione manuale (dalle liste, non
   // dalla libreria) — o null.
   const [removing, setRemoving] = useState(null);
+  const { open, notice } = useChapterOpener();
 
   const loadSections = useCallback(async () => {
     const [progressItems, recentItems] = await Promise.all([
@@ -69,31 +69,7 @@ function ReadingSections({ onLibraryChanged }) {
     const { progressItems, recentItems } = await loadSections();
     setInProgress(progressItems);
     setRecent(recentItems);
-  }
-
-  // Come nel Catalogo: permesso durante il gesto, poi apertura. Se il file non
-  // c'è più, avvisa e chiede alla Libreria di aggiornarsi.
-  async function openItem(item) {
-    setNotice(null);
-    if (!item.handle) {
-      setNotice(t('readingSections.notice.fileUnavailable'));
-      return;
-    }
-    try {
-      const granted = await verifyPermission(item.handle, 'read');
-      if (!granted) {
-        setNotice(t('readingSections.notice.permissionDenied'));
-        return;
-      }
-      if (!(await fileStillExists(item.handle))) {
-        setNotice(t('readingSections.notice.fileGone'));
-        onLibraryChanged?.();
-        return;
-      }
-      navigate(`/reader/${item.chapterId}`);
-    } catch {
-      setNotice(t('readingSections.notice.accessError'));
-    }
+    onChanged?.();
   }
 
   function renderList(items, withProgress) {
@@ -101,11 +77,11 @@ function ReadingSections({ onLibraryChanged }) {
       <ul className="rs-row">
         {items.map((item) => (
           <li key={item.chapterId}>
-            <button type="button" className="rs-card" onClick={() => openItem(item)}>
+            <button type="button" className="rs-card" onClick={() => open(item)}>
               <ItemCover blob={item.thumbnail} />
               <span className="rs-card-title">
                 {item.seriesTitle ? `${item.seriesTitle} · ` : ''}
-                {t('readingSections.chapterLabel', { number: item.chapterNumber })}
+                {chapterLabel(item, t)}
               </span>
               {item.volumeNumber != null && (
                 <span className="rs-card-sub">{t('readingSections.volumeSub', { number: item.volumeNumber })}</span>
@@ -119,7 +95,7 @@ function ReadingSections({ onLibraryChanged }) {
             <button
               type="button"
               className="rs-remove"
-              aria-label={t('readingSections.removeAria', { number: item.chapterNumber })}
+              aria-label={t('readingSections.removeAria', { label: chapterLabel(item, t) })}
               onClick={() => setRemoving(item)}
             >
               <Icon name="close" size={14} />
@@ -156,7 +132,7 @@ function ReadingSections({ onLibraryChanged }) {
 
       {removing && (
         <ConfirmDialog
-          title={t('readingSections.removeTitle', { number: removing.chapterNumber })}
+          title={t('readingSections.removeTitle', { label: chapterLabel(removing, t) })}
           note={t('readingSections.removeNote')}
           confirmLabel={t('readingSections.remove')}
           cancelLabel={t('readingSections.cancel')}

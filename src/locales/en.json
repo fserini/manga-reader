@@ -16,8 +16,6 @@
     "emptyTitle": "Your library is empty",
     "emptyHint": "Tap to import {{formats}} files",
     "importFolderLink": "…or import an entire folder",
-    "importFiles": "Import files",
-    "importFolder": "Import folder",
     "notice": {
       "relinked_one": "1 chapter was in the library without its linked file (e.g. from a restored backup) and has been reconnected.",
       "relinked_other": "{{count}} chapters were in the library without their linked file (e.g. from a restored backup) and have been reconnected.",
@@ -44,7 +42,11 @@
     "categorize": "Categorize",
     "deleteUncategorized": "Remove {{fileName}} from the categorization queue",
     "deleteUncategorizedLabel": "“{{fileName}}”",
-    "catalogHeading": "Catalog"
+    "catalogHeading": "Catalog",
+    "import": "Import",
+    "importFileLabel": "File",
+    "importFolderLabel": "Folder",
+    "importFolderHint": "Including subfolders"
   },
   "catalog": {
     "path": "Path",
@@ -180,8 +182,8 @@
     "chapterLabel": "Ch. {{number}}",
     "volumeSub": "Volume {{number}}",
     "progressAria": "{{percent}}% read",
-    "removeAria": "Remove chapter {{number}} from the list",
-    "removeTitle": "Remove chapter {{number}} from the list?",
+    "removeAria": "Remove {{label}} from the list",
+    "removeTitle": "Remove {{label}} from the list?",
     "removeNote": "The chapter stays in the library: it only leaves \"In progress\" and \"Recently read\", along with any manual bookmark.",
     "cancel": "Cancel",
     "remove": "Remove",
@@ -193,7 +195,6 @@
     }
   },
   "reader": {
-    "chooseFile": "Choose file",
     "mode": {
       "single": "Single page",
       "spread": "Double page",
@@ -218,11 +219,11 @@
     "permissionNotGranted": "File access permission not granted. Go back to the library and tap the chapter again.",
     "chapterOpenError": "Couldn't open the chapter: the file may have been moved or deleted.",
     "loadingChapter": "Loading chapter…",
-    "chooseFileToStart": "Choose a file ({{formats}}) to start reading.",
     "previous": "‹ Previous",
     "next": "Next ›",
     "pageAlt": "Page {{number}}",
-    "pageBroken": "{{alt}}: damaged image"
+    "pageBroken": "{{alt}}: damaged image",
+    "unsupportedFile": "Unsupported format ({{format}}). Accepted formats: {{formats}}."
   },
   "settings": {
     "title": "Settings",
@@ -261,11 +262,33 @@
     "restoreConfirm": "Restore (replace everything)",
     "restoring": "Restoring…",
     "restoreSuccess": "Library restored. Chapters aren't readable yet: re-import the same files from the Library to reconnect them (they'll be recognized automatically, not duplicated).",
-    "restoreError": "Restore failed."
+    "restoreError": "Restore failed.",
+    "startPageLabel": "Start page",
+    "startPageHint": "Automatic: at launch the Reader opens if you have already started reading, otherwise the Library. It only applies when the app starts.",
+    "startPage": {
+      "auto": "Automatic",
+      "library": "Library",
+      "reader": "Reader"
+    }
   },
   "pwa": {
     "updateAvailable": "A new version of the app is available.",
     "reload": "Reload",
     "dismiss": "Later"
+  },
+  "continue": {
+    "label": "Continue reading",
+    "next": "Next chapter",
+    "resume": "Resume",
+    "start": "Read",
+    "volume": "Volume {{number}}",
+    "chapter": "Chapter {{number}}",
+    "page": "p. {{page}} / {{total}}"
+  },
+  "readerHome": {
+    "empty": "You haven't started reading yet. Import files from the Library or open one from here.",
+    "openFile": "Open a file…",
+    "opening": "Opening…",
+    "hint": "If the file is already in the library I recognize it by name: you get your page, bookmark and favorites back. Otherwise I import it and open it."
   }
 }

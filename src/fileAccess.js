@@ -12,7 +12,6 @@
 // non si fida dell'estensione per scegliere come leggerli (vedi comicFile.js).
 const ARCHIVE_EXTENSIONS = ['cbz', 'cbr', 'zip', 'rar', '7z', 'cb7'];
 
-export const SUPPORTED_EXTENSIONS_ATTR = ARCHIVE_EXTENSIONS.map((extension) => `.${extension}`).join(',');
 export const SUPPORTED_FORMATS_LABEL = ARCHIVE_EXTENSIONS.map((extension) => extension.toUpperCase()).join(', ');
 
 // Estensioni che in una cartella sono "rumore" normale (copertine sciolte,
@@ -50,6 +49,13 @@ export function isArchiveFileName(fileName) {
 export async function pickFiles() {
   const handles = await window.showOpenFilePicker({ multiple: true });
   return handles;
+}
+
+// Apre il selettore per UN file solo: serve a "Apri un file…" nel Lettore, che
+// poi cerca quel file in libreria o lo importa (vedi resolveFileToChapter).
+export async function pickFile() {
+  const [handle] = await window.showOpenFilePicker({ multiple: false });
+  return handle;
 }
 
 // Apre il selettore cartella e raccoglie ricorsivamente gli handle dei file

@@ -100,7 +100,8 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 28a — Nuovi formati di import: ZIP, RAR, 7z
 - [ ] Fase 28b — Nuovi formati di import: PDF — pianificata, non ancora iniziata
 - [x] Fase 29a — Aspetto e navigazione (icone SVG, marchio, menu, Impostazioni → Aspetto) — vedi ADR-002
-- [ ] Fase 29b — Importazione, Lettore a vuoto, Libreria riordinata, pagina iniziale — vedi ADR-002 — pianificata, non ancora iniziata
+- [x] Fase 29b — Importazione, Lettore a vuoto, Libreria riordinata, pagina iniziale — vedi ADR-002
+- [ ] Fase 30 — Prestazioni con librerie grandi — pianificata dopo la 29b, non ancora iniziata
 
 ---
 

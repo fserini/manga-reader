@@ -243,6 +243,31 @@ Verifica responsive di barra e tendine su tablet (orizzontale/verticale) e telef
 
 ---
 
+## Fase 30 — Prestazioni con librerie grandi
+
+> Pianificata dopo la 29b (che riordina la Libreria: conviene ottimizzare il caricamento dopo aver deciso come è fatta). Nata dalla domanda "cosa succede se carico molti manga?": misurata in sandbox popolando il database con dati sintetici e cronometrando le operazioni reali dell'app.
+
+**Misure (desktop, dati sintetici; sul tablet atteso più lento, stima non misurata 3-6×):**
+
+| | 1.500 capitoli (30 serie) | 9.000 capitoli (150 serie) |
+|---|---|---|
+| Spazio occupato | 29 MB | 172 MB |
+| Apertura Libreria (query) | 0,2 s | 2,5 s |
+| Tornare in Libreria fino al Catalogo disegnato | — | 2–3,4 s |
+| Backup (JSON) | 34 MB | 203 MB, picco di memoria 643 MB |
+
+Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, solo riferimenti e miniature) e la lettura di un capitolo non dipende dalla dimensione della libreria. Peggiorano le operazioni che attraversano tutta la tabella dei capitoli e il backup.
+
+**Cause e interventi, in ordine di resa:**
+- **Miniature in una tabella a parte**: oggi ogni riga di `chapters` porta con sé il riferimento al file e la miniatura (~15 KB), e le scansioni complete ("Da categorizzare", Preferiti, ricerca globale: ~1 s ciascuna a 9.000 capitoli) le caricano tutte solo per filtrare un sì/no
+- **Filtri indicizzabili**: `categorized` e `favorite` sono booleani, che IndexedDB non può usare come chiave; salvarli come 0/1 con indice (migrazione dello schema Dexie, con migrazione dei dati esistenti) o con una tabella dedicata
+- **"In corso di lettura" e "ultima lettura per serie"**: oggi caricano tutti i progressi e i capitoli collegati ad ogni apertura; query indicizzate con interruzione anticipata, o l'ultima lettura memorizzata sulla serie
+- **Libreria progressiva**: mostrare la pagina subito e riempire le sezioni mano a mano, invece di attendere la scansione iniziale ("Caricamento…")
+- **Backup che regge le collezioni grandi**: oggi tutte le copertine finiscono in un'unica stringa JSON in memoria (203 MB e 643 MB di picco a 9.000 capitoli, probabilmente troppo per un tablet o un telefono); scrittura a pezzi del file, oppure un "backup leggero" senza copertine (si rigenerano aprendo i capitoli); da affrontare anche il ripristino, che oggi legge e interpreta il file intero
+- Rifare le misure dopo ogni intervento con lo stesso metodo, per verificare il guadagno reale
+
+---
+
 ## 🔮 Backlog futuro (fuori roadmap MVP)
 
 - Migrazione a TypeScript
