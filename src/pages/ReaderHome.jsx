@@ -91,7 +91,7 @@ function ReaderHome() {
         <h1>{t('nav.reader')}</h1>
       </div>
 
-      {target && <ContinueCard target={target} variant="large" onOpen={open} />}
+      {target && <ContinueCard target={target} onOpen={open} />}
       {notice && (
         <p className="reader-home-error" role="alert">
           {notice}

@@ -10,9 +10,9 @@ function percent(target) {
 
 // "Continua a leggere": il capitolo da cui riprendere (Fase 29b, ADR-002).
 // Presentazionale — i dati (getContinueTarget) e l'apertura (useChapterOpener)
-// li gestisce chi la usa. Due forme: `large` nella scheda Lettore, `compact`
-// (una riga) in cima alla Libreria.
-function ContinueCard({ target, variant = 'large', onOpen }) {
+// li gestisce chi la usa. Sta solo nella scheda Lettore: la Libreria è ciò che
+// si possiede, "Continua a leggere" è ciò che si sta leggendo (ADR-002).
+function ContinueCard({ target, onOpen }) {
   const { t } = useTranslation();
   const coverUrl = useObjectUrl(target.thumbnail);
 
@@ -26,7 +26,7 @@ function ContinueCard({ target, variant = 'large', onOpen }) {
   const hasProgress = !target.isNext && target.totalPages > 0;
 
   return (
-    <section className={`continue continue--${variant}`} aria-label={t('continue.label')}>
+    <section className="continue continue--large" aria-label={t('continue.label')}>
       <div className="continue-cover" aria-hidden="true">
         {coverUrl ? <img src={coverUrl} alt="" /> : <span>{title}</span>}
       </div>

@@ -109,38 +109,3 @@
 .continue--large .continue-action {
   flex-basis: 100%;
 }
-
-/* Compatta (Libreria): una sola riga, il pulsante a destra. */
-.continue--compact {
-  align-items: center;
-  gap: 14px;
-  padding: 12px 14px;
-  border-radius: 12px;
-}
-
-.continue--compact .continue-cover {
-  width: 40px;
-  aspect-ratio: 2 / 3;
-  border-radius: 4px;
-}
-
-.continue--compact .continue-cover span {
-  display: none;
-}
-
-.continue--compact .continue-title {
-  font-size: 16px;
-}
-
-.continue--compact .continue-body {
-  gap: 2px;
-}
-
-/* In una riga stretta basta la barra: il "pag. X / Y" andrebbe a capo. */
-.continue--compact .continue-detail--page {
-  display: none;
-}
-
-.continue--compact .continue-action {
-  padding: 9px 14px;
-}

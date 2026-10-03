@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getUncategorizedCount, getChapterCount, getContinueTarget } from '../db.js';
+import { getUncategorizedCount, getChapterCount } from '../db.js';
 import {
   isFileSystemAccessSupported,
   pickFiles,
@@ -9,11 +9,9 @@ import {
   SUPPORTED_FORMATS_LABEL,
 } from '../fileAccess.js';
 import { importHandles } from '../importFiles.js';
-import { useChapterOpener } from '../useChapterOpener.js';
 import Icon from '../components/Icon.jsx';
 import Catalog from '../components/Catalog.jsx';
 import Favorites from '../components/Favorites.jsx';
-import ContinueCard from '../components/ContinueCard.jsx';
 import ImportMenu from '../components/ImportMenu.jsx';
 import './Library.css';
 
@@ -49,7 +47,6 @@ function Library() {
   // pagina dedicata, qui basta il numero (una query con indice, Fase 30a).
   const [uncategorizedCount, setUncategorizedCount] = useState(0);
   const [chapterCount, setChapterCount] = useState(0);
-  const [continueTarget, setContinueTarget] = useState(null);
   const [loading, setLoading] = useState(true);
   // Esito dell'ultimo import — o null.
   const [result, setResult] = useState(null);
@@ -65,14 +62,9 @@ function Library() {
   const [favoritesVersion, setFavoritesVersion] = useState(0);
 
   const refresh = useCallback(async () => {
-    const [pending, count, target] = await Promise.all([
-      getUncategorizedCount(),
-      getChapterCount(),
-      getContinueTarget(),
-    ]);
+    const [pending, count] = await Promise.all([getUncategorizedCount(), getChapterCount()]);
     setUncategorizedCount(pending);
     setChapterCount(count);
-    setContinueTarget(target);
   }, []);
 
   useEffect(() => {
@@ -85,12 +77,6 @@ function Library() {
       cancelled = true;
     };
   }, [refresh]);
-
-  // Se il file di "Continua a leggere" non c'è più, ricarica la Libreria: il
-  // capitolo morto viene rimosso e la card si aggiorna.
-  const { open: openChapter, notice: openNotice } = useChapterOpener({
-    onFileGone: () => setCatalogVersion((version) => version + 1),
-  });
 
   async function runPicker(picker) {
     setResult(null);
@@ -188,17 +174,6 @@ function Library() {
       </div>
 
       {feedbackBlock}
-
-      {continueTarget && (
-        <div className="library-continue">
-          <ContinueCard target={continueTarget} variant="compact" onOpen={openChapter} />
-          {openNotice && (
-            <p className="library-error" role="alert">
-              {openNotice}
-            </p>
-          )}
-        </div>
-      )}
 
       {uncategorizedCount > 0 && (
         <Link to="/uncategorized" className="library-uncategorized-card">
