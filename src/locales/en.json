@@ -38,6 +38,12 @@
     "uncategorizedCta": "Tap to assign them to a series",
     "backToLibrary": "‹ Library",
     "noUncategorized": "No chapters waiting to be categorized.",
+    "selectAll": "Select all",
+    "selectedCount_one": "1 selected",
+    "selectedCount_other": "{{count}} selected",
+    "clearSelection": "Clear",
+    "categorizeSelected": "Categorize…",
+    "selectionBarAria": "Actions for the selected chapters",
     "categorize": "Categorize",
     "deleteUncategorized": "Remove {{fileName}} from the categorization queue",
     "deleteUncategorizedLabel": "“{{fileName}}”",
@@ -133,7 +139,24 @@
     "deleteFile": "Also delete the file from the device",
     "cancel": "Cancel"
   },
+  "bulkCategorize": {
+    "title_one": "Categorize 1 chapter",
+    "title_other": "Categorize {{count}} chapters",
+    "sameVolume": "Same volume for all selected chapters",
+    "existingVolumes": "Volumes already in this series: {{numbers}}. The same number uses that volume, a different one creates a new volume.",
+    "volumeShort": "Vol.",
+    "chapterShort": "Ch.",
+    "rowVolumeAria": "Volume of {{fileName}}",
+    "rowNumberAria": "Chapter number of {{fileName}}",
+    "save_one": "Categorize 1 chapter",
+    "save_other": "Categorize {{count}} chapters",
+    "errors": {
+      "rowVolume": "Enter a valid volume number for “{{fileName}}”.",
+      "rowNumber": "Enter a valid chapter number for “{{fileName}}”."
+    }
+  },
   "categorizeForm": {
+    "prefilled": "Fields filled in from the file name: check and correct if needed.",
     "title": "Categorize",
     "series": "Series",
     "chooseOption": "— choose —",

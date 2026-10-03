@@ -95,3 +95,10 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Avviso "compilato dal nome del file" (Fase 23): un suggerimento, non un dato. */
+.cf-prefilled {
+  margin-top: -8px;
+  font-size: 13px;
+  color: var(--accent);
+}

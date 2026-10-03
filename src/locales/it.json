@@ -38,6 +38,12 @@
     "uncategorizedCta": "Tocca per assegnarli a una serie",
     "backToLibrary": "‹ Libreria",
     "noUncategorized": "Nessun capitolo in attesa di categorizzazione.",
+    "selectAll": "Seleziona tutti",
+    "selectedCount_one": "1 selezionato",
+    "selectedCount_other": "{{count}} selezionati",
+    "clearSelection": "Deseleziona",
+    "categorizeSelected": "Categorizza…",
+    "selectionBarAria": "Azioni sui capitoli selezionati",
     "categorize": "Categorizza",
     "deleteUncategorized": "Rimuovi {{fileName}} dalla coda di categorizzazione",
     "deleteUncategorizedLabel": "«{{fileName}}»",
@@ -133,7 +139,24 @@
     "deleteFile": "Elimina anche il file dal dispositivo",
     "cancel": "Annulla"
   },
+  "bulkCategorize": {
+    "title_one": "Categorizza 1 capitolo",
+    "title_other": "Categorizza {{count}} capitoli",
+    "sameVolume": "Stesso volume per tutti i capitoli selezionati",
+    "existingVolumes": "Volumi già presenti in questa serie: {{numbers}}. Un numero uguale usa quel volume, uno diverso ne crea uno nuovo.",
+    "volumeShort": "Vol.",
+    "chapterShort": "Cap.",
+    "rowVolumeAria": "Volume di {{fileName}}",
+    "rowNumberAria": "Numero capitolo di {{fileName}}",
+    "save_one": "Categorizza 1 capitolo",
+    "save_other": "Categorizza {{count}} capitoli",
+    "errors": {
+      "rowVolume": "Inserisci un numero di volume valido per «{{fileName}}».",
+      "rowNumber": "Inserisci un numero di capitolo valido per «{{fileName}}»."
+    }
+  },
   "categorizeForm": {
+    "prefilled": "Campi compilati dal nome del file: controlla e correggi se serve.",
     "title": "Categorizza",
     "series": "Serie",
     "chooseOption": "— scegli —",
