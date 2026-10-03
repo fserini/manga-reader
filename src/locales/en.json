@@ -2,7 +2,12 @@
   "nav": {
     "library": "Library",
     "reader": "Reader",
-    "settings": "Settings"
+    "settings": "Settings",
+    "home": "Manga Reader: go to Library",
+    "menu": "Open menu",
+    "close": "Close menu",
+    "sections": "Sections",
+    "drawerTitle": "Navigate"
   },
   "library": {
     "title": "Library",
@@ -60,7 +65,7 @@
     "loading": "Loading catalog…",
     "empty": "No series yet. Categorize imported chapters to populate it.",
     "readCount": "{{read}}/{{total}} read",
-    "done": "✓ Read",
+    "done": "Read",
     "progressAria": "{{percent}}% read",
     "addFavorite": "Add {{title}} to favorites",
     "removeFavorite": "Remove {{title}} from favorites",
@@ -131,12 +136,12 @@
     "title": "Categorize",
     "series": "Series",
     "chooseOption": "— choose —",
-    "newSeries": "➕ New series…",
+    "newSeries": "+ New series…",
     "newSeriesName": "New series name",
     "newSeriesPlaceholder": "E.g. One Piece",
     "volume": "Volume",
     "volumeOption": "Volume {{number}}",
-    "newVolume": "➕ New volume…",
+    "newVolume": "+ New volume…",
     "newVolumeNumber": "New volume number",
     "newVolumeNumberPlaceholder": "E.g. 1",
     "chapterNumber": "Chapter number",
@@ -197,8 +202,8 @@
     "modeGroupAria": "Reading mode",
     "directionRtl": "Reading: Japanese (right→left)",
     "directionLtr": "Reading: Western (left→right)",
-    "bookmarkSet": "🔖 Bookmarked",
-    "bookmarkAdd": "🏷️ Mark page",
+    "bookmarkSet": "Bookmarked",
+    "bookmarkAdd": "Mark page",
     "bookmarkTitle": "Bookmark this page",
     "gotoBookmark": "Go to bookmark (p. {{page}})",
     "dimOff": "Night filter: off",
@@ -221,6 +226,20 @@
   },
   "settings": {
     "title": "Settings",
+    "appearanceHeading": "Appearance",
+    "appearanceHint": "Choose how the logo at the top and the navigation menu look. Your choices stay on this device.",
+    "logoLabel": "Logo",
+    "menuLabel": "Navigation menu",
+    "logo": {
+      "sigillo": "Seal",
+      "dorso": "Spine",
+      "blueline": "Blueline"
+    },
+    "menu": {
+      "icons": "Icons in the bar",
+      "pop": "Dropdown",
+      "drawer": "Side drawer"
+    },
     "languageHeading": "Language",
     "languageHint": "Choose the interface language.",
     "language": {

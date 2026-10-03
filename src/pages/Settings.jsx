@@ -1,6 +1,9 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { exportBackup, restoreBackup } from '../db.js';
+import Brand from '../components/Brand.jsx';
+import { useUiPreferences } from '../UiPreferencesContext.jsx';
+import { LOGO_OPTIONS, MENU_OPTIONS } from '../uiPreferences.js';
 import './Settings.css';
 
 // Le lingue supportate, come i18n.js: qui non serve dedurre nulla, solo
@@ -12,6 +15,7 @@ const LANGUAGE_OPTIONS = [
 
 function Settings() {
   const { t, i18n } = useTranslation();
+  const { prefs, setPref } = useUiPreferences();
   const fileInputRef = useRef(null);
 
   const [busy, setBusy] = useState(false);
@@ -84,6 +88,48 @@ function Settings() {
         <span className="page-eyebrow" aria-hidden="true">設定</span>
         <h1>{t('settings.title')}</h1>
       </div>
+
+      <section className="settings-section" aria-labelledby="appearance-heading">
+        <h2 id="appearance-heading">{t('settings.appearanceHeading')}</h2>
+        <p className="settings-hint">{t('settings.appearanceHint')}</p>
+
+        <h3 id="logo-label" className="settings-subheading">
+          {t('settings.logoLabel')}
+        </h3>
+        <div className="settings-logo-options" role="radiogroup" aria-labelledby="logo-label">
+          {LOGO_OPTIONS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              role="radio"
+              aria-checked={prefs.logo === option}
+              className={`settings-logo-card${prefs.logo === option ? ' settings-logo-active' : ''}`}
+              onClick={() => setPref('logo', option)}
+            >
+              <Brand variant={option} />
+              <span>{t(`settings.logo.${option}`)}</span>
+            </button>
+          ))}
+        </div>
+
+        <h3 id="menu-label" className="settings-subheading">
+          {t('settings.menuLabel')}
+        </h3>
+        <div className="settings-pill-options" role="radiogroup" aria-labelledby="menu-label">
+          {MENU_OPTIONS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              role="radio"
+              aria-checked={prefs.menu === option}
+              className={prefs.menu === option ? 'settings-pill-active' : ''}
+              onClick={() => setPref('menu', option)}
+            >
+              {t(`settings.menu.${option}`)}
+            </button>
+          ))}
+        </div>
+      </section>
 
       <section className="settings-section" aria-labelledby="language-heading">
         <h2 id="language-heading">{t('settings.languageHeading')}</h2>

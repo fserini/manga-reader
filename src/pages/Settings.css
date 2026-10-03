@@ -42,7 +42,57 @@
 
 .settings-pill-options {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+}
+
+.settings-subheading {
+  margin: 20px 0 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.settings-subheading:first-of-type {
+  margin-top: 4px;
+}
+
+/* Scelta del marchio: ogni opzione mostra il marchio vero, non solo il nome. */
+.settings-logo-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 8px;
+}
+
+.settings-logo-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.settings-logo-card:hover {
+  border-color: #3a362f;
+}
+
+.settings-logo-card.settings-logo-active {
+  border-color: var(--accent);
+  background: rgba(95, 180, 222, 0.1);
+  color: var(--accent);
 }
 
 .settings-pill-options button {

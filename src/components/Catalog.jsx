@@ -24,6 +24,7 @@ import {
   isFileDeletionSupported,
   deleteFileFromHandle,
 } from '../fileAccess.js';
+import Icon from './Icon.jsx';
 import DeleteDialog from './DeleteDialog.jsx';
 import ConfirmDialog from './ConfirmDialog.jsx';
 import CoverPicker from './CoverPicker.jsx';
@@ -557,7 +558,7 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
                   aria-label={t('catalog.coverSeries', { title: item.title })}
                   onClick={() => setCoverTarget({ kind: 'series', item, label: item.title })}
                 >
-                  🖼
+                  <Icon name="image" />
                 </button>
                 <button
                   type="button"
@@ -565,7 +566,7 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
                   aria-label={t('catalog.tagsSeries', { title: item.title })}
                   onClick={() => setTagsTarget(item)}
                 >
-                  🏷
+                  <Icon name="tag" />
                 </button>
                 <button
                   type="button"
@@ -578,7 +579,7 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
                   aria-pressed={Boolean(item.favorite)}
                   onClick={() => toggleFavorite('series', item.id)}
                 >
-                  {item.favorite ? '★' : '☆'}
+                  <Icon name="star" filled={Boolean(item.favorite)} />
                 </button>
                 <button
                   type="button"
@@ -593,7 +594,7 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
                     )
                   }
                 >
-                  🗑
+                  <Icon name="trash" />
                 </button>
               </div>
             </li>
@@ -664,7 +665,7 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
                     })
                   }
                 >
-                  🖼
+                  <Icon name="image" />
                 </button>
                 {volumeStats[volume.id] && volumeStats[volume.id].total > 0 && (
                   <button
@@ -678,7 +679,7 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
                     }
                     onClick={() => toggleVolumeRead(volume)}
                   >
-                    ✓
+                    <Icon name="check" />
                   </button>
                 )}
                 <button
@@ -692,7 +693,7 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
                   aria-pressed={Boolean(volume.favorite)}
                   onClick={() => toggleFavorite('volume', volume.id)}
                 >
-                  {volume.favorite ? '★' : '☆'}
+                  <Icon name="star" filled={Boolean(volume.favorite)} />
                 </button>
                 <button
                   type="button"
@@ -707,7 +708,7 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
                     )
                   }
                 >
-                  🗑
+                  <Icon name="trash" />
                 </button>
               </div>
             </li>
@@ -727,7 +728,10 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
                 />
                 <span className="catalog-card-title">{t('catalog.chapterLabel', { number: chapter.number })}</span>
                 {isChapterDone(chapter, progressMap[chapter.id]) ? (
-                  <span className="catalog-card-sub catalog-card-sub--done">{t('catalog.done')}</span>
+                  <span className="catalog-card-sub catalog-card-sub--done">
+                    <Icon name="check" size={13} />
+                    {t('catalog.done')}
+                  </span>
                 ) : progressMap[chapter.id] ? (
                   <span
                     className="catalog-progress"
@@ -751,7 +755,7 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
                 aria-pressed={Boolean(chapter.favorite)}
                 onClick={() => toggleFavorite('chapter', chapter.id)}
               >
-                {chapter.favorite ? '★' : '☆'}
+                <Icon name="star" filled={Boolean(chapter.favorite)} />
               </button>
               <button
                 type="button"
@@ -759,7 +763,7 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
                 aria-label={t('catalog.deleteChapter', { number: chapter.number })}
                 onClick={() => askDelete('chapter', chapter, t('catalog.deleteChapterLabel', { number: chapter.number }), null)}
               >
-                🗑
+                <Icon name="trash" />
               </button>
             </li>
           ))}

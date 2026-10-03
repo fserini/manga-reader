@@ -12,6 +12,7 @@ import {
   getNextChapterInVolume,
 } from '../db.js';
 import { useAppChrome } from '../AppChromeContext.jsx';
+import Icon from '../components/Icon.jsx';
 import './Reader.css';
 
 const DOUBLE_TAP_DELAY_MS = 300;
@@ -74,7 +75,7 @@ function Page({ url, alt, style }) {
   if (!url) {
     return (
       <div className="reader-page-broken">
-        <span aria-hidden="true">⚠️</span>
+        <Icon name="alert" size={32} />
         <span>{t('reader.pageBroken', { alt })}</span>
       </div>
     );

@@ -30,8 +30,9 @@
 }
 
 .uncategorized-icon {
-  font-size: 20px;
-  line-height: 1;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
 }
 
 .uncategorized-name {

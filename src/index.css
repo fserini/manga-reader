@@ -35,6 +35,31 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Icone SVG (componente Icon): disegnate con il colore del testo, così
+   seguono lo stato del bottone che le contiene. */
+.icon {
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon--filled {
+  fill: currentColor;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 html,
 body,
 #root {
