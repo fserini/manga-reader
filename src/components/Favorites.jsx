@@ -10,6 +10,8 @@ import {
   toggleChapterFavorite,
 } from '../db.js';
 import { verifyPermission, fileStillExists } from '../fileAccess.js';
+import { isHintDismissed, dismissHint } from '../hints.js';
+import EmptyState from './EmptyState.jsx';
 import Icon from './Icon.jsx';
 import './Favorites.css';
 
@@ -43,6 +45,11 @@ function Favorites({ onLibraryChanged }) {
   const [volumes, setVolumes] = useState([]);
   const [chapters, setChapters] = useState([]);
   const [notice, setNotice] = useState(null);
+  // Il suggerimento "nessun preferito ancora" (Fase 26) compare solo a elenchi
+  // caricati — altrimenti lampeggerebbe prima dei dati — e si può chiudere per
+  // sempre.
+  const [loaded, setLoaded] = useState(false);
+  const [hintDismissed, setHintDismissed] = useState(() => isHintDismissed('favorites'));
 
   // Ricarica i tre elenchi: usata sia al montaggio sia dopo ogni "togli dai
   // preferiti" fatto da qui. Non è un useCallback perché non serve come
@@ -70,6 +77,7 @@ function Favorites({ onLibraryChanged }) {
         setSeries(seriesItems);
         setVolumes(volumeItems);
         setChapters(chapterItems);
+        setLoaded(true);
       }
     })();
     return () => {
@@ -118,7 +126,23 @@ function Favorites({ onLibraryChanged }) {
     }
   }
 
-  if (series.length === 0 && volumes.length === 0 && chapters.length === 0) return null;
+  if (series.length === 0 && volumes.length === 0 && chapters.length === 0) {
+    if (!loaded || hintDismissed) return null;
+    return (
+      <EmptyState
+        compact
+        icon="star"
+        title={t('favorites.hintTitle')}
+        dismissLabel={t('favorites.hintDismiss')}
+        onDismiss={() => {
+          dismissHint('favorites');
+          setHintDismissed(true);
+        }}
+      >
+        {t('favorites.hintText')}
+      </EmptyState>
+    );
+  }
 
   return (
     <div className="favorites">

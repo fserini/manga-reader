@@ -197,7 +197,7 @@
 
 ## Fase 26 — Rifiniture grafiche moderne
 
-> Terza fase del gruppo nato dall'analisi complessiva (vedi Fase 24). Principalmente CSS/UX, nessuna nuova logica di dati.
+> Terza fase del gruppo nato dall'analisi complessiva (vedi Fase 24). Principalmente CSS/UX, nessuna nuova logica di dati. **Completata**: dettagli in [`docs/didattica/fase26-rifiniture-grafiche.md`](../didattica/fase26-rifiniture-grafiche.md). Il "pull-to-refresh" è stato sostituito da un pulsante esplicito "Ricontrolla i file" nell'intestazione della Libreria (il gesto sarebbe andato in conflitto con quello nativo del browser, che ricarica la pagina); il ricontrollo riporta come "non verificabili" i file di cui non si ha già il permesso di lettura.
 
 - **Skeleton loading**: placeholder animati in stile Yomihon (dorso-libro) al posto dei testi "Caricamento…" in Catalogo/Libreria
 - **Transizioni tra i livelli del Catalogo**: una transizione breve (slide laterale) nel passaggio Serie → Volumi → Capitoli, oggi istantaneo

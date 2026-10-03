@@ -53,8 +53,7 @@
   color: var(--accent);
 }
 
-.reader-home-hint,
-.reader-home-empty {
+.reader-home-hint {
   max-width: 56ch;
   font-size: 14px;
   color: var(--text-muted);
