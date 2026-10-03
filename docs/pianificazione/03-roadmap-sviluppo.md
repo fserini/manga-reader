@@ -277,7 +277,10 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 - **Guida interattiva**: un breve giro a riquadri che indica le funzioni principali (importare con il "+", la barra di navigazione, la Libreria e la coda "Da categorizzare", il Lettore e le sue modalità, i Preferiti, il backup in Impostazioni)
 - **Pulsante "Guida" (?)** nella barra di navigazione, in tutte e tre le varianti di menu (icone, tendina, laterale): è un aiuto, non una destinazione di uso quotidiano, quindi con un peso visivo diverso dalle tre schede
 - **Primo avvio**: proposta della guida solo a chi apre l'app per la prima volta (segno salvato in locale) *e* ha la libreria vuota; chi ha già dei capitoli non se la vede imporre. Sempre saltabile, mai bloccante; rivedibile da Impostazioni
-- Da decidere in fase di studio: se il giro usa dati di prova o solo riquadri sull'interfaccia reale, e dove mostrare la guida estesa (pagina dedicata o solo il giro)
+- **Dati di prova** ammessi nel giro (decisione di Federico): generati dall'app, senza manga con diritti d'autore
+- **Guida utente** leggibile con calma: pagina dedicata, aperta da un pulsante "Guida utente" in Impostazioni (oltre al giro e al "?" nella barra)
+- **Contenuto come dati, non scritto nel codice dei componenti** (sezioni e domande/risposte in file separati, in italiano e inglese): così la guida può essere aggiornata senza toccare l'interfaccia, e un giorno può diventare la base di conoscenza di un assistente IA che risponda alle domande dell'utente sull'app (idea da valutare insieme alla Fase 32, con la stessa gestione della chiave e il vincolo "solo online, su richiesta")
+- Ordine deciso da Federico: la Fase 31 parte **dopo** aver concluso le fasi ancora aperte (26 e 27)
 
 ---
 
