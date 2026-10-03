@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { getUncategorizedChapters, getChapterCount, getContinueTarget } from '../db.js';
+import { getUncategorizedCount, getChapterCount, getContinueTarget } from '../db.js';
 import {
   isFileSystemAccessSupported,
   pickFiles,
@@ -45,7 +45,9 @@ function describeExtensions(extensions) {
 // "Ultimi letti" non sono più qui: stanno nella scheda Lettore.
 function Library() {
   const { t } = useTranslation();
-  const [uncategorized, setUncategorized] = useState([]);
+  // Solo quanti capitoli aspettano una categoria: la lista vera sta nella
+  // pagina dedicata, qui basta il numero (una query con indice, Fase 30a).
+  const [uncategorizedCount, setUncategorizedCount] = useState(0);
   const [chapterCount, setChapterCount] = useState(0);
   const [continueTarget, setContinueTarget] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -63,12 +65,12 @@ function Library() {
   const [favoritesVersion, setFavoritesVersion] = useState(0);
 
   const refresh = useCallback(async () => {
-    const [chapters, count, target] = await Promise.all([
-      getUncategorizedChapters(),
+    const [pending, count, target] = await Promise.all([
+      getUncategorizedCount(),
       getChapterCount(),
       getContinueTarget(),
     ]);
-    setUncategorized(chapters);
+    setUncategorizedCount(pending);
     setChapterCount(count);
     setContinueTarget(target);
   }, []);
@@ -199,13 +201,13 @@ function Library() {
         </div>
       )}
 
-      {uncategorized.length > 0 && (
+      {uncategorizedCount > 0 && (
         <Link to="/uncategorized" className="library-uncategorized-card">
           <span className="library-uncategorized-icon" aria-hidden="true">
             <Icon name="inbox" size={22} />
           </span>
           <span className="library-uncategorized-text">
-            <strong>{t('library.uncategorizedCount', { count: uncategorized.length })}</strong>
+            <strong>{t('library.uncategorizedCount', { count: uncategorizedCount })}</strong>
             <span>{t('library.uncategorizedCta')}</span>
           </span>
           <span className="library-uncategorized-arrow" aria-hidden="true">
