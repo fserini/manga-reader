@@ -102,7 +102,7 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 29a — Aspetto e navigazione (icone SVG, marchio, menu, Impostazioni → Aspetto) — vedi ADR-002
 - [x] Fase 29b — Importazione, Lettore a vuoto, Libreria riordinata, pagina iniziale — vedi ADR-002
 - [x] Fase 30a — Prestazioni: database con indici, miniature a parte, ultima lettura sulla serie (schema v3)
-- [ ] Fase 30b — Prestazioni: backup che regge le librerie grandi — pianificata, non ancora iniziata
+- [x] Fase 30b — Prestazioni: backup a pezzi (completo e leggero), ripristino a flusso
 
 ---
 
