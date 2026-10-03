@@ -310,6 +310,21 @@ export async function getChaptersUnderVolume(volumeId) {
   return withThumbnails(await rawChaptersUnderVolume(volumeId));
 }
 
+// Tutti i capitoli, con il loro handle: per il ricontrollo dei file (Fase 26).
+export async function getChaptersForFileCheck() {
+  return db.chapters.toArray();
+}
+
+// Toglie più capitoli in una volta (progresso e miniature compresi), in
+// un'unica transazione. Solo i riferimenti: i file non si toccano.
+export async function removeChapters(chapterIds) {
+  return db.transaction('rw', [db.chapters, db.readingProgress, db.thumbnails], async () => {
+    await db.readingProgress.bulkDelete(chapterIds);
+    await db.thumbnails.bulkDelete(chapterIds);
+    await db.chapters.bulkDelete(chapterIds);
+  });
+}
+
 export async function removeChapter(chapterId) {
   await db.readingProgress.delete(chapterId);
   await db.thumbnails.delete(chapterId);

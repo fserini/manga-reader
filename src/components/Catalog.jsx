@@ -30,6 +30,7 @@ import ConfirmDialog from './ConfirmDialog.jsx';
 import CoverPicker from './CoverPicker.jsx';
 import TagsDialog from './TagsDialog.jsx';
 import RenameDialog from './RenameDialog.jsx';
+import { SkeletonList } from './Skeleton.jsx';
 import './Catalog.css';
 
 const canDeleteFiles = isFileDeletionSupported();
@@ -140,6 +141,10 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
   const [unreadTarget, setUnreadTarget] = useState(null); // un volume
   // Fase 27: serie o volume da rinominare, { kind, item, label }.
   const [renameTarget, setRenameTarget] = useState(null);
+  // Verso dell'ultimo cambio di livello, per la transizione laterale (Fase 26):
+  // 'forward' scendendo (Serie → Volumi → Capitoli), 'back' risalendo; null
+  // finché non si naviga, così la prima apertura non si anima.
+  const [direction, setDirection] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -208,6 +213,7 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
     const volumeList = await getVolumesForSeries(item.id);
     setVolumes(volumeList);
     setVolumeStats(await loadVolumeStats(volumeList));
+    setDirection('forward');
     setLevel('volumes');
     setSearchQuery('');
   }
@@ -217,6 +223,7 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
     const chapterList = await getChaptersForVolume(volume.id);
     setChapters(chapterList);
     setProgressMap(await getReadingProgressMap(chapterList.map((chapter) => chapter.id)));
+    setDirection('forward');
     setLevel('chapters');
     setSearchQuery('');
   }
@@ -245,6 +252,7 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
   }
 
   function goToSeries() {
+    setDirection('back');
     setLevel('series');
     setCurrentSeries(null);
     setCurrentVolume(null);
@@ -252,6 +260,7 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
   }
 
   function goToVolumes() {
+    setDirection('back');
     setLevel('volumes');
     setCurrentVolume(null);
     setSearchQuery('');
@@ -366,7 +375,7 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
   }
 
   if (loading) {
-    return <p className="catalog-empty">{t('catalog.loading')}</p>;
+    return <SkeletonList rows={5} label={t('catalog.loading')} />;
   }
 
   if (series.length === 0) {
@@ -492,6 +501,11 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
         )}
       </div>
 
+      {/* Tutto ciò che cambia con il livello sta in un contenitore con la key del
+          livello: a ogni cambio si rimonta, e la sua animazione d'ingresso (slide
+          laterale, vedi Catalog.css) fa da transizione. I dialog restano fuori: un
+          elemento con transform diventerebbe il riferimento dei loro `fixed`. */}
+      <div key={level} className={`catalog-level${direction ? ` catalog-level--${direction}` : ''}`}>
       {level === 'series' && allTags.length > 0 && (
         <ul className="catalog-tag-filter" aria-label={t('catalog.tagFilterAria')}>
           {allTags.map((tag) => (
@@ -788,6 +802,8 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
           ))}
         </ul>
       )}
+
+      </div>
 
       {deleteTarget && (
         <DeleteDialog

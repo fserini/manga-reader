@@ -1,0 +1,102 @@
+.empty-state {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 32px 24px;
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  text-align: center;
+}
+
+.empty-state-icon {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(95, 180, 222, 0.1);
+  color: var(--accent);
+}
+
+.empty-state-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 420px;
+}
+
+/* Il titolo di sezione globale (h2) ha un bordo e un margine pensati per le
+   sezioni: qui no. */
+.empty-state .empty-state-title {
+  margin: 0;
+  padding: 0;
+  border: none;
+  font-size: 20px;
+}
+
+.empty-state-text {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.empty-state-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* In riga: l'icona a sinistra, il testo accanto, la chiusura in alto a destra. */
+.empty-state--compact {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 40px 14px 16px;
+  border-radius: 12px;
+  text-align: left;
+}
+
+.empty-state--compact .empty-state-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.empty-state--compact .empty-state-body {
+  align-items: flex-start;
+  gap: 2px;
+  max-width: none;
+}
+
+.empty-state--compact .empty-state-title {
+  font-size: 16px;
+}
+
+.empty-state-dismiss {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.empty-state-dismiss:hover {
+  background: var(--surface-hover);
+}

@@ -1,0 +1,51 @@
+/* Ricontrollo dei file (Fase 26). Riusa il pannello .cf-* dei form. */
+.filecheck-progress {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.filecheck-result {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filecheck-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filecheck-warning {
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.filecheck-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 10px 14px;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.filecheck-more,
+.filecheck-note {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.filecheck-removed {
+  margin-top: 0;
+}
+
+.cf-save.filecheck-danger {
+  background: var(--danger);
+  color: #fff;
+}

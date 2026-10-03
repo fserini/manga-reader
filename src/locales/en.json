@@ -45,6 +45,7 @@
     "categorizeSelected": "Categorize…",
     "selectionBarAria": "Actions for the selected chapters",
     "categorize": "Categorize",
+    "recheckFiles": "Recheck linked files",
     "deleteUncategorized": "Remove {{fileName}} from the categorization queue",
     "deleteUncategorizedLabel": "“{{fileName}}”",
     "catalogHeading": "Catalog",
@@ -157,6 +158,31 @@
       "rowNumber": "Enter a valid chapter number for “{{fileName}}”."
     }
   },
+  "fileCheck": {
+    "title": "File check",
+    "starting": "Getting ready…",
+    "progress": "Checking… {{done}} / {{total}} files",
+    "allFine_one": "All good: 1 file reachable.",
+    "allFine_other": "All good: {{count}} files reachable.",
+    "reachable_one": "1 file reachable.",
+    "reachable_other": "{{count}} files reachable.",
+    "missing_one": "1 file is gone (moved or deleted).",
+    "missing_other": "{{count}} files are gone (moved or deleted).",
+    "more_one": "…and one more.",
+    "more_other": "…and {{count}} more.",
+    "removeNote": "Removing them from the library only removes the references, with their reading progress: the files are not touched.",
+    "unverified_one": "1 file can't be checked without your permission: it's verified when you open the chapter.",
+    "unverified_other": "{{count}} files can't be checked without your permission: they're verified when you open the chapters.",
+    "withoutHandle_one": "1 chapter has no linked file (restored from a backup): re-import the file to link it again.",
+    "withoutHandle_other": "{{count}} chapters have no linked file (restored from a backup): re-import the files to link them again.",
+    "remove_one": "Remove from the library",
+    "remove_other": "Remove {{count}} from the library",
+    "removed_one": "Removed 1 chapter from the library.",
+    "removed_other": "Removed {{count}} chapters from the library.",
+    "close": "Close",
+    "error": "File check failed.",
+    "removeError": "Removal failed. Try again."
+  },
   "rename": {
     "titleSeries": "Rename series",
     "titleVolume": "Change volume number",
@@ -202,6 +228,9 @@
     "seriesHeading": "Favorite series",
     "volumesHeading": "Favorite volumes",
     "chaptersHeading": "Favorite chapters",
+    "hintTitle": "No favorites yet",
+    "hintText": "Tap the star next to a series, a volume or a chapter: you'll find them here, ready to open.",
+    "hintDismiss": "Dismiss the hint",
     "unstar": "Remove from favorites",
     "unstarChapter": "Remove chapter from favorites",
     "volumeLabel": "Volume {{number}}",
@@ -354,7 +383,9 @@
     "page": "p. {{page}} / {{total}}"
   },
   "readerHome": {
-    "empty": "You haven't started reading yet. Import files from the Library or open one from here.",
+    "emptyTitle": "Nothing to resume",
+    "emptyAction": "Go to the Library",
+    "empty": "You haven't started reading yet. This is where the chapter to resume, the ones in progress and the latest read will appear. Import files from the Library or open one from below.",
     "openFile": "Open a file…",
     "opening": "Opening…",
     "hint": "If the file is already in the library I recognize it by name: you get your page, bookmark and favorites back. Otherwise I import it and open it."

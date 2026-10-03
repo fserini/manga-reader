@@ -7,6 +7,7 @@ import CategorizeForm from '../components/CategorizeForm.jsx';
 import BulkCategorizeForm from '../components/BulkCategorizeForm.jsx';
 import DeleteDialog from '../components/DeleteDialog.jsx';
 import Icon from '../components/Icon.jsx';
+import { SkeletonList } from '../components/Skeleton.jsx';
 import './Uncategorized.css';
 
 const canDeleteFiles = isFileDeletionSupported();
@@ -101,7 +102,7 @@ function Uncategorized() {
       </div>
 
       {loading ? (
-        <p>{t('library.loading')}</p>
+        <SkeletonList rows={6} label={t('library.loading')} />
       ) : chapters.length === 0 ? (
         <p className="library-empty-note">{t('library.noUncategorized')}</p>
       ) : (
