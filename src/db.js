@@ -603,8 +603,36 @@ export async function clearReadingProgress(chapterId) {
   return db.readingProgress.delete(chapterId);
 }
 
-// --- Backup e ripristino ---
+// --- Backup e ripristino (Fase 30b) ---
 //
+// Il file di backup è un JSON valido, ma scritto "a righe": un'intestazione,
+// una riga per serie, volumi e progressi, e poi UNA RIGA PER CAPITOLO (la sua
+// miniatura è una stringa di ~20 KB). Così si può scrivere e rileggere un
+// capitolo alla volta, senza mai tenere in memoria tutta la libreria: a 9.000
+// capitoli il file pesa ~200 MB, e un'unica stringa JSON era troppo per un
+// tablet. Il file resta leggibile anche da JSON.parse (è per questo che
+// l'app sa ancora ripristinare i backup delle fasi precedenti, scritti in un
+// colpo solo).
+//
+//   {"version":2,"layout":"lines","exportedAt":…,"light":false,"counts":{…},
+//   "series":[…],
+//   "volumes":[…],
+//   "readingProgress":[…],
+//   "chapters":[
+//   {capitolo},
+//   {capitolo}
+//   ]}
+//
+// "Backup leggero" (light): senza le miniature dei capitoli, la parte più
+// pesante. Le copertine di serie e volumi restano; quelle dei capitoli si
+// rigenerano da sole la prossima volta che il capitolo viene aperto.
+
+const BACKUP_BATCH = 200;
+// Stima dello spazio che una riga di capitolo occupa nel file, miniatura
+// esclusa (id, nome file, numeri, flag…). Serve solo per la stima mostrata
+// in Impostazioni, non per scrivere il file.
+const BACKUP_ROW_BYTES = 300;
+
 // JSON non sa rappresentare i Blob delle miniature: le convertiamo in data
 // URL (stringhe) per l'esportazione, e viceversa al ripristino.
 function blobToDataUrl(blob) {
@@ -621,86 +649,243 @@ async function dataUrlToBlob(dataUrl) {
   return response.blob();
 }
 
-// Esporta l'intera libreria (serie, volumi, capitoli, progressi) in un
-// oggetto pronto per essere salvato come file JSON. L'handle dei capitoli
-// NON viene esportato: è un FileSystemFileHandle legato a un file preciso di
-// QUESTO browser/dispositivo, non ha alcun significato altrove — dopo un
-// ripristino i capitoli vanno ricollegati re-importando gli stessi file
-// (vedi getChapterByFileName/setChapterHandle, usate in Library.jsx).
-export async function exportBackup() {
-  const [seriesRows, volumeRows, chapterRows, progressRows, thumbnailRows] = await Promise.all([
+async function rowsWithCoverAsDataUrl(rows) {
+  return Promise.all(
+    rows.map(async (row) => ({
+      ...row,
+      coverThumbnail: row.coverThumbnail ? await blobToDataUrl(row.coverThumbnail) : null,
+    })),
+  );
+}
+
+// Quanto occuperebbe il backup, completo e leggero, e di quanti capitoli si
+// tratta: per far scegliere con cognizione di causa. Per le miniature somma le
+// dimensioni dei Blob (senza leggerne il contenuto) e ci aggiunge il ~33% che
+// la codifica in testo (base64) aggiunge.
+export async function estimateBackupSize() {
+  let thumbnailBytes = 0;
+  await db.thumbnails.each((row) => {
+    thumbnailBytes += row.blob.size;
+  });
+  let coverBytes = 0;
+  await db.series.each((row) => {
+    coverBytes += row.coverThumbnail?.size ?? 0;
+  });
+  await db.volumes.each((row) => {
+    coverBytes += row.coverThumbnail?.size ?? 0;
+  });
+  const chapters = await db.chapters.count();
+  const light = Math.round(chapters * BACKUP_ROW_BYTES + (coverBytes * 4) / 3);
+  return { chapters, lightBytes: light, fullBytes: light + Math.round((thumbnailBytes * 4) / 3) };
+}
+
+// Genera il file di backup a pezzi di testo, uno dopo l'altro, senza tenere
+// in memoria più di un blocco di capitoli per volta. Chi la consuma (vedi
+// backupFile.js) scrive i pezzi dove preferisce: direttamente su un file, o in
+// un Blob. L'handle dei capitoli NON viene esportato: è un FileSystemFileHandle
+// legato a un file preciso di QUESTO browser/dispositivo, non ha alcun
+// significato altrove — dopo un ripristino i capitoli vanno ricollegati
+// re-importando gli stessi file (vedi getChapterByFileName/setChapterHandle).
+export async function* exportBackupParts({ light = false, onProgress } = {}) {
+  const [seriesRows, volumeRows, progressRows, chapterCount] = await Promise.all([
     db.series.toArray(),
     db.volumes.toArray(),
-    db.chapters.toArray(),
     db.readingProgress.toArray(),
-    db.thumbnails.toArray(),
+    db.chapters.count(),
   ]);
-  // Le miniature stanno in una tabella a parte (v3), ma nel file restano dentro
-  // la riga del capitolo come prima: il formato del backup non cambia.
-  const thumbnailById = new Map(thumbnailRows.map((row) => [row.chapterId, row.blob]));
-
-  const series = await Promise.all(
-    seriesRows.map(async (row) => ({
-      ...row,
-      coverThumbnail: row.coverThumbnail ? await blobToDataUrl(row.coverThumbnail) : null,
-    })),
-  );
-  const volumes = await Promise.all(
-    volumeRows.map(async (row) => ({
-      ...row,
-      coverThumbnail: row.coverThumbnail ? await blobToDataUrl(row.coverThumbnail) : null,
-    })),
-  );
-  const chapters = await Promise.all(
-    // eslint-disable-next-line no-unused-vars -- si estrae "handle" apposta per escluderlo dal risultato
-    chapterRows.map(async ({ handle, ...row }) => ({
-      ...row,
-      thumbnail: thumbnailById.has(row.id) ? await blobToDataUrl(thumbnailById.get(row.id)) : null,
-    })),
-  );
-
-  return {
+  const header = {
     version: 2,
+    layout: 'lines',
     exportedAt: Date.now(),
-    series,
-    volumes,
-    chapters,
-    readingProgress: progressRows,
+    light,
+    counts: { series: seriesRows.length, volumes: volumeRows.length, chapters: chapterCount },
+  };
+
+  yield `${JSON.stringify(header).slice(0, -1)},\n`;
+  yield `"series":${JSON.stringify(await rowsWithCoverAsDataUrl(seriesRows))},\n`;
+  yield `"volumes":${JSON.stringify(await rowsWithCoverAsDataUrl(volumeRows))},\n`;
+  yield `"readingProgress":${JSON.stringify(progressRows)},\n`;
+  yield '"chapters":[\n';
+
+  // I capitoli si leggono a blocchi, in ordine di id: "dopo l'ultimo id visto"
+  // regge anche se nel frattempo la libreria cambia.
+  let lastId = -Infinity;
+  let done = 0;
+  let first = true;
+  for (;;) {
+    const rows = await db.chapters.where('id').above(lastId).limit(BACKUP_BATCH).toArray();
+    if (rows.length === 0) break;
+    lastId = rows[rows.length - 1].id;
+
+    const thumbnails = light ? [] : await db.thumbnails.bulkGet(rows.map((row) => row.id));
+    const lines = await Promise.all(
+      // eslint-disable-next-line no-unused-vars -- si estrae "handle" apposta per escluderlo dal risultato
+      rows.map(async ({ handle, ...row }, index) =>
+        JSON.stringify({
+          ...row,
+          thumbnail: thumbnails[index] ? await blobToDataUrl(thumbnails[index].blob) : null,
+        }),
+      ),
+    );
+    yield `${first ? '' : ',\n'}${lines.join(',\n')}`;
+    first = false;
+    done += rows.length;
+    onProgress?.({ done, total: chapterCount });
+  }
+
+  yield '\n]}\n';
+}
+
+// Legge un file di testo riga per riga, a pezzi: non tiene mai in memoria il
+// file intero.
+async function* readLines(file) {
+  const reader = file.stream().pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = '';
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += value;
+    let start = 0;
+    let end;
+    while ((end = buffer.indexOf('\n', start)) >= 0) {
+      yield buffer.slice(start, end).replace(/\r$/, '');
+      start = end + 1;
+    }
+    buffer = buffer.slice(start);
+  }
+  if (buffer) yield buffer.replace(/\r$/, '');
+}
+
+function parseHeaderLine(line) {
+  try {
+    const header = JSON.parse(line.replace(/,\s*$/, '') + '}');
+    return header.layout === 'lines' && header.counts ? header : null;
+  } catch {
+    return null;
+  }
+}
+
+// Controlla che il file sia un backup e ne riassume il contenuto, SENZA
+// ripristinare nulla: serve alla finestra di conferma. Un backup "a righe" si
+// riconosce dalla prima riga e non viene letto oltre; uno delle fasi
+// precedenti (un unico JSON) va invece interpretato per intero.
+//
+// Restituisce { kind: 'lines' | 'legacy', light, counts, legacy? }, oppure
+// lancia un Error con `code`: 'invalid' (non è un backup) o 'unreadable'
+// (non è un JSON leggibile).
+export async function inspectBackupFile(file) {
+  const firstLine = (await file.slice(0, 65536).text()).split('\n', 1)[0].replace(/\r$/, '');
+  const header = parseHeaderLine(firstLine);
+  if (header) return { kind: 'lines', light: Boolean(header.light), counts: header.counts };
+
+  let backup;
+  try {
+    backup = JSON.parse(await file.text());
+  } catch {
+    throw Object.assign(new Error('unreadable'), { code: 'unreadable' });
+  }
+  if (!backup || !Array.isArray(backup.series)) {
+    throw Object.assign(new Error('invalid'), { code: 'invalid' });
+  }
+  return {
+    kind: 'legacy',
+    light: false,
+    counts: {
+      series: backup.series.length,
+      volumes: (backup.volumes ?? []).length,
+      chapters: (backup.chapters ?? []).length,
+    },
+    legacy: backup,
   };
 }
 
-// Sostituisce l'intera libreria con quella contenuta in un backup prodotto da
-// exportBackup: cancella le tabelle e le ripopola dentro un'unica
-// transazione (o va tutto a buon fine, o — in caso di errore a metà — non
-// resta una libreria a metà ripristinata). Gli id originali vengono
-// preservati (bulkAdd con chiave esplicita), così i collegamenti
-// serie/volume/capitolo/progresso restano coerenti.
-export async function restoreBackup(backup) {
-  // Un backup (anche vecchio, versione 1) ha i flag come true/false e le
-  // miniature dentro il capitolo: qui si portano al formato attuale (0/1 e
-  // tabella a parte), e si ricava la data di ultima lettura di ogni serie, che
-  // i backup precedenti non conoscono.
-  const lastRead = computeSeriesLastRead(backup.chapters ?? [], backup.readingProgress ?? []);
-  const series = await Promise.all(
-    (backup.series ?? []).map(async ({ coverThumbnail, ...row }) => ({
-      ...row,
-      ...(lastRead.has(row.id) ? { lastReadAt: lastRead.get(row.id) } : {}),
-      ...(coverThumbnail ? { coverThumbnail: await dataUrlToBlob(coverThumbnail) } : {}),
-    })),
-  );
-  const volumes = await Promise.all(
-    (backup.volumes ?? []).map(async ({ coverThumbnail, ...row }) => ({
-      ...row,
-      ...(coverThumbnail ? { coverThumbnail: await dataUrlToBlob(coverThumbnail) } : {}),
-    })),
-  );
+// Dalle righe del file ai pezzi che servono al ripristino: serie, volumi,
+// progressi (righe piccole, una volta sola) e i capitoli, uno alla volta.
+async function readLinesBackup(file) {
+  const parts = { series: [], volumes: [], readingProgress: [] };
+  // Iteratore manuale: con un `for await … break` il generatore verrebbe
+  // chiuso, e i capitoli non si potrebbero più leggere dopo l'intestazione.
+  const lines = readLines(file)[Symbol.asyncIterator]();
+  let inChapters = false;
+
+  for (let step = await lines.next(); !step.done; step = await lines.next()) {
+    if (step.value.startsWith('"chapters"')) {
+      inChapters = true;
+      break;
+    }
+    const match = /^"(series|volumes|readingProgress)":(.*?),?$/.exec(step.value);
+    if (match) parts[match[1]] = JSON.parse(match[2]);
+  }
+  if (!inChapters) throw Object.assign(new Error('invalid'), { code: 'invalid' });
+
+  async function* chapters() {
+    for (let step = await lines.next(); !step.done; step = await lines.next()) {
+      if (step.value.startsWith(']')) return;
+      const text = step.value.replace(/,$/, '');
+      if (text) yield JSON.parse(text);
+    }
+  }
+  return { ...parts, chapters: chapters() };
+}
+
+async function* chaptersOf(list) {
+  for (const chapter of list) yield chapter;
+}
+
+// Sostituisce l'intera libreria con quella di un backup: cancella le tabelle e
+// le ripopola dentro un'unica transazione (o va tutto a buon fine, o — in caso
+// di errore a metà — non resta una libreria a metà ripristinata). Gli id
+// originali vengono preservati (bulkAdd con chiave esplicita), così i
+// collegamenti serie/volume/capitolo/progresso restano coerenti.
+//
+// Tutta la parte lunga (lettura, conversione delle miniature) avviene PRIMA
+// della transazione: se il file è danneggiato o la memoria finisce, la
+// libreria attuale non è stata toccata.
+//
+// `inspected` è il risultato di inspectBackupFile.
+export async function restoreBackupFile(file, inspected, { onProgress } = {}) {
+  const source =
+    inspected.kind === 'lines'
+      ? await readLinesBackup(file)
+      : {
+          series: inspected.legacy.series ?? [],
+          volumes: inspected.legacy.volumes ?? [],
+          readingProgress: inspected.legacy.readingProgress ?? [],
+          chapters: chaptersOf(inspected.legacy.chapters ?? []),
+        };
+
+  const total = inspected.counts.chapters;
+  const chapters = [];
   const thumbnails = [];
-  const chapters = await Promise.all(
-    (backup.chapters ?? []).map(async ({ thumbnail, ...row }) => {
-      if (thumbnail) thumbnails.push({ chapterId: row.id, blob: await dataUrlToBlob(thumbnail) });
-      return { ...row, categorized: row.categorized ? 1 : 0, favorite: row.favorite ? 1 : 0 };
-    }),
+  let done = 0;
+  for await (const row of source.chapters) {
+    // Un backup (anche vecchio, versione 1) ha i flag come true/false e le
+    // miniature dentro il capitolo: qui si portano al formato attuale (0/1 e
+    // tabella a parte).
+    const { thumbnail, ...rest } = row;
+    if (thumbnail) thumbnails.push({ chapterId: rest.id, blob: await dataUrlToBlob(thumbnail) });
+    chapters.push({ ...rest, categorized: rest.categorized ? 1 : 0, favorite: rest.favorite ? 1 : 0 });
+    done += 1;
+    if (done % BACKUP_BATCH === 0 || done === total) onProgress?.({ done, total });
+  }
+
+  // Un file troncato in corrispondenza di un a-capo si leggerebbe senza
+  // errori, ma incompleto: l'intestazione dice quanti capitoli devono esserci.
+  if (done !== total) throw new Error(`Backup incompleto: ${done} capitoli su ${total}`);
+
+  // La data di ultima lettura di ogni serie, che i backup precedenti non conoscono.
+  const lastRead = computeSeriesLastRead(chapters, source.readingProgress);
+  const restoreCover = async ({ coverThumbnail, ...row }) => ({
+    ...row,
+    ...(coverThumbnail ? { coverThumbnail: await dataUrlToBlob(coverThumbnail) } : {}),
+  });
+  const series = await Promise.all(
+    source.series.map(async (row) => ({
+      ...(await restoreCover(row)),
+      ...(lastRead.has(row.id) ? { lastReadAt: lastRead.get(row.id) } : {}),
+    })),
   );
+  const volumes = await Promise.all(source.volumes.map(restoreCover));
 
   await db.transaction(
     'rw',
@@ -717,7 +902,7 @@ export async function restoreBackup(backup) {
         db.series.bulkAdd(series),
         db.volumes.bulkAdd(volumes),
         db.chapters.bulkAdd(chapters),
-        db.readingProgress.bulkAdd(backup.readingProgress ?? []),
+        db.readingProgress.bulkAdd(source.readingProgress),
         db.thumbnails.bulkAdd(thumbnails),
       ]);
     },
