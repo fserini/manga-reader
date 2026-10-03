@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { extractPageGroups, makeThumbnail } from '../comicFile.js';
+import { getFileExtension, SUPPORTED_EXTENSIONS_ATTR, SUPPORTED_FORMATS_LABEL } from '../fileAccess.js';
 import {
   getChapter,
   setChapterThumbnail,
@@ -306,9 +307,17 @@ function Reader() {
             .then((thumbnail) => thumbnail && setChapterThumbnail(chapterIdForThumb, thumbnail))
             .catch(() => {});
         }
-      } catch {
-        const isCbr = /\.cbr$/i.test(file.name);
-        setError(t('reader.invalidFile', { format: isCbr ? 'CBR' : 'CBZ' }));
+      } catch (error) {
+        // ArchiveError porta il motivo preciso; qualunque altro errore è
+        // "non riesco a leggerlo" e basta.
+        if (error.reason === 'encrypted') {
+          setError(t('reader.encryptedFile'));
+        } else if (error.reason === 'timeout') {
+          setError(t('reader.archiveTimeout'));
+        } else {
+          const extension = getFileExtension(file.name);
+          setError(t('reader.invalidFile', { format: extension ? extension.toUpperCase() : '?' }));
+        }
       }
     },
     [revokeCurrentUrls, t],
@@ -587,7 +596,7 @@ function Reader() {
           controlli di lettura veri e propri. */}
       {!chapterId && pages.length === 0 && (
         <label className="reader-file-input">
-          <input type="file" accept=".cbz,.cbr" onChange={handleFileChange} />
+          <input type="file" accept={SUPPORTED_EXTENSIONS_ATTR} onChange={handleFileChange} />
           {t('reader.chooseFile')}
         </label>
       )}
@@ -600,7 +609,7 @@ function Reader() {
 
       {pages.length === 0 && !error && (
         <div className="reader-empty">
-          <p>{chapterId ? t('reader.loadingChapter') : t('reader.chooseFileToStart')}</p>
+          <p>{chapterId ? t('reader.loadingChapter') : t('reader.chooseFileToStart', { formats: SUPPORTED_FORMATS_LABEL })}</p>
         </div>
       )}
 

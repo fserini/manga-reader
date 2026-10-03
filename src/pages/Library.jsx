@@ -11,16 +11,27 @@ import {
 import {
   isFileSystemAccessSupported,
   isArchiveFileName,
+  getFileExtension,
   pickFiles,
   pickDirectory,
+  SUPPORTED_FORMATS_LABEL,
 } from '../fileAccess.js';
-import { isValidArchive } from '../comicFile.js';
+import { validateArchive } from '../comicFile.js';
 import Catalog from '../components/Catalog.jsx';
 import ReadingSections from '../components/ReadingSections.jsx';
 import Favorites from '../components/Favorites.jsx';
 import './Library.css';
 
 const supported = isFileSystemAccessSupported();
+const MAX_LISTED_TYPES = 4;
+
+// ".pdf, .epub" — le estensioni dei file saltati, per dire quali formati non
+// sono supportati senza riempire l'avviso se ce ne sono molti.
+function describeExtensions(extensions) {
+  const labels = extensions.map((extension) => (extension ? `.${extension}` : '—'));
+  const shown = labels.slice(0, MAX_LISTED_TYPES).join(', ');
+  return labels.length > MAX_LISTED_TYPES ? `${shown}…` : shown;
+}
 
 function Library() {
   const { t } = useTranslation();
@@ -60,12 +71,14 @@ function Library() {
     };
   }, [refresh]);
 
-  // Prende un elenco di handle (da file o cartella), scarta i non-archivio,
-  // blocca i duplicati (stesso nome file già collegato a un handle), scarta
-  // gli archivi corrotti o senza immagini e importa il resto. La validazione
-  // apre il file (senza estrarne le pagine, vedi isValidArchive) solo dopo
-  // aver già escluso estensione sbagliata e duplicati — non ha senso pagare
-  // il costo dell'apertura per un file che verrebbe comunque scartato.
+  // Prende un elenco di handle (da file o cartella), scarta i formati non
+  // supportati (ricordandone le estensioni, per avvisare), blocca i duplicati
+  // (stesso nome file già collegato a un handle), scarta gli archivi non
+  // leggibili (corrotti, senza immagini, con password) e importa il resto. La
+  // validazione apre il file (senza estrarne le pagine, vedi validateArchive)
+  // solo dopo aver già escluso estensione sbagliata e duplicati — non ha
+  // senso pagare il costo dell'apertura per un file che verrebbe comunque
+  // scartato.
   //
   // Un capitolo con lo stesso nome file può già esistere ma SENZA handle: è
   // il caso di un capitolo ripristinato da un backup (Fase 16), il cui
@@ -76,11 +89,13 @@ function Library() {
     let relinked = 0;
     let duplicates = 0;
     let ignored = 0;
-    let corrupted = 0;
+    const failures = { invalid: 0, encrypted: 0, timeout: 0 };
+    const unsupportedTypes = new Set();
 
     for (const handle of handles) {
       if (!isArchiveFileName(handle.name)) {
         ignored += 1;
+        unsupportedTypes.add(getFileExtension(handle.name));
         continue;
       }
 
@@ -91,8 +106,9 @@ function Library() {
       }
 
       const file = await handle.getFile();
-      if (!(await isValidArchive(file))) {
-        corrupted += 1;
+      const verdict = await validateArchive(file);
+      if (verdict !== 'ok') {
+        failures[verdict] += 1;
         continue;
       }
 
@@ -107,7 +123,17 @@ function Library() {
     }
 
     await refresh();
-    setResult({ imported, relinked, duplicates, ignored, corrupted });
+    setResult({
+      imported,
+      relinked,
+      duplicates,
+      ignored,
+      unreadable: failures.invalid + failures.encrypted + failures.timeout,
+      invalid: failures.invalid,
+      encrypted: failures.encrypted,
+      timeout: failures.timeout,
+      unsupportedTypes: [...unsupportedTypes],
+    });
   }
 
   async function runPicker(picker) {
@@ -142,9 +168,30 @@ function Library() {
           ⚠ {t('library.notice.duplicates', { count: result.duplicates })}
         </p>
       )}
-      {result?.corrupted > 0 && (
+      {result?.ignored > 0 && (
         <p className="library-notice" role="status">
-          ⚠ {t('library.notice.corrupted', { count: result.corrupted })}
+          ⚠{' '}
+          {t('library.notice.unsupported', {
+            count: result.ignored,
+            types: describeExtensions(result.unsupportedTypes),
+            formats: SUPPORTED_FORMATS_LABEL,
+          })}
+          {result.unsupportedTypes.includes('pdf') && <> {t('library.notice.pdfSoon')}</>}
+        </p>
+      )}
+      {result?.invalid > 0 && (
+        <p className="library-notice" role="status">
+          ⚠ {t('library.notice.corrupted', { count: result.invalid })}
+        </p>
+      )}
+      {result?.encrypted > 0 && (
+        <p className="library-notice" role="status">
+          ⚠ {t('library.notice.encrypted', { count: result.encrypted })}
+        </p>
+      )}
+      {result?.timeout > 0 && (
+        <p className="library-notice" role="status">
+          ⚠ {t('library.notice.timeout', { count: result.timeout })}
         </p>
       )}
       {result && <p className="library-feedback">{t('library.feedback', result)}</p>}
@@ -180,7 +227,7 @@ function Library() {
             ＋
           </span>
           <span className="library-empty-title">{t('library.emptyTitle')}</span>
-          <span className="library-empty-hint">{t('library.emptyHint')}</span>
+          <span className="library-empty-hint">{t('library.emptyHint', { formats: SUPPORTED_FORMATS_LABEL })}</span>
         </button>
         <button type="button" className="library-link-button" onClick={() => runPicker(pickDirectory)}>
           {t('library.importFolderLink')}

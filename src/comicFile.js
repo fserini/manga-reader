@@ -1,10 +1,11 @@
-// Lettura di un file comic (CBZ/CBR) e generazione della miniatura.
+// Lettura di un archivio di immagini (CBZ/CBR e affini) e generazione della
+// miniatura.
 //
 // Questo modulo isola tutto ciò che riguarda l'estrazione delle pagine da un
-// archivio: il Lettore lo usa senza sapere se dietro c'è JSZip (CBZ) o
-// libarchive.js (CBR). Restituisce sempre "gruppi di pagine": normalmente un
-// gruppo = una pagina, ma una tavola esportata come doppia pagina diventa un
-// gruppo di due mezze pagine (vedi splitSpreadIfNeeded).
+// archivio: il Lettore lo usa senza sapere se dietro c'è JSZip (ZIP) o
+// libarchive.js (RAR, 7z). Restituisce sempre "gruppi di pagine": normalmente
+// un gruppo = una pagina, ma una tavola esportata come doppia pagina diventa
+// un gruppo di due mezze pagine (vedi splitSpreadIfNeeded).
 
 import JSZip from 'jszip';
 import { Archive } from 'libarchive.js';
@@ -17,13 +18,81 @@ Archive.init({ workerUrl: `${import.meta.env.BASE_URL}libarchive/worker-bundle.j
 const IMAGE_EXTENSION_REGEX = /\.(jpe?g|png|gif|webp)$/i;
 const SPREAD_ASPECT_RATIO_THRESHOLD = 1;
 const THUMBNAIL_MAX_WIDTH = 240;
+// Tempo massimo per avviare il worker e leggere l'intestazione di un archivio.
+// Oltre, qualcosa non va (il worker non si carica: la libreria in quel caso
+// non segnala errori, aspetta e basta) e meglio un errore chiaro che un'attesa
+// infinita. NON copre l'estrazione delle pagine, che su un volume grande può
+// legittimamente richiedere di più.
+const ARCHIVE_OPEN_TIMEOUT_MS = 30000;
 
 function naturalCompare(nameA, nameB) {
   return nameA.localeCompare(nameB, undefined, { numeric: true });
 }
 
-function isCbrFileName(fileName) {
-  return /\.cbr$/i.test(fileName);
+// Perché un archivio non si può leggere, in una forma che chi chiama sa
+// tradurre in un messaggio (vedi le chiavi library.notice.* e reader.errors.*).
+export class ArchiveError extends Error {
+  constructor(reason) {
+    super(reason);
+    this.reason = reason; // 'invalid' | 'encrypted' | 'timeout'
+  }
+}
+
+// Quale lettore serve a un file: 'zip' (JSZip) oppure 'libarchive' (RAR, 7z).
+// Si guardano i primi byte, NON l'estensione: i file con l'estensione sbagliata
+// sono comuni (molti ".cbr" sono in realtà ZIP, e un ".cbz" può essere un RAR),
+// e un ZIP letto da JSZip non ha nemmeno bisogno del worker. Solo se la firma
+// non è riconosciuta si ripiega sull'estensione, come si faceva prima.
+const ZIP_SIGNATURE = [0x50, 0x4b]; // "PK"
+const RAR_SIGNATURE = [0x52, 0x61, 0x72, 0x21, 0x1a, 0x07]; // "Rar!" + 1A 07
+const SEVEN_ZIP_SIGNATURE = [0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c]; // "7z" BC AF 27 1C
+const LIBARCHIVE_EXTENSIONS = ['cbr', 'rar', '7z', 'cb7'];
+
+export async function detectReader(file) {
+  const head = new Uint8Array(await file.slice(0, 8).arrayBuffer());
+  const startsWith = (signature) => signature.every((byte, index) => head[index] === byte);
+
+  if (startsWith(ZIP_SIGNATURE)) return 'zip';
+  if (startsWith(RAR_SIGNATURE) || startsWith(SEVEN_ZIP_SIGNATURE)) return 'libarchive';
+
+  const extension = /\.([^./\\]+)$/.exec(file.name)?.[1].toLowerCase() ?? '';
+  return LIBARCHIVE_EXTENSIONS.includes(extension) ? 'libarchive' : 'zip';
+}
+
+// Apre un archivio con libarchive, con un tetto di tempo e con il controllo
+// delle password. Chi lo usa deve chiamare archive.close(): ogni apertura crea
+// un worker (con il suo WASM) che altrimenti resterebbe vivo per sempre —
+// importando molti capitoli si accumulerebbero decine di worker.
+async function openLibarchive(file) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new ArchiveError('timeout')), ARCHIVE_OPEN_TIMEOUT_MS);
+  });
+
+  let archive;
+  try {
+    archive = await Promise.race([Archive.open(file), timeout]);
+  } catch (error) {
+    if (error instanceof ArchiveError) throw error;
+    throw new ArchiveError('invalid');
+  } finally {
+    clearTimeout(timer);
+  }
+
+  // hasEncryptedData restituisce true/false, o null se non lo sa dire: solo un
+  // "true" certo è motivo di rifiuto; un errore nel controllo non deve
+  // impedire di leggere un archivio che magari è perfettamente normale.
+  let encrypted;
+  try {
+    encrypted = (await archive.hasEncryptedData()) === true;
+  } catch {
+    encrypted = false;
+  }
+  if (encrypted) {
+    await archive.close();
+    throw new ArchiveError('encrypted');
+  }
+  return archive;
 }
 
 // Estrae il contenuto di una singola voce, senza propagare l'errore verso
@@ -38,8 +107,17 @@ async function extractEntrySafely(entry) {
   }
 }
 
-async function extractCbzPages(file) {
-  const zip = await JSZip.loadAsync(file);
+async function loadZip(file) {
+  try {
+    return await JSZip.loadAsync(file);
+  } catch (error) {
+    // JSZip riconosce lo ZIP cifrato e lo dice a parole, non con un codice.
+    throw new ArchiveError(/encrypted/i.test(error?.message ?? '') ? 'encrypted' : 'invalid');
+  }
+}
+
+async function extractZipPages(file) {
+  const zip = await loadZip(file);
   const imageEntries = Object.values(zip.files)
     .filter((entry) => !entry.dir && IMAGE_EXTENSION_REGEX.test(entry.name))
     .sort((a, b) => naturalCompare(a.name, b.name));
@@ -47,31 +125,49 @@ async function extractCbzPages(file) {
   return Promise.all(imageEntries.map((entry) => extractEntrySafely(entry)));
 }
 
-async function extractCbrPages(file) {
-  const archive = await Archive.open(file);
-  await archive.extractFiles();
-  const filesArray = await archive.getFilesArray();
+async function extractLibarchivePages(file) {
+  const archive = await openLibarchive(file);
+  try {
+    await archive.extractFiles();
+    const filesArray = await archive.getFilesArray();
 
-  return filesArray
-    .filter(({ file: entry }) => IMAGE_EXTENSION_REGEX.test(entry.name))
-    .sort((a, b) => naturalCompare(a.path + a.file.name, b.path + b.file.name))
-    .map(({ file: entry }) => entry); // già estratti da extractFiles(): mai null qui
+    return filesArray
+      .filter(({ file: entry }) => IMAGE_EXTENSION_REGEX.test(entry.name))
+      .sort((a, b) => naturalCompare(a.path + a.file.name, b.path + b.file.name))
+      .map(({ file: entry }) => entry); // già estratti da extractFiles(): mai null qui
+  } catch {
+    throw new ArchiveError('invalid');
+  } finally {
+    // Le pagine sono già File veri, indipendenti dal worker: si può chiuderlo.
+    await archive.close();
+  }
 }
 
 // Verifica che il file sia un archivio apribile e contenga almeno
 // un'immagine, SENZA estrarre le pagine — usata in fase di import, dove
 // estrarre pesa inutilmente se poi l'utente non legge subito quel capitolo.
-export async function isValidArchive(file) {
+// Restituisce 'ok' oppure il motivo del rifiuto: 'invalid' (non è un archivio
+// leggibile, o non contiene immagini), 'encrypted' (protetto da password),
+// 'timeout' (il lettore di RAR/7z non si è avviato in tempo).
+export async function validateArchive(file) {
   try {
-    if (isCbrFileName(file.name)) {
-      const archive = await Archive.open(file);
-      const filesArray = await archive.getFilesArray(); // solo elenco, nessuna estrazione
-      return filesArray.some(({ file: entry }) => IMAGE_EXTENSION_REGEX.test(entry.name));
+    if ((await detectReader(file)) === 'zip') {
+      const zip = await loadZip(file);
+      const hasImage = Object.values(zip.files).some(
+        (entry) => !entry.dir && IMAGE_EXTENSION_REGEX.test(entry.name),
+      );
+      return hasImage ? 'ok' : 'invalid';
     }
-    const zip = await JSZip.loadAsync(file);
-    return Object.values(zip.files).some((entry) => !entry.dir && IMAGE_EXTENSION_REGEX.test(entry.name));
-  } catch {
-    return false;
+
+    const archive = await openLibarchive(file);
+    try {
+      const filesArray = await archive.getFilesArray(); // solo elenco, nessuna estrazione
+      return filesArray.some(({ file: entry }) => IMAGE_EXTENSION_REGEX.test(entry.name)) ? 'ok' : 'invalid';
+    } finally {
+      await archive.close();
+    }
+  } catch (error) {
+    return error instanceof ArchiveError ? error.reason : 'invalid';
   }
 }
 
@@ -116,9 +212,8 @@ async function splitSpreadIfNeeded(blob) {
 // danneggiata, invece, NON fa fallire tutto: diventa un gruppo [null], che il
 // Lettore riconosce e mostra come "pagina non disponibile".
 export async function extractPageGroups(file) {
-  const rawImages = isCbrFileName(file.name)
-    ? await extractCbrPages(file)
-    : await extractCbzPages(file);
+  const rawImages =
+    (await detectReader(file)) === 'zip' ? await extractZipPages(file) : await extractLibarchivePages(file);
 
   return Promise.all(
     rawImages.map(async (blob) => {

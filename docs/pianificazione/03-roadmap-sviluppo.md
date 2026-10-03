@@ -219,7 +219,7 @@
 
 > Idea di Federico emersa durante la Fase 25: oltre a CBZ e CBR potrebbero arrivare file in altri formati. Divisa in due parti di costo molto diverso, da pianificare separatamente.
 
-- **28a — Archivi generici (RAR, ZIP, eventualmente 7z)**: costo basso. `.cbr` è già un RAR rinominato e `.cbz` uno ZIP, e il dispatch in `comicFile.js` è basato solo sull'estensione: si tratta di accettare `.rar`/`.zip` (e `.7z`/`.cb7`, che libarchive.js legge già) in `fileAccess.js`, instradarli sugli estrattori esistenti (libarchive per RAR/7z, JSZip per ZIP) e aggiornare i testi "CBZ o CBR" (picker del Lettore, errori, locali IT/EN)
+- **28a — Archivi generici (RAR, ZIP, 7z) — completata**: accettati anche `.zip`, `.rar`, `.7z`, `.cb7`; il lettore si sceglie dai primi byte del file (non dall'estensione), i worker di libarchive vengono chiusi dopo l'uso, timeout di 30 secondi sull'apertura, rilevamento dei file con password, e avvisi che nominano i formati non supportati (anche nelle cartelle, con una nota dedicata al PDF). Dettagli in [`docs/didattica/fase28a-nuovi-formati-archivio.md`](../didattica/fase28a-nuovi-formati-archivio.md)
 - **28b — PDF**: costo alto, pipeline diversa. Servirebbe `pdf.js` (libreria pesante con worker) e le pagine andrebbero renderizzate su canvas **in modo lazy** (non estratte come immagini già pronte), per non esaurire la memoria su PDF grandi; da decidere anche come generare la miniatura (render della prima pagina) e come rientra il PDF nel modello di "gruppi di pagine" del Lettore
 
 ---
