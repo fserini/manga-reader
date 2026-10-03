@@ -1,0 +1,130 @@
+.brand {
+  display: inline-flex;
+  min-width: 0;
+  color: var(--text);
+}
+
+/* Sigillo */
+.brand--sigillo {
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-seal {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid var(--accent);
+  border-radius: 9px;
+  font-family: var(--display);
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent);
+  transform: rotate(-4deg);
+}
+
+.brand--sigillo .brand-name {
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--display);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.brand--sigillo .brand-name em {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* Dorso */
+.brand--dorso {
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-spine {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 34px;
+  border: 1px solid #3d6a82;
+  border-radius: 3px;
+  background: linear-gradient(160deg, #2b4a5c, #0f1d26);
+  box-shadow: inset 0 -6px 0 rgba(95, 180, 222, 0.35);
+}
+
+.brand-spine b {
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+  writing-mode: vertical-rl;
+}
+
+.brand--dorso .brand-name {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  line-height: 1;
+}
+
+.brand--dorso .brand-name strong {
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.brand--dorso .brand-name small {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Blueline */
+.brand--blueline {
+  flex-direction: column;
+  gap: 3px;
+}
+
+.brand-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.brand--blueline strong {
+  font-family: var(--display);
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+.brand--blueline small {
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.brand-line {
+  display: block;
+  width: 100%;
+  min-width: 96px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+}

@@ -10,6 +10,7 @@ import {
   toggleChapterFavorite,
 } from '../db.js';
 import { verifyPermission, fileStillExists } from '../fileAccess.js';
+import Icon from './Icon.jsx';
 import './Favorites.css';
 
 // Miniatura di un elemento, con URL oggetto gestito (come nel Catalogo).
@@ -23,7 +24,7 @@ function ItemCover({ blob }) {
   if (!url) {
     return (
       <div className="fav-cover fav-cover--placeholder" aria-hidden="true">
-        📖
+        <Icon name="reader" size={36} />
       </div>
     );
   }
@@ -142,7 +143,7 @@ function Favorites({ onLibraryChanged }) {
                   <ItemCover blob={item.coverThumbnail} />
                   <span className="fav-card-title">{item.title}</span>
                   <span className="fav-star" aria-hidden="true">
-                    ★
+                    <Icon name="star" filled />
                   </span>
                 </button>
               </li>
@@ -169,7 +170,7 @@ function Favorites({ onLibraryChanged }) {
                     {t('favorites.volumeLabel', { number: item.number })}
                   </span>
                   <span className="fav-star" aria-hidden="true">
-                    ★
+                    <Icon name="star" filled />
                   </span>
                 </button>
               </li>
@@ -200,7 +201,7 @@ function Favorites({ onLibraryChanged }) {
                   aria-label={t('favorites.unstarChapter')}
                   onClick={() => unstarChapter(item)}
                 >
-                  ★
+                  <Icon name="star" filled />
                 </button>
               </li>
             ))}

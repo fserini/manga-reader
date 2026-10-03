@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { getInProgressChapters, getRecentlyReadChapters, clearReadingProgress } from '../db.js';
 import { verifyPermission, fileStillExists } from '../fileAccess.js';
 import ConfirmDialog from './ConfirmDialog.jsx';
+import Icon from './Icon.jsx';
 import './ReadingSections.css';
 
 function completionPercent(item) {
@@ -22,7 +23,7 @@ function ItemCover({ blob }) {
   if (!url) {
     return (
       <div className="rs-cover rs-cover--placeholder" aria-hidden="true">
-        📖
+        <Icon name="reader" size={36} />
       </div>
     );
   }
@@ -121,7 +122,7 @@ function ReadingSections({ onLibraryChanged }) {
               aria-label={t('readingSections.removeAria', { number: item.chapterNumber })}
               onClick={() => setRemoving(item)}
             >
-              ✕
+              <Icon name="close" size={14} />
             </button>
           </li>
         ))}

@@ -5,31 +5,25 @@
   flex-direction: column;
 }
 
-.app-nav {
+/* Barra in alto: il marchio a sinistra, la navigazione a destra (AppNav).
+   position: relative perché il menu a tendina si ancora alla barra. */
+.app-bar {
+  position: relative;
+  z-index: 20;
   display: flex;
-  gap: 4px;
-  padding: 12px 16px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 60px;
+  padding: 10px 16px;
   border-bottom: 1px solid var(--border);
+  background: var(--bg);
 }
 
-.app-nav a {
-  padding: 8px 14px;
-  border-radius: 8px;
-  color: var(--text);
-  text-decoration: none;
-  font-weight: 500;
-  transition:
-    background-color 0.15s,
-    color 0.15s;
-}
-
-.app-nav a:hover {
-  background: var(--surface-hover);
-}
-
-.app-nav a.active {
-  background: var(--accent);
-  color: var(--accent-contrast);
+.app-brand {
+  display: flex;
+  min-width: 0;
+  border-radius: 10px;
 }
 
 .app-main {

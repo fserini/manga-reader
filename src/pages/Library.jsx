@@ -17,6 +17,7 @@ import {
   SUPPORTED_FORMATS_LABEL,
 } from '../fileAccess.js';
 import { validateArchive } from '../comicFile.js';
+import Icon from '../components/Icon.jsx';
 import Catalog from '../components/Catalog.jsx';
 import ReadingSections from '../components/ReadingSections.jsx';
 import Favorites from '../components/Favorites.jsx';
@@ -24,6 +25,17 @@ import './Library.css';
 
 const supported = isFileSystemAccessSupported();
 const MAX_LISTED_TYPES = 4;
+
+// Avviso evidenziato dopo un import (duplicati saltati, formati non
+// supportati...): un'icona e il testo, allineati.
+function Notice({ icon = 'alert', children }) {
+  return (
+    <p className="library-notice" role="status">
+      <Icon name={icon} size={16} />
+      <span>{children}</span>
+    </p>
+  );
+}
 
 // ".pdf, .epub" — le estensioni dei file saltati, per dire quali formati non
 // sono supportati senza riempire l'avviso se ce ne sono molti.
@@ -159,41 +171,22 @@ function Library() {
         </p>
       )}
       {result?.relinked > 0 && (
-        <p className="library-notice" role="status">
-          🔗 {t('library.notice.relinked', { count: result.relinked })}
-        </p>
+        <Notice icon="link">{t('library.notice.relinked', { count: result.relinked })}</Notice>
       )}
-      {result?.duplicates > 0 && (
-        <p className="library-notice" role="status">
-          ⚠ {t('library.notice.duplicates', { count: result.duplicates })}
-        </p>
-      )}
+      {result?.duplicates > 0 && <Notice>{t('library.notice.duplicates', { count: result.duplicates })}</Notice>}
       {result?.ignored > 0 && (
-        <p className="library-notice" role="status">
-          ⚠{' '}
+        <Notice>
           {t('library.notice.unsupported', {
             count: result.ignored,
             types: describeExtensions(result.unsupportedTypes),
             formats: SUPPORTED_FORMATS_LABEL,
           })}
           {result.unsupportedTypes.includes('pdf') && <> {t('library.notice.pdfSoon')}</>}
-        </p>
+        </Notice>
       )}
-      {result?.invalid > 0 && (
-        <p className="library-notice" role="status">
-          ⚠ {t('library.notice.corrupted', { count: result.invalid })}
-        </p>
-      )}
-      {result?.encrypted > 0 && (
-        <p className="library-notice" role="status">
-          ⚠ {t('library.notice.encrypted', { count: result.encrypted })}
-        </p>
-      )}
-      {result?.timeout > 0 && (
-        <p className="library-notice" role="status">
-          ⚠ {t('library.notice.timeout', { count: result.timeout })}
-        </p>
-      )}
+      {result?.invalid > 0 && <Notice>{t('library.notice.corrupted', { count: result.invalid })}</Notice>}
+      {result?.encrypted > 0 && <Notice>{t('library.notice.encrypted', { count: result.encrypted })}</Notice>}
+      {result?.timeout > 0 && <Notice>{t('library.notice.timeout', { count: result.timeout })}</Notice>}
       {result && <p className="library-feedback">{t('library.feedback', result)}</p>}
     </>
   );
@@ -224,7 +217,7 @@ function Library() {
       <div className="page library-empty">
         <button type="button" className="library-empty-invite" onClick={() => runPicker(pickFiles)}>
           <span className="library-empty-icon" aria-hidden="true">
-            ＋
+            <Icon name="plus" size={44} />
           </span>
           <span className="library-empty-title">{t('library.emptyTitle')}</span>
           <span className="library-empty-hint">{t('library.emptyHint', { formats: SUPPORTED_FORMATS_LABEL })}</span>
@@ -265,14 +258,14 @@ function Library() {
       {uncategorized.length > 0 && (
         <Link to="/uncategorized" className="library-uncategorized-card">
           <span className="library-uncategorized-icon" aria-hidden="true">
-            📄
+            <Icon name="inbox" size={22} />
           </span>
           <span className="library-uncategorized-text">
             <strong>{t('library.uncategorizedCount', { count: uncategorized.length })}</strong>
             <span>{t('library.uncategorizedCta')}</span>
           </span>
           <span className="library-uncategorized-arrow" aria-hidden="true">
-            ›
+            <Icon name="chevron" size={20} />
           </span>
         </Link>
       )}

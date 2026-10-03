@@ -290,7 +290,7 @@
   border: none;
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.55);
-  font-size: 16px;
+  color: #fff;
   line-height: 1;
   cursor: pointer;
 }
@@ -364,6 +364,10 @@
 }
 
 .catalog-card-sub--done {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   color: var(--accent);
   font-weight: 600;
 }
