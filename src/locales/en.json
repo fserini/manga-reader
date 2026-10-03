@@ -25,7 +25,6 @@
       "corrupted_other": "{{count}} files are not valid archives (or contain no images) and were skipped.",
       "unsupported_one": "1 file is in an unsupported format ({{types}}) and was skipped. Accepted formats: {{formats}}.",
       "unsupported_other": "{{count}} files are in unsupported formats ({{types}}) and were skipped. Accepted formats: {{formats}}.",
-      "pdfSoon": "PDF is not supported yet.",
       "encrypted_one": "1 archive is password-protected and can't be read: it was skipped.",
       "encrypted_other": "{{count}} archives are password-protected and can't be read: they were skipped.",
       "timeout_one": "The archive reader didn't start in time for 1 file, which was skipped: try again or reload the app.",
