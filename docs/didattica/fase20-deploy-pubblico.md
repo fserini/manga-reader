@@ -124,6 +124,26 @@ Non verificabile in sandbox (limite dell'ambiente, non del codice):
 
 ---
 
+## 🩹 Correzione successiva: un percorso assoluto rimasto indietro
+
+Quando l'app è passata dalla radice al sottopercorso `/manga-reader/`, un indirizzo scritto a mano nel codice è rimasto com'era: `comicFile.js` caricava il worker di libarchive (la libreria che legge CBR/RAR) da `/libarchive/worker-bundle.js`. In produzione quell'indirizzo non esiste (404): il file vero sta sotto `/manga-reader/libarchive/`. In sviluppo non si vedeva, perché lì la base è `/`.
+
+Il sintomo, riprodotto su una build di produzione servita sotto il sottopercorso, è insidioso: nessun errore, nessuna pagina. Se il worker non si carica, `Archive.open` della libreria non fallisce: **aspetta per sempre** che il worker dichiari di essere pronto, e quel segnale non arriva mai. Lo stesso file con estensione `.cbz` (che passa da JSZip, non dal worker) si apriva regolarmente.
+
+La correzione è la stessa lezione di questa fase: **mai un percorso assoluto per risorse che vivono nella cartella `public/`**, ma sempre partire da `import.meta.env.BASE_URL`:
+
+```js
+Archive.init({ workerUrl: `${import.meta.env.BASE_URL}libarchive/worker-bundle.js` });
+```
+
+`BASE_URL` termina sempre con `/`, quindi non serve altro (`/` in sviluppo, `/manga-reader/` in produzione).
+
+Verifica: build di produzione servita da un piccolo server statico locale che replica GitHub Pages (solo `/manga-reader/*`, 404 altrove). Con lo stesso file `.cbr` di prova (un archivio ZIP con due immagini): prima della correzione restava fermo senza pagine né errori; dopo si apre (`1-2 / 2`).
+
+**Una cosa che non è stata spiegata:** sul tablet reale un vero `.cbr` risultava aprirsi anche col percorso errato, nonostante il 404 verificato sull'indirizzo e l'assenza di qualunque regola nel service worker che potesse sostituirlo. Non è stato trovato il perché. La correzione resta giusta a prescindere (l'indirizzo vecchio non esiste su GitHub Pages), ma il fatto che non sia stata riprodotta la rottura su quel dispositivo è annotato qui come punto aperto, non come risolto.
+
+---
+
 ## 🔜 Prossimi passi
 
 Con questa fase si chiude la roadmap. Il progetto resta comunque aperto: il backlog futuro (in [`03-roadmap-sviluppo.md`](../pianificazione/03-roadmap-sviluppo.md)) elenca alcune direzioni possibili — riconoscimento automatico dei nomi file, migrazione a TypeScript, statistiche di lettura, test automatici — da riprendere quando (e se) servirà davvero, non prima.
