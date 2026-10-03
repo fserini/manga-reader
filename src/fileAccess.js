@@ -6,7 +6,30 @@
 // IndexedDB (vedi db.js), così l'app resta un "visore" sui file originali e
 // non ne duplica i byte.
 
-const ARCHIVE_EXTENSION_REGEX = /\.(cbz|cbr)$/i;
+// Le estensioni di archivio accettate all'import — l'unico elenco dell'app: i
+// picker, i testi "formati supportati" e il filtro delle cartelle derivano
+// tutti da qui. cbz/cbr/cb7 sono i nomi "da fumetto" di ZIP/RAR/7z, ma l'app
+// non si fida dell'estensione per scegliere come leggerli (vedi comicFile.js).
+const ARCHIVE_EXTENSIONS = ['cbz', 'cbr', 'zip', 'rar', '7z', 'cb7'];
+
+export const SUPPORTED_EXTENSIONS_ATTR = ARCHIVE_EXTENSIONS.map((extension) => `.${extension}`).join(',');
+export const SUPPORTED_FORMATS_LABEL = ARCHIVE_EXTENSIONS.map((extension) => extension.toUpperCase()).join(', ');
+
+// Estensioni che in una cartella sono "rumore" normale (copertine sciolte,
+// note, file di sistema): scandendo una cartella non le segnaliamo come
+// "formato non supportato", altrimenti ogni cartella con una cover.jpg
+// produrrebbe un avviso. Un file scelto a mano dal picker, invece, viene
+// sempre segnalato se non è supportato.
+const IGNORED_IN_FOLDERS = new Set([
+  '', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'txt', 'nfo', 'ini', 'db', 'xml',
+  'json', 'html', 'htm', 'url', 'md', 'log', 'sfv', 'srt', 'ds_store',
+]);
+
+// L'estensione in minuscolo, senza punto ('' se il nome non ne ha).
+export function getFileExtension(fileName) {
+  const match = /\.([^./\\]+)$/.exec(fileName);
+  return match ? match[1].toLowerCase() : '';
+}
 
 // La File System Access API (showOpenFilePicker/showDirectoryPicker) esiste
 // solo su browser Chromium (Chrome/Edge, anche su Android da Chrome M132).
@@ -17,7 +40,7 @@ export function isFileSystemAccessSupported() {
 }
 
 export function isArchiveFileName(fileName) {
-  return ARCHIVE_EXTENSION_REGEX.test(fileName);
+  return ARCHIVE_EXTENSIONS.includes(getFileExtension(fileName));
 }
 
 // Apre il selettore file (multi-selezione) e restituisce gli handle scelti.
@@ -29,20 +52,25 @@ export async function pickFiles() {
   return handles;
 }
 
-// Apre il selettore cartella e raccoglie ricorsivamente gli handle di tutti i
-// file archivio (.cbz/.cbr) contenuti, comprese le sottocartelle.
+// Apre il selettore cartella e raccoglie ricorsivamente gli handle dei file
+// contenuti, comprese le sottocartelle: gli archivi supportati, più gli
+// altri file che non sono "rumore" noto (vedi IGNORED_IN_FOLDERS). Questi
+// ultimi non verranno importati: li passiamo alla Libreria perché possa
+// avvisare che quel formato non è supportato, invece di saltarli in silenzio.
 export async function pickDirectory() {
   const directoryHandle = await window.showDirectoryPicker();
-  return collectArchiveHandles(directoryHandle);
+  return collectCandidateHandles(directoryHandle);
 }
 
-async function collectArchiveHandles(directoryHandle) {
+async function collectCandidateHandles(directoryHandle) {
   const handles = [];
   for await (const entry of directoryHandle.values()) {
     if (entry.kind === 'file') {
-      if (isArchiveFileName(entry.name)) handles.push(entry);
+      if (isArchiveFileName(entry.name) || !IGNORED_IN_FOLDERS.has(getFileExtension(entry.name))) {
+        handles.push(entry);
+      }
     } else if (entry.kind === 'directory') {
-      handles.push(...(await collectArchiveHandles(entry)));
+      handles.push(...(await collectCandidateHandles(entry)));
     }
   }
   return handles;
