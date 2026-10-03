@@ -3,14 +3,15 @@ import Dexie from 'dexie';
 export const db = new Dexie('MangaReaderDB');
 
 // Serie -> Volumi -> Capitoli. I capitoli importati ma non ancora assegnati
-// a una serie/volume restano con seriesId/volumeId nulli e categorized: false
+// a una serie/volume restano con seriesId/volumeId nulli e categorized: 0
 // (sezione "Da categorizzare", Fase 8/9). readingProgress è collegata 1:1 a
 // un capitolo tramite chapterId come chiave primaria.
 //
-// "favorite" e "categorized" sono booleani e non compaiono negli indici: un
-// booleano non è un tipo di chiave valido per IndexedDB (accetta solo
-// numeri, stringhe, Date e array) — quei campi si filtrano lato JS dopo la
-// lettura, invece di usare una query indicizzata.
+// Nelle prime due versioni "favorite" e "categorized" erano booleani e non
+// comparivano negli indici: un booleano non è un tipo di chiave valido per
+// IndexedDB (accetta solo numeri, stringhe, Date e array), quindi quei campi
+// si filtravano lato JS dopo aver letto ogni riga. Dalla versione 3 sono
+// numeri 0/1 indicizzati (vedi più sotto).
 db.version(1).stores({
   series: '++id',
   volumes: '++id, seriesId',
@@ -34,6 +35,93 @@ db.version(2).stores({
   readingProgress: 'chapterId, lastReadAt',
 });
 
+// Versione 3 (Fase 30a, prestazioni con librerie grandi). Tre cambiamenti che
+// nascono dalle misure fatte su 1.500 e 9.000 capitoli:
+//
+// 1. Le miniature escono dalla riga del capitolo e vanno in una tabella a
+//    parte, `thumbnails` ({ chapterId, blob }). Ogni scansione della tabella
+//    `chapters` caricava, insieme a ogni riga, il suo Blob di ~15 KB: ora le
+//    righe sono piccole e le miniature si leggono solo per i capitoli che si
+//    mostrano davvero.
+// 2. `categorized` e `favorite` diventano 0/1 e hanno un indice. Un booleano
+//    non è una chiave valida per IndexedDB, quindi "i capitoli da
+//    categorizzare" e "i preferiti" si ottenevano leggendo TUTTE le righe e
+//    filtrando in JS; un numero si può indicizzare, e where('favorite')
+//    .equals(1) legge solo le righe che servono. Chi legge questi campi come
+//    "vero/falso" (Boolean(chapter.favorite)) continua a funzionare: 0/1 si
+//    comportano da falso/vero.
+// 3. Ogni serie ricorda la data dell'ultima lettura (`lastReadAt`), che il
+//    Catalogo usa per l'ordinamento "ultimi letti": prima la si ricavava ad
+//    ogni apertura leggendo tutti i progressi e i capitoli collegati.
+//
+// La migrazione gira una sola volta, al primo avvio dopo l'aggiornamento, e
+// riscrive le righe dei capitoli: con migliaia di capitoli può richiedere
+// qualche secondo.
+const MIGRATION_CHUNK = 500;
+
+// La data di ultima lettura di ogni serie (la più recente tra i suoi
+// capitoli), come mappa {seriesId: lastReadAt}. Funzione pura: la usano sia la
+// migrazione sia il ripristino di un backup, che non conosce questo campo.
+function computeSeriesLastRead(chapters, progressRows) {
+  const seriesByChapter = new Map(chapters.map((chapter) => [chapter.id, chapter.seriesId]));
+  const map = new Map();
+  progressRows.forEach((progress) => {
+    const seriesId = seriesByChapter.get(progress.chapterId);
+    if (seriesId == null) return;
+    if (!map.has(seriesId) || progress.lastReadAt > map.get(seriesId)) map.set(seriesId, progress.lastReadAt);
+  });
+  return map;
+}
+
+db.version(3)
+  .stores({
+    series: '++id',
+    volumes: '++id, seriesId',
+    chapters: '++id, seriesId, volumeId, importedAt, fileName, categorized, favorite',
+    readingProgress: 'chapterId, lastReadAt',
+    thumbnails: 'chapterId',
+  })
+  .upgrade(async (tx) => {
+    const chapters = await tx.table('chapters').toArray();
+
+    // Miniature in tabella a parte, flag booleani → 0/1: un blocco alla volta,
+    // per non tenere in coda migliaia di scritture insieme.
+    for (let start = 0; start < chapters.length; start += MIGRATION_CHUNK) {
+      const chunk = chapters.slice(start, start + MIGRATION_CHUNK);
+      const thumbnails = chunk
+        .filter((chapter) => chapter.thumbnail)
+        .map((chapter) => ({ chapterId: chapter.id, blob: chapter.thumbnail }));
+      // eslint-disable-next-line no-unused-vars -- si estrae "thumbnail" apposta per escluderlo dalla riga
+      const rows = chunk.map(({ thumbnail, ...row }) => ({
+        ...row,
+        categorized: row.categorized ? 1 : 0,
+        favorite: row.favorite ? 1 : 0,
+      }));
+      if (thumbnails.length > 0) await tx.table('thumbnails').bulkPut(thumbnails);
+      await tx.table('chapters').bulkPut(rows);
+    }
+
+    const lastRead = computeSeriesLastRead(chapters, await tx.table('readingProgress').toArray());
+    if (lastRead.size > 0) {
+      await tx
+        .table('series')
+        .toCollection()
+        .modify((series) => {
+          if (lastRead.has(series.id)) series.lastReadAt = lastRead.get(series.id);
+        });
+    }
+  });
+
+// Dà alle righe dei capitoli la loro miniatura (campo `thumbnail`, come prima
+// della v3), leggendola dalla tabella a parte. Si usa solo dove le miniature
+// servono davvero: la griglia dei capitoli di un volume, la scelta della
+// copertina, i capitoli "arricchiti" delle sezioni di lettura.
+async function withThumbnails(chapters) {
+  if (chapters.length === 0) return chapters;
+  const rows = await db.thumbnails.bulkGet(chapters.map((chapter) => chapter.id));
+  return chapters.map((chapter, index) => (rows[index] ? { ...chapter, thumbnail: rows[index].blob } : chapter));
+}
+
 export async function addSeries(title) {
   return db.series.add({ title, favorite: false });
 }
@@ -48,8 +136,8 @@ export async function addChapter({ fileName, number, seriesId = null, volumeId =
     number,
     seriesId,
     volumeId,
-    categorized: seriesId != null,
-    favorite: false,
+    categorized: seriesId != null ? 1 : 0,
+    favorite: 0,
     importedAt: Date.now(),
   });
 }
@@ -65,8 +153,8 @@ export async function importChapter({ fileName, handle }) {
     number: null,
     seriesId: null,
     volumeId: null,
-    categorized: false,
-    favorite: false,
+    categorized: 0,
+    favorite: 0,
     importedAt: Date.now(),
   });
 }
@@ -87,11 +175,18 @@ export async function setChapterHandle(chapterId, handle) {
 }
 
 export async function categorizeChapter(chapterId, { seriesId, volumeId, number }) {
-  return db.chapters.update(chapterId, { seriesId, volumeId, number, categorized: true });
+  return db.chapters.update(chapterId, { seriesId, volumeId, number, categorized: 1 });
 }
 
+// I capitoli da categorizzare, con la query indicizzata: legge solo quelli.
 export async function getUncategorizedChapters() {
-  return db.chapters.filter((chapter) => !chapter.categorized).toArray();
+  return db.chapters.where('categorized').equals(0).toArray();
+}
+
+// Solo quanti sono: alla Libreria serve il numero per la card "Da
+// categorizzare", non le righe — il conteggio sull'indice non legge nulla.
+export async function getUncategorizedCount() {
+  return db.chapters.where('categorized').equals(0).count();
 }
 
 // Tutte le serie, in ordine alfabetico: popolano il menu a tendina del form di
@@ -99,25 +194,6 @@ export async function getUncategorizedChapters() {
 export async function getAllSeries() {
   const series = await db.series.toArray();
   return series.sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
-}
-
-// Ultima data di lettura per ogni serie (la più recente tra i suoi
-// capitoli), come mappa {seriesId: lastReadAt}: usata dal catalogo per
-// l'ordinamento "ultimi letti". Le serie mai lette non compaiono nella
-// mappa (il chiamante le tratta come "meno recenti di tutte").
-export async function getSeriesLastReadMap() {
-  const progressRows = await db.readingProgress.toArray();
-  const chapters = await db.chapters.bulkGet(progressRows.map((progress) => progress.chapterId));
-
-  const map = {};
-  progressRows.forEach((progress, index) => {
-    const chapter = chapters[index];
-    if (!chapter || chapter.seriesId == null) return;
-    if (!map[chapter.seriesId] || progress.lastReadAt > map[chapter.seriesId]) {
-      map[chapter.seriesId] = progress.lastReadAt;
-    }
-  });
-  return map;
 }
 
 // I volumi di una serie, ordinati per numero: popolano il menu del form una
@@ -131,7 +207,7 @@ export async function getVolumesForSeries(seriesId) {
 // terzo livello della vista Libreria.
 export async function getChaptersForVolume(volumeId) {
   const chapters = await db.chapters.where('volumeId').equals(volumeId).toArray();
-  return chapters.sort((a, b) => a.number - b.number);
+  return withThumbnails(chapters.sort((a, b) => a.number - b.number));
 }
 
 // Il capitolo che segue quello indicato, per numero, nello stesso volume — o
@@ -166,7 +242,7 @@ export async function setChapterThumbnail(chapterId, thumbnail) {
   const chapter = await db.chapters.get(chapterId);
   if (!chapter) return;
 
-  await db.chapters.update(chapterId, { thumbnail });
+  await db.thumbnails.put({ chapterId, blob: thumbnail });
 
   if (chapter.volumeId != null) {
     const volume = await db.volumes.get(chapter.volumeId);
@@ -195,30 +271,40 @@ export async function getChapterCount() {
 // rimuovere il capitolo dal DB, perché ci serve ancora il suo handle.
 
 // Tutti i capitoli sotto una serie o un volume: servono al chiamante per
-// raccogliere gli handle prima di un'eventuale cancellazione fisica dei file.
+// raccogliere gli handle prima di un'eventuale cancellazione fisica dei file, e
+// alla scelta della copertina (che ha bisogno delle miniature). Le versioni
+// "raw" sono per uso interno: niente miniature, quando non servono.
+const rawChaptersUnderSeries = (seriesId) => db.chapters.where('seriesId').equals(seriesId).toArray();
+const rawChaptersUnderVolume = (volumeId) => db.chapters.where('volumeId').equals(volumeId).toArray();
+
 export async function getChaptersUnderSeries(seriesId) {
-  return db.chapters.where('seriesId').equals(seriesId).toArray();
+  return withThumbnails(await rawChaptersUnderSeries(seriesId));
 }
 
 export async function getChaptersUnderVolume(volumeId) {
-  return db.chapters.where('volumeId').equals(volumeId).toArray();
+  return withThumbnails(await rawChaptersUnderVolume(volumeId));
 }
 
 export async function removeChapter(chapterId) {
   await db.readingProgress.delete(chapterId);
+  await db.thumbnails.delete(chapterId);
   await db.chapters.delete(chapterId);
 }
 
 export async function removeVolume(volumeId) {
-  const chapters = await db.chapters.where('volumeId').equals(volumeId).toArray();
-  await db.readingProgress.bulkDelete(chapters.map((chapter) => chapter.id));
+  const chapters = await rawChaptersUnderVolume(volumeId);
+  const ids = chapters.map((chapter) => chapter.id);
+  await db.readingProgress.bulkDelete(ids);
+  await db.thumbnails.bulkDelete(ids);
   await db.chapters.where('volumeId').equals(volumeId).delete();
   await db.volumes.delete(volumeId);
 }
 
 export async function removeSeries(seriesId) {
-  const chapters = await db.chapters.where('seriesId').equals(seriesId).toArray();
-  await db.readingProgress.bulkDelete(chapters.map((chapter) => chapter.id));
+  const chapters = await rawChaptersUnderSeries(seriesId);
+  const ids = chapters.map((chapter) => chapter.id);
+  await db.readingProgress.bulkDelete(ids);
+  await db.thumbnails.bulkDelete(ids);
   await db.chapters.where('seriesId').equals(seriesId).delete();
   await db.volumes.where('seriesId').equals(seriesId).delete();
   await db.series.delete(seriesId);
@@ -245,7 +331,7 @@ export async function toggleVolumeFavorite(volumeId) {
 export async function toggleChapterFavorite(chapterId) {
   const chapter = await db.chapters.get(chapterId);
   if (!chapter) return;
-  await db.chapters.update(chapterId, { favorite: !chapter.favorite });
+  await db.chapters.update(chapterId, { favorite: chapter.favorite ? 0 : 1 });
 }
 
 export async function getFavoriteSeries() {
@@ -266,7 +352,7 @@ export async function getFavoriteVolumes() {
 }
 
 export async function getFavoriteChapters() {
-  const chapters = await db.chapters.filter((item) => Boolean(item.favorite)).toArray();
+  const chapters = await db.chapters.where('favorite').equals(1).toArray();
   const enriched = await Promise.all(chapters.map((chapter) => enrichChapter(chapter)));
   return enriched.filter(Boolean);
 }
@@ -279,14 +365,31 @@ export async function getReadingProgress(chapterId) {
 // read-modify-write invece di un put "secco" perché altrimenti sovrascriveremmo
 // (cancellandolo) il segnalibro manuale a ogni cambio pagina.
 export async function updateReadingProgress(chapterId, { lastPageRead, totalPages }) {
+  const now = Date.now();
   const existing = await db.readingProgress.get(chapterId);
-  return db.readingProgress.put({
+  await db.readingProgress.put({
     ...existing,
     chapterId,
     lastPageRead,
     totalPages,
-    lastReadAt: Date.now(),
+    lastReadAt: now,
   });
+  await touchSeriesLastRead(chapterId, now);
+}
+
+// Aggiorna la data di ultima lettura della serie del capitolo (vedi v3).
+// Questa funzione gira a ogni cambio pagina, quindi la scrittura è
+// "diluita": se la serie risulta già letta nell'ultimo minuto non si riscrive
+// la sua riga — che porta con sé il Blob della copertina — a ogni pagina.
+const SERIES_LAST_READ_THROTTLE_MS = 60_000;
+
+async function touchSeriesLastRead(chapterId, now) {
+  const chapter = await db.chapters.get(chapterId);
+  if (chapter?.seriesId == null) return;
+  const series = await db.series.get(chapter.seriesId);
+  if (!series) return;
+  if (series.lastReadAt && now - series.lastReadAt < SERIES_LAST_READ_THROTTLE_MS) return;
+  await db.series.update(chapter.seriesId, { lastReadAt: now });
 }
 
 // Imposta (o cancella, con page null) il segnalibro manuale, preservando il
@@ -320,9 +423,10 @@ export async function getReadingProgressMap(chapterIds) {
 // null se il capitolo non esiste più (riferimento nel frattempo rimosso).
 async function enrichChapter(chapter, extra = {}) {
   if (!chapter) return null;
-  const [series, volume] = await Promise.all([
+  const [series, volume, thumbnail] = await Promise.all([
     chapter.seriesId != null ? db.series.get(chapter.seriesId) : null,
     chapter.volumeId != null ? db.volumes.get(chapter.volumeId) : null,
+    db.thumbnails.get(chapter.id),
   ]);
   return {
     chapterId: chapter.id,
@@ -330,7 +434,7 @@ async function enrichChapter(chapter, extra = {}) {
     fileName: chapter.fileName ?? null,
     seriesTitle: series?.title ?? null,
     volumeNumber: volume?.number ?? null,
-    thumbnail: chapter.thumbnail ?? null,
+    thumbnail: thumbnail?.blob ?? null,
     handle: chapter.handle ?? null,
     favorite: Boolean(chapter.favorite),
     ...extra,
@@ -360,23 +464,41 @@ export async function getRecentlyReadChapters(limit = 10) {
 
 // "In corso" = letti di recente ma non ancora completati (ultima pagina letta
 // prima dell'ultima pagina del capitolo).
+//
+// Si scorrono i progressi dal più recente a blocchi e ci si ferma appena si è
+// raggiunto il limite: prima si leggevano TUTTI i progressi e tutti i
+// capitoli collegati ad ogni apertura, per poi tenerne dieci. Il filtro
+// "non completato" sta nella query (è sul progresso stesso); quello "non
+// segnato come letto" richiede il capitolo, quindi si fa dopo, blocco per blocco.
+const IN_PROGRESS_BATCH = 40;
+
 export async function getInProgressChapters(limit = 10) {
-  const rows = await db.readingProgress.orderBy('lastReadAt').reverse().toArray();
-  const chapters = await db.chapters.bulkGet(rows.map((progress) => progress.chapterId));
-  // Un capitolo segnato manualmente come letto (Fase 25) non è "in corso",
-  // anche se il suo progresso reale dice il contrario.
-  const inProgress = rows
-    .filter((progress, index) => {
+  const found = [];
+  let offset = 0;
+
+  while (found.length < limit) {
+    const rows = await db.readingProgress
+      .orderBy('lastReadAt')
+      .reverse()
+      .filter((progress) => progress.totalPages > 0 && progress.lastPageRead < progress.totalPages - 1)
+      .offset(offset)
+      .limit(IN_PROGRESS_BATCH)
+      .toArray();
+    if (rows.length === 0) break;
+
+    // Un capitolo segnato manualmente come letto (Fase 25) non è "in corso",
+    // anche se il suo progresso reale dice il contrario.
+    const chapters = await db.chapters.bulkGet(rows.map((progress) => progress.chapterId));
+    rows.forEach((progress, index) => {
       const chapter = chapters[index];
-      return (
-        chapter &&
-        !chapter.markedRead &&
-        progress.totalPages > 0 &&
-        progress.lastPageRead < progress.totalPages - 1
-      );
-    })
-    .slice(0, limit);
-  return enrichProgressRows(inProgress);
+      if (chapter && !chapter.markedRead && found.length < limit) found.push(progress);
+    });
+
+    if (rows.length < IN_PROGRESS_BATCH) break;
+    offset += rows.length;
+  }
+
+  return enrichProgressRows(found);
 }
 
 // --- Organizzazione e scoperta (Fase 25) ---
@@ -411,7 +533,7 @@ export async function clearCustomCover(kind, id) {
 // Tutti i capitoli categorizzati, con titolo della serie e numero del volume:
 // alimenta i risultati-capitolo della ricerca globale nel Catalogo.
 export async function getAllCategorizedChapters() {
-  const chapters = await db.chapters.filter((chapter) => Boolean(chapter.categorized)).toArray();
+  const chapters = await db.chapters.where('categorized').equals(1).toArray();
   const [seriesRows, volumeRows] = await Promise.all([db.series.toArray(), db.volumes.toArray()]);
   const seriesById = new Map(seriesRows.map((row) => [row.id, row]));
   const volumeById = new Map(volumeRows.map((row) => [row.id, row]));
@@ -430,7 +552,7 @@ export async function getAllCategorizedChapters() {
 // progresso reale (lettura vera inclusa): è il solo modo di tornare a "non
 // letto" senza lasciare capitoli completati per davvero.
 export async function setVolumeMarkedRead(volumeId, markedRead) {
-  const chapters = await getChaptersUnderVolume(volumeId);
+  const chapters = await rawChaptersUnderVolume(volumeId);
   await db.transaction('rw', db.chapters, db.readingProgress, async () => {
     for (const chapter of chapters) {
       await db.chapters.update(chapter.id, { markedRead });
@@ -506,12 +628,16 @@ async function dataUrlToBlob(dataUrl) {
 // ripristino i capitoli vanno ricollegati re-importando gli stessi file
 // (vedi getChapterByFileName/setChapterHandle, usate in Library.jsx).
 export async function exportBackup() {
-  const [seriesRows, volumeRows, chapterRows, progressRows] = await Promise.all([
+  const [seriesRows, volumeRows, chapterRows, progressRows, thumbnailRows] = await Promise.all([
     db.series.toArray(),
     db.volumes.toArray(),
     db.chapters.toArray(),
     db.readingProgress.toArray(),
+    db.thumbnails.toArray(),
   ]);
+  // Le miniature stanno in una tabella a parte (v3), ma nel file restano dentro
+  // la riga del capitolo come prima: il formato del backup non cambia.
+  const thumbnailById = new Map(thumbnailRows.map((row) => [row.chapterId, row.blob]));
 
   const series = await Promise.all(
     seriesRows.map(async (row) => ({
@@ -529,12 +655,12 @@ export async function exportBackup() {
     // eslint-disable-next-line no-unused-vars -- si estrae "handle" apposta per escluderlo dal risultato
     chapterRows.map(async ({ handle, ...row }) => ({
       ...row,
-      thumbnail: row.thumbnail ? await blobToDataUrl(row.thumbnail) : null,
+      thumbnail: thumbnailById.has(row.id) ? await blobToDataUrl(thumbnailById.get(row.id)) : null,
     })),
   );
 
   return {
-    version: 1,
+    version: 2,
     exportedAt: Date.now(),
     series,
     volumes,
@@ -550,9 +676,15 @@ export async function exportBackup() {
 // preservati (bulkAdd con chiave esplicita), così i collegamenti
 // serie/volume/capitolo/progresso restano coerenti.
 export async function restoreBackup(backup) {
+  // Un backup (anche vecchio, versione 1) ha i flag come true/false e le
+  // miniature dentro il capitolo: qui si portano al formato attuale (0/1 e
+  // tabella a parte), e si ricava la data di ultima lettura di ogni serie, che
+  // i backup precedenti non conoscono.
+  const lastRead = computeSeriesLastRead(backup.chapters ?? [], backup.readingProgress ?? []);
   const series = await Promise.all(
     (backup.series ?? []).map(async ({ coverThumbnail, ...row }) => ({
       ...row,
+      ...(lastRead.has(row.id) ? { lastReadAt: lastRead.get(row.id) } : {}),
       ...(coverThumbnail ? { coverThumbnail: await dataUrlToBlob(coverThumbnail) } : {}),
     })),
   );
@@ -562,25 +694,32 @@ export async function restoreBackup(backup) {
       ...(coverThumbnail ? { coverThumbnail: await dataUrlToBlob(coverThumbnail) } : {}),
     })),
   );
+  const thumbnails = [];
   const chapters = await Promise.all(
-    (backup.chapters ?? []).map(async ({ thumbnail, ...row }) => ({
-      ...row,
-      ...(thumbnail ? { thumbnail: await dataUrlToBlob(thumbnail) } : {}),
-    })),
+    (backup.chapters ?? []).map(async ({ thumbnail, ...row }) => {
+      if (thumbnail) thumbnails.push({ chapterId: row.id, blob: await dataUrlToBlob(thumbnail) });
+      return { ...row, categorized: row.categorized ? 1 : 0, favorite: row.favorite ? 1 : 0 };
+    }),
   );
 
-  await db.transaction('rw', db.series, db.volumes, db.chapters, db.readingProgress, async () => {
-    await Promise.all([
-      db.series.clear(),
-      db.volumes.clear(),
-      db.chapters.clear(),
-      db.readingProgress.clear(),
-    ]);
-    await Promise.all([
-      db.series.bulkAdd(series),
-      db.volumes.bulkAdd(volumes),
-      db.chapters.bulkAdd(chapters),
-      db.readingProgress.bulkAdd(backup.readingProgress ?? []),
-    ]);
-  });
+  await db.transaction(
+    'rw',
+    [db.series, db.volumes, db.chapters, db.readingProgress, db.thumbnails],
+    async () => {
+      await Promise.all([
+        db.series.clear(),
+        db.volumes.clear(),
+        db.chapters.clear(),
+        db.readingProgress.clear(),
+        db.thumbnails.clear(),
+      ]);
+      await Promise.all([
+        db.series.bulkAdd(series),
+        db.volumes.bulkAdd(volumes),
+        db.chapters.bulkAdd(chapters),
+        db.readingProgress.bulkAdd(backup.readingProgress ?? []),
+        db.thumbnails.bulkAdd(thumbnails),
+      ]);
+    },
+  );
 }
