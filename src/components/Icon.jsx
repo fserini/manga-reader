@@ -49,6 +49,7 @@ const PATHS = {
       <circle cx="7.5" cy="8.5" r="1.2" />
     </>
   ),
+  edit: <path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" />,
   check: <path d="M5 12.5l4.5 4.5L19 7" />,
   chevron: <path d="M9 6l6 6-6 6" />,
   play: <path d="M8 5l11 7-11 7z" />,

@@ -29,6 +29,7 @@ import DeleteDialog from './DeleteDialog.jsx';
 import ConfirmDialog from './ConfirmDialog.jsx';
 import CoverPicker from './CoverPicker.jsx';
 import TagsDialog from './TagsDialog.jsx';
+import RenameDialog from './RenameDialog.jsx';
 import './Catalog.css';
 
 const canDeleteFiles = isFileDeletionSupported();
@@ -137,6 +138,8 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
   const [coverTarget, setCoverTarget] = useState(null); // { kind, item, label }
   const [tagsTarget, setTagsTarget] = useState(null); // una serie
   const [unreadTarget, setUnreadTarget] = useState(null); // un volume
+  // Fase 27: serie o volume da rinominare, { kind, item, label }.
+  const [renameTarget, setRenameTarget] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -304,6 +307,15 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
   async function handleTagsSaved() {
     setTagsTarget(null);
     await reloadCurrentLevel();
+  }
+
+  // Dopo una rinomina: ricarica il livello (anche la ricerca globale, che porta
+  // titoli e numeri di volume) e fa aggiornare i Preferiti, che mostrano il
+  // titolo della serie accanto ai loro volumi e capitoli.
+  async function handleRenamed() {
+    setRenameTarget(null);
+    await reloadCurrentLevel();
+    onFavoriteChanged?.();
   }
 
   // Raccoglie gli handle di tutti i file coinvolti dalla rimozione (per la
@@ -539,6 +551,14 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
               <div className="catalog-index-actions">
                 <button
                   type="button"
+                  className="catalog-index-rename"
+                  aria-label={t('catalog.renameSeries', { title: item.title })}
+                  onClick={() => setRenameTarget({ kind: 'series', item, label: item.title })}
+                >
+                  <Icon name="edit" />
+                </button>
+                <button
+                  type="button"
                   className="catalog-index-cover"
                   aria-label={t('catalog.coverSeries', { title: item.title })}
                   onClick={() => setCoverTarget({ kind: 'series', item, label: item.title })}
@@ -638,6 +658,20 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
                 )}
               </button>
               <div className="catalog-index-actions">
+                <button
+                  type="button"
+                  className="catalog-index-rename"
+                  aria-label={t('catalog.renameVolume', { number: volume.number })}
+                  onClick={() =>
+                    setRenameTarget({
+                      kind: 'volume',
+                      item: volume,
+                      label: t('catalog.volumeLabel', { number: volume.number }),
+                    })
+                  }
+                >
+                  <Icon name="edit" />
+                </button>
                 <button
                   type="button"
                   className="catalog-index-cover"
@@ -775,6 +809,10 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
           onClose={() => setCoverTarget(null)}
           onSaved={handleCoverSaved}
         />
+      )}
+
+      {renameTarget && (
+        <RenameDialog target={renameTarget} onClose={() => setRenameTarget(null)} onSaved={handleRenamed} />
       )}
 
       {tagsTarget && (

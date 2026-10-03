@@ -100,6 +100,8 @@
     "resultsSeries": "Series",
     "resultsChapters": "Chapters",
     "resultsCapped": "Showing the first {{count}} chapters: narrow your search to see the rest.",
+    "renameSeries": "Rename the series {{title}}",
+    "renameVolume": "Change the number of volume {{number}}",
     "coverSeries": "Change the cover of {{title}}",
     "coverVolume": "Change the cover of volume {{number}}",
     "tagsSeries": "Edit tags of {{title}}",
@@ -153,6 +155,20 @@
     "errors": {
       "rowVolume": "Enter a valid volume number for “{{fileName}}”.",
       "rowNumber": "Enter a valid chapter number for “{{fileName}}”."
+    }
+  },
+  "rename": {
+    "titleSeries": "Rename series",
+    "titleVolume": "Change volume number",
+    "seriesLabel": "Series title",
+    "volumeLabel": "Volume number",
+    "volumeNote": "A volume only has a number: its chapters stay where they are.",
+    "errors": {
+      "emptyTitle": "Enter a title.",
+      "invalidNumber": "Enter a valid volume number.",
+      "duplicateSeries": "A series with this title already exists.",
+      "duplicateVolume": "This series already has a volume with this number.",
+      "saveFailed": "Save failed. Try again."
     }
   },
   "categorizeForm": {
@@ -269,6 +285,23 @@
       "it": "Italiano",
       "en": "English"
     },
+    "statsHeading": "Reading statistics",
+    "statsHint": "Calculated from your reading progress. The time is an estimate: the app doesn't measure it, it works it out at {{seconds}} seconds per page.",
+    "statsLoading": "Calculating…",
+    "statsEmpty": "You haven't read anything yet: statistics appear after the first pages.",
+    "statsPages": "Pages read",
+    "statsChaptersFinished": "Chapters finished",
+    "statsChaptersStarted": "Chapters started",
+    "statsTime": "Estimated time",
+    "statsLibrary": "In the library: {{series}} series, {{volumes}} volumes, {{chapters}} chapters.",
+    "statsTopHeading": "Most read series",
+    "statsTopRow": "{{pages}} · {{chapters}}",
+    "statsTopPages_one": "{{count}} page",
+    "statsTopPages_other": "{{count}} pages",
+    "statsTopChapters_one": "{{count}} chapter read",
+    "statsTopChapters_other": "{{count}} chapters read",
+    "statsHours": "{{hours}} h {{minutes}} min",
+    "statsMinutes": "{{minutes}} min",
     "backupHeading": "Backup and restore",
     "backupHint": "Export your entire library (series, volumes, chapters, reading progress, favorites) to a file you can keep or transfer to another device.",
     "backupModeLabel": "Backup type",
