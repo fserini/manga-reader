@@ -16,8 +16,6 @@
     "emptyTitle": "La tua libreria è vuota",
     "emptyHint": "Tocca per importare file {{formats}}",
     "importFolderLink": "…oppure importa un'intera cartella",
-    "importFiles": "Importa file",
-    "importFolder": "Importa cartella",
     "notice": {
       "relinked_one": "1 capitolo era in libreria senza il file collegato (es. da un backup ripristinato) ed è stato ricollegato.",
       "relinked_other": "{{count}} capitoli erano in libreria senza il file collegato (es. da un backup ripristinato) e sono stati ricollegati.",
@@ -44,7 +42,11 @@
     "categorize": "Categorizza",
     "deleteUncategorized": "Rimuovi {{fileName}} dalla coda di categorizzazione",
     "deleteUncategorizedLabel": "«{{fileName}}»",
-    "catalogHeading": "Catalogo"
+    "catalogHeading": "Catalogo",
+    "import": "Importa",
+    "importFileLabel": "File",
+    "importFolderLabel": "Cartella",
+    "importFolderHint": "Anche le sottocartelle"
   },
   "catalog": {
     "path": "Percorso",
@@ -180,8 +182,8 @@
     "chapterLabel": "Cap {{number}}",
     "volumeSub": "Volume {{number}}",
     "progressAria": "{{percent}}% letto",
-    "removeAria": "Rimuovi il capitolo {{number}} dall'elenco",
-    "removeTitle": "Rimuovere il capitolo {{number}} dall'elenco?",
+    "removeAria": "Rimuovi {{label}} dall'elenco",
+    "removeTitle": "Rimuovere {{label}} dall'elenco?",
     "removeNote": "Il capitolo resta in libreria: esce solo da \"In corso di lettura\" e \"Ultimi letti\", insieme a un eventuale segnalibro manuale.",
     "cancel": "Annulla",
     "remove": "Rimuovi",
@@ -193,7 +195,6 @@
     }
   },
   "reader": {
-    "chooseFile": "Scegli file",
     "mode": {
       "single": "Pagina singola",
       "spread": "Doppia pagina",
@@ -218,11 +219,11 @@
     "permissionNotGranted": "Permesso di accesso al file non concesso. Torna alla libreria e tocca di nuovo il capitolo.",
     "chapterOpenError": "Impossibile aprire il capitolo: il file potrebbe essere stato spostato o eliminato.",
     "loadingChapter": "Caricamento del capitolo…",
-    "chooseFileToStart": "Scegli un file ({{formats}}) per iniziare a leggere.",
     "previous": "‹ Precedente",
     "next": "Successiva ›",
     "pageAlt": "Pagina {{number}}",
-    "pageBroken": "{{alt}}: immagine danneggiata"
+    "pageBroken": "{{alt}}: immagine danneggiata",
+    "unsupportedFile": "Formato non supportato ({{format}}). Formati accettati: {{formats}}."
   },
   "settings": {
     "title": "Impostazioni",
@@ -261,11 +262,33 @@
     "restoreConfirm": "Ripristina (sostituisci tutto)",
     "restoring": "Ripristino…",
     "restoreSuccess": "Libreria ripristinata. I capitoli non sono ancora leggibili: reimporta gli stessi file dalla Libreria per ricollegarli (verranno riconosciuti automaticamente, non duplicati).",
-    "restoreError": "Ripristino non riuscito."
+    "restoreError": "Ripristino non riuscito.",
+    "startPageLabel": "Pagina iniziale",
+    "startPageHint": "Automatica: all'avvio si apre il Lettore se hai già iniziato a leggere, altrimenti la Libreria. Vale solo all'avvio dell'app.",
+    "startPage": {
+      "auto": "Automatica",
+      "library": "Libreria",
+      "reader": "Lettore"
+    }
   },
   "pwa": {
     "updateAvailable": "È disponibile una nuova versione dell'app.",
     "reload": "Aggiorna",
     "dismiss": "Più tardi"
+  },
+  "continue": {
+    "label": "Continua a leggere",
+    "next": "Capitolo successivo",
+    "resume": "Riprendi",
+    "start": "Leggi",
+    "volume": "Volume {{number}}",
+    "chapter": "Capitolo {{number}}",
+    "page": "pag. {{page}} / {{total}}"
+  },
+  "readerHome": {
+    "empty": "Non hai ancora iniziato a leggere. Importa dei file dalla Libreria o aprine uno da qui.",
+    "openFile": "Apri un file…",
+    "opening": "Apertura…",
+    "hint": "Se il file è già in libreria lo riconosco dal nome: ritrovi pagina, segnalibro e preferiti. Altrimenti lo importo e lo apro."
   }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -24,6 +24,7 @@ import {
   isFileDeletionSupported,
   deleteFileFromHandle,
 } from '../fileAccess.js';
+import { useObjectUrl } from '../useObjectUrl.js';
 import Icon from './Icon.jsx';
 import DeleteDialog from './DeleteDialog.jsx';
 import ConfirmDialog from './ConfirmDialog.jsx';
@@ -66,18 +67,6 @@ function hasTag(item, tag) {
   return (item.tags ?? []).some((existing) => existing.toLowerCase() === tag.toLowerCase());
 }
 
-// URL oggetto per un Blob, creato e revocato col ciclo di vita del componente.
-function useObjectUrl(blob) {
-  const url = useMemo(() => (blob ? URL.createObjectURL(blob) : null), [blob]);
-
-  useEffect(() => {
-    if (!url) return undefined;
-    return () => URL.revokeObjectURL(url);
-  }, [url]);
-
-  return url;
-}
-
 // Piccola copertina in testa a una riga di Serie/Volume: compare solo se
 // l'utente ne ha scelta una apposta (coverCustom) — vedi Fase 25.
 function RowThumb({ blob }) {
@@ -110,7 +99,7 @@ function Cover({ blob, alt, title }) {
 // così la Libreria può aggiornare la sezione dedicata (che vive in un
 // componente sorella, separato per non perdere il livello di navigazione
 // corrente qui dentro). onProgressChanged, allo stesso modo, dopo un "segna
-// come letto" che sposta capitoli fuori da "In corso di lettura".
+// come letto" (o "non letto"), che può cambiare cosa c'è da continuare.
 function Catalog({ onFavoriteChanged, onProgressChanged }) {
   const { t } = useTranslation();
   const navigate = useNavigate();

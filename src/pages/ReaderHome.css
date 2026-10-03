@@ -1,0 +1,68 @@
+.reader-home {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.reader-home .page-heading {
+  margin-bottom: 0;
+}
+
+/* Le sezioni di lettura portano già il loro margine superiore: qui lo
+   scandisce il gap della pagina. */
+.reader-home .reading-sections section:first-child {
+  margin-top: 0;
+}
+
+.reader-home-open {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reader-home-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px;
+  border: 1px dashed #3a362f;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.reader-home-button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.reader-home-button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.reader-home-button .icon {
+  color: var(--accent);
+}
+
+.reader-home-hint,
+.reader-home-empty {
+  max-width: 56ch;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.reader-home-error {
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--danger-bg);
+  color: var(--danger);
+}

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { extractPageGroups, makeThumbnail } from '../comicFile.js';
-import { getFileExtension, SUPPORTED_EXTENSIONS_ATTR, SUPPORTED_FORMATS_LABEL } from '../fileAccess.js';
+import { getFileExtension } from '../fileAccess.js';
 import {
   getChapter,
   setChapterThumbnail,
@@ -390,12 +390,6 @@ function Reader() {
     }
   }, [mode, totalPages, currentIndex]);
 
-  async function handleFileChange(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    await openFile(file);
-  }
-
   const step = mode === 'spread' ? 2 : 1;
 
   function clampIndex(index) {
@@ -591,17 +585,6 @@ function Reader() {
 
   return (
     <div className="reader">
-      {/* Il file input resta un caso a sé: esiste solo prima che qualunque
-          pagina sia caricata (apertura diretta del Lettore, non da un
-          capitolo di libreria), quindi non condivide lo spazio con i
-          controlli di lettura veri e propri. */}
-      {!chapterId && pages.length === 0 && (
-        <label className="reader-file-input">
-          <input type="file" accept={SUPPORTED_EXTENSIONS_ATTR} onChange={handleFileChange} />
-          {t('reader.chooseFile')}
-        </label>
-      )}
-
       {error && (
         <p className="reader-error" role="alert">
           {error}
@@ -610,7 +593,7 @@ function Reader() {
 
       {pages.length === 0 && !error && (
         <div className="reader-empty">
-          <p>{chapterId ? t('reader.loadingChapter') : t('reader.chooseFileToStart', { formats: SUPPORTED_FORMATS_LABEL })}</p>
+          <p>{t('reader.loadingChapter')}</p>
         </div>
       )}
 

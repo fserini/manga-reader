@@ -6,28 +6,6 @@
   min-height: 0;
 }
 
-.reader-file-input {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin: 16px 16px 0;
-  padding: 8px 16px;
-  border-radius: 8px;
-  background: var(--accent);
-  color: var(--accent-contrast);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.reader-file-input input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-}
-
 /* Pannello controlli: 5 icone invece di tab testuali (vedi ADR-001), in una
    barra flottante staccata da tutti i lati, visibile solo al tocco. Il
    max-width evita che si stiri da un bordo all'altro su un tablet largo. */
