@@ -96,7 +96,7 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 24 — Comfort di lettura
 - [x] Fase 25 — Organizzazione e scoperta
 - [ ] Fase 26 — Rifiniture grafiche moderne — pianificata, non ancora iniziata
-- [ ] Fase 27 — Qualità — pianificata, non ancora iniziata
+- [x] Fase 27 — Qualità: statistiche di lettura e rinomina di Serie/Volume
 - [x] Fase 28a — Nuovi formati di import: ZIP, RAR, 7z
 - [x] Fase 28b — Nuovi formati di import: PDF (pdf.js, pagine disegnate a richiesta)
 - [x] Fase 29a — Aspetto e navigazione (icone SVG, marchio, menu, Impostazioni → Aspetto) — vedi ADR-002
