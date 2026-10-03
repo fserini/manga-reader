@@ -231,13 +231,13 @@
 **29a — Aspetto e navigazione**
 - **Set di icone SVG** unico al posto delle emoji (Catalogo, sezioni di lettura, Preferiti, coda "Da categorizzare", avvisi)
 - **Barra con marchio**: il nome "Manga Reader" come logo (predefinito *Sigillo*: 読 come timbro azzurro) e navigazione a icone in barra (predefinita); la barra continua a sparire al tocco in Lettura
-- **Impostazioni → Aspetto**: scelta del marchio (Dorso / Sigillo / Blueline), del menu (icone in barra / a tendina / laterale) e della pagina iniziale (Automatica / Libreria / Lettore), salvate in locale; implementate tutte e tre le varianti di marchio e menu
+- **Impostazioni → Aspetto**: scelta del marchio (Dorso / Sigillo / Blueline) e del menu (icone in barra / a tendina / laterale), salvate in locale; implementate tutte e tre le varianti di marchio e menu. La scelta della **pagina iniziale** (Automatica / Libreria / Lettore) si aggiunge in 29b, insieme al reindirizzamento: da sola non avrebbe alcun effetto finché il Lettore non ha la schermata "Continua a leggere"
 
 **29b — Importazione, Lettore e Libreria**
 - **Importazione**: icona "+" con tendina File / Cartella e formati accettati, al posto dei due pulsanti di testo
 - **Lettore a vuoto**: "Continua a leggere", letti di recente e "Apri un file…"; il file aperto viene riconosciuto in libreria per nome (pagina, segnalibro, preferiti, statistiche ritrovati) oppure importato e aperto; estrazione della logica di import in un modulo condiviso con la Libreria
 - **Libreria riordinata** (confermato): Catalogo con ricerca in cima, "Da categorizzare" come card, Preferiti sotto, una sola card compatta "Continua a leggere"; "In corso di lettura" e "Ultimi letti" passano alla scheda Lettore
-- **Pagina iniziale**: all'avvio, se esiste progresso di lettura, atterraggio sul Lettore (solo all'avvio e solo dalla radice, mai navigando dentro l'app né sui link diretti)
+- **Pagina iniziale**: all'avvio, se esiste progresso di lettura, atterraggio sul Lettore (solo all'avvio e solo dalla radice, mai navigando dentro l'app né sui link diretti), con la relativa scelta in Impostazioni → Aspetto (Automatica / Libreria / Lettore, predefinita Automatica)
 
 Verifica responsive di barra e tendine su tablet (orizzontale/verticale) e telefono: a cura di Federico su dispositivo reale.
 

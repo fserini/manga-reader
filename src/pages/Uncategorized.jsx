@@ -5,6 +5,7 @@ import { getUncategorizedChapters, removeChapter } from '../db.js';
 import { isFileDeletionSupported, deleteFileFromHandle } from '../fileAccess.js';
 import CategorizeForm from '../components/CategorizeForm.jsx';
 import DeleteDialog from '../components/DeleteDialog.jsx';
+import Icon from '../components/Icon.jsx';
 import './Uncategorized.css';
 
 const canDeleteFiles = isFileDeletionSupported();
@@ -79,7 +80,7 @@ function Uncategorized() {
           {chapters.map((chapter) => (
             <li key={chapter.id} className="uncategorized-item">
               <span className="uncategorized-icon" aria-hidden="true">
-                📄
+                <Icon name="file" size={20} />
               </span>
               <span className="uncategorized-name">{chapter.fileName}</span>
               <button type="button" className="uncategorized-button" onClick={() => setCategorizing(chapter)}>
@@ -91,7 +92,7 @@ function Uncategorized() {
                 aria-label={t('library.deleteUncategorized', { fileName: chapter.fileName })}
                 onClick={() => setDeleting(chapter)}
               >
-                🗑
+                <Icon name="trash" />
               </button>
             </li>
           ))}

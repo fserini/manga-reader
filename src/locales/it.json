@@ -2,7 +2,12 @@
   "nav": {
     "library": "Libreria",
     "reader": "Lettore",
-    "settings": "Impostazioni"
+    "settings": "Impostazioni",
+    "home": "Manga Reader: vai alla Libreria",
+    "menu": "Apri il menu",
+    "close": "Chiudi il menu",
+    "sections": "Sezioni",
+    "drawerTitle": "Naviga"
   },
   "library": {
     "title": "Libreria",
@@ -60,7 +65,7 @@
     "loading": "Caricamento del catalogo…",
     "empty": "Nessuna serie ancora. Categorizza i capitoli importati per popolarla.",
     "readCount": "{{read}}/{{total}} letti",
-    "done": "✓ Letto",
+    "done": "Letto",
     "progressAria": "{{percent}}% letto",
     "addFavorite": "Aggiungi {{title}} ai preferiti",
     "removeFavorite": "Togli {{title}} dai preferiti",
@@ -131,12 +136,12 @@
     "title": "Categorizza",
     "series": "Serie",
     "chooseOption": "— scegli —",
-    "newSeries": "➕ Nuova serie…",
+    "newSeries": "+ Nuova serie…",
     "newSeriesName": "Nome nuova serie",
     "newSeriesPlaceholder": "Es. One Piece",
     "volume": "Volume",
     "volumeOption": "Volume {{number}}",
-    "newVolume": "➕ Nuovo volume…",
+    "newVolume": "+ Nuovo volume…",
     "newVolumeNumber": "Numero nuovo volume",
     "newVolumeNumberPlaceholder": "Es. 1",
     "chapterNumber": "Numero capitolo",
@@ -197,8 +202,8 @@
     "modeGroupAria": "Modalità di lettura",
     "directionRtl": "Lettura: giapponese (dx→sx)",
     "directionLtr": "Lettura: occidentale (sx→dx)",
-    "bookmarkSet": "🔖 Segnalibro",
-    "bookmarkAdd": "🏷️ Segna pagina",
+    "bookmarkSet": "Segnalibro",
+    "bookmarkAdd": "Segna pagina",
     "bookmarkTitle": "Segnalibro su questa pagina",
     "gotoBookmark": "Vai al segnalibro (pag. {{page}})",
     "dimOff": "Filtro notte: spento",
@@ -221,6 +226,20 @@
   },
   "settings": {
     "title": "Impostazioni",
+    "appearanceHeading": "Aspetto",
+    "appearanceHint": "Scegli come appaiono il marchio in alto e il menu di navigazione. Le scelte restano su questo dispositivo.",
+    "logoLabel": "Marchio",
+    "menuLabel": "Menu di navigazione",
+    "logo": {
+      "sigillo": "Sigillo",
+      "dorso": "Dorso",
+      "blueline": "Blueline"
+    },
+    "menu": {
+      "icons": "Icone in barra",
+      "pop": "A tendina",
+      "drawer": "Laterale"
+    },
     "languageHeading": "Lingua",
     "languageHint": "Scegli la lingua dell'interfaccia.",
     "language": {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { setSeriesTags } from '../db.js';
+import Icon from './Icon.jsx';
 import './TagsDialog.css';
 
 // Un tag è una parola libera: spazi ai bordi tolti, vuoti scartati, e un
@@ -67,7 +68,7 @@ function TagsDialog({ series, allTags, onClose, onSaved }) {
                   aria-label={t('tagsDialog.removeTag', { tag })}
                   onClick={() => setTags((current) => current.filter((existing) => existing !== tag))}
                 >
-                  ✕
+                  <Icon name="close" size={12} />
                 </button>
               </li>
             ))}

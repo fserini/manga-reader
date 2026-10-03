@@ -1,33 +1,30 @@
-import { Routes, Route, NavLink } from 'react-router-dom';
+import { Routes, Route, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Library from './pages/Library.jsx';
 import Uncategorized from './pages/Uncategorized.jsx';
 import Reader from './pages/Reader.jsx';
 import Settings from './pages/Settings.jsx';
 import UpdatePrompt from './components/UpdatePrompt.jsx';
+import Brand from './components/Brand.jsx';
+import AppNav from './components/AppNav.jsx';
 import { useAppChrome } from './AppChromeContext.jsx';
+import { useUiPreferences } from './UiPreferencesContext.jsx';
 import './App.css';
-
-const NAV_LINKS = [
-  { to: '/', key: 'nav.library', end: true },
-  { to: '/reader', key: 'nav.reader' },
-  { to: '/settings', key: 'nav.settings' },
-];
 
 function App() {
   const { t } = useTranslation();
   const { chromeHidden } = useAppChrome();
+  const { prefs } = useUiPreferences();
 
   return (
     <div className="app">
       {!chromeHidden && (
-        <nav className="app-nav">
-          {NAV_LINKS.map(({ to, key, end }) => (
-            <NavLink key={to} to={to} end={end} className={({ isActive }) => (isActive ? 'active' : '')}>
-              {t(key)}
-            </NavLink>
-          ))}
-        </nav>
+        <header className="app-bar">
+          <Link to="/" className="app-brand" aria-label={t('nav.home')}>
+            <Brand variant={prefs.logo} />
+          </Link>
+          <AppNav />
+        </header>
       )}
 
       <main className="app-main">
