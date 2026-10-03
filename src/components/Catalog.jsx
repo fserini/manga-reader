@@ -8,7 +8,6 @@ import {
   getChaptersUnderSeries,
   getChaptersUnderVolume,
   getReadingProgressMap,
-  getSeriesLastReadMap,
   getAllCategorizedChapters,
   setVolumeMarkedRead,
   removeSeries,
@@ -120,11 +119,10 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
   const [currentVolume, setCurrentVolume] = useState(null);
 
   // Ricerca testuale (si applica all'elenco del livello corrente) e
-  // ordinamento delle serie. seriesLastRead è {seriesId: lastReadAt}, per
-  // l'ordinamento "ultimi letti".
+  // ordinamento delle serie ("ultimi letti" usa series.lastReadAt, mantenuta
+  // dal database: vedi touchSeriesLastRead in db.js).
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('title'); // 'title' | 'recent'
-  const [seriesLastRead, setSeriesLastRead] = useState({});
 
   const [notice, setNotice] = useState(null);
   // Elemento in attesa di conferma rimozione: { kind, item, label, note } o null.
@@ -143,10 +141,9 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [list, lastRead] = await Promise.all([getAllSeries(), getSeriesLastReadMap()]);
+      const list = await getAllSeries();
       if (!cancelled) {
         setSeries(list);
-        setSeriesLastRead(lastRead);
         setLoading(false);
       }
     })();
@@ -192,7 +189,6 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
     setSearchableChapters(null);
     if (level === 'series') {
       setSeries(await getAllSeries());
-      setSeriesLastRead(await getSeriesLastReadMap());
     } else if (level === 'volumes' && currentSeries) {
       const volumeList = await getVolumesForSeries(currentSeries.id);
       setVolumes(volumeList);
@@ -388,7 +384,7 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
     )
     .sort((a, b) =>
       sortBy === 'recent'
-        ? (seriesLastRead[b.id] ?? 0) - (seriesLastRead[a.id] ?? 0)
+        ? (b.lastReadAt ?? 0) - (a.lastReadAt ?? 0)
         : a.title.localeCompare(b.title, undefined, { numeric: true }),
     );
 
