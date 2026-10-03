@@ -53,11 +53,10 @@ function ReaderHome() {
   function describeFailure(outcome, fileName) {
     const extension = getFileExtension(fileName);
     if (outcome.reason === 'unsupported') {
-      const base = t('reader.unsupportedFile', {
+      return t('reader.unsupportedFile', {
         format: extension ? `.${extension}` : '—',
         formats: SUPPORTED_FORMATS_LABEL,
       });
-      return extension === 'pdf' ? `${base} ${t('library.notice.pdfSoon')}` : base;
     }
     if (outcome.reason === 'encrypted') return t('reader.encryptedFile');
     if (outcome.reason === 'timeout') return t('reader.archiveTimeout');

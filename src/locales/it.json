@@ -25,7 +25,6 @@
       "corrupted_other": "{{count}} file non sono archivi validi (o non contengono immagini) e sono stati saltati.",
       "unsupported_one": "1 file è in un formato non supportato ({{types}}) ed è stato saltato. Formati accettati: {{formats}}.",
       "unsupported_other": "{{count}} file sono in formati non supportati ({{types}}) e sono stati saltati. Formati accettati: {{formats}}.",
-      "pdfSoon": "Il PDF non è ancora supportato.",
       "encrypted_one": "1 archivio è protetto da password e non può essere letto: è stato saltato.",
       "encrypted_other": "{{count}} archivi sono protetti da password e non possono essere letti: sono stati saltati.",
       "timeout_one": "Il lettore di archivi non si è avviato in tempo per 1 file, che è stato saltato: riprova o ricarica l'app.",

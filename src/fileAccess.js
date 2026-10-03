@@ -6,11 +6,13 @@
 // IndexedDB (vedi db.js), così l'app resta un "visore" sui file originali e
 // non ne duplica i byte.
 
-// Le estensioni di archivio accettate all'import — l'unico elenco dell'app: i
+// Le estensioni accettate all'import — l'unico elenco dell'app: i
 // picker, i testi "formati supportati" e il filtro delle cartelle derivano
 // tutti da qui. cbz/cbr/cb7 sono i nomi "da fumetto" di ZIP/RAR/7z, ma l'app
 // non si fida dell'estensione per scegliere come leggerli (vedi comicFile.js).
-const ARCHIVE_EXTENSIONS = ['cbz', 'cbr', 'zip', 'rar', '7z', 'cb7'];
+// Il PDF (Fase 28b) non è un archivio di immagini ma una pagina da disegnare:
+// ha un lettore a parte, vedi pdfPages.js.
+const ARCHIVE_EXTENSIONS = ['cbz', 'cbr', 'zip', 'rar', '7z', 'cb7', 'pdf'];
 
 export const SUPPORTED_FORMATS_LABEL = ARCHIVE_EXTENSIONS.map((extension) => extension.toUpperCase()).join(', ');
 
