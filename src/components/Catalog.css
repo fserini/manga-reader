@@ -388,3 +388,42 @@
   height: 100%;
   background: var(--accent);
 }
+
+/* Transizione tra i livelli del Catalogo (Fase 26): una breve scivolata laterale
+   nel verso della navigazione. Chi ha chiesto meno movimento non la vede. */
+.catalog-level--forward {
+  animation: catalog-slide-forward 0.22s ease-out;
+}
+
+.catalog-level--back {
+  animation: catalog-slide-back 0.22s ease-out;
+}
+
+@keyframes catalog-slide-forward {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes catalog-slide-back {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalog-level--forward,
+  .catalog-level--back {
+    animation: none;
+  }
+}

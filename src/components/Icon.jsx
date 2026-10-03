@@ -49,6 +49,12 @@ const PATHS = {
       <circle cx="7.5" cy="8.5" r="1.2" />
     </>
   ),
+  refresh: (
+    <>
+      <path d="M20 12a8 8 0 1 1-2.4-5.7" />
+      <path d="M20 4v5h-5" />
+    </>
+  ),
   edit: <path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" />,
   check: <path d="M5 12.5l4.5 4.5L19 7" />,
   chevron: <path d="M9 6l6 6-6 6" />,

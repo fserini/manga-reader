@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getContinueTarget } from '../db.js';
 import {
@@ -12,6 +12,7 @@ import { resolveFileToChapter } from '../importFiles.js';
 import { useChapterOpener } from '../useChapterOpener.js';
 import ContinueCard from '../components/ContinueCard.jsx';
 import ReadingSections from '../components/ReadingSections.jsx';
+import EmptyState from '../components/EmptyState.jsx';
 import Icon from '../components/Icon.jsx';
 import './ReaderHome.css';
 
@@ -100,7 +101,20 @@ function ReaderHome() {
 
       <ReadingSections onChanged={reload} />
 
-      {loaded && !target && <p className="reader-home-empty">{t('readerHome.empty')}</p>}
+      {loaded && !target && (
+        <EmptyState
+          icon="reader"
+          title={t('readerHome.emptyTitle')}
+          action={
+            <Link to="/" className="empty-state-action">
+              <Icon name="library" size={18} />
+              {t('readerHome.emptyAction')}
+            </Link>
+          }
+        >
+          {t('readerHome.empty')}
+        </EmptyState>
+      )}
 
       <div className="reader-home-open">
         {supported ? (

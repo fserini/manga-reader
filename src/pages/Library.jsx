@@ -13,6 +13,8 @@ import Icon from '../components/Icon.jsx';
 import Catalog from '../components/Catalog.jsx';
 import Favorites from '../components/Favorites.jsx';
 import ImportMenu from '../components/ImportMenu.jsx';
+import { SkeletonPage } from '../components/Skeleton.jsx';
+import FileCheckDialog from '../components/FileCheckDialog.jsx';
 import './Library.css';
 
 const supported = isFileSystemAccessSupported();
@@ -60,6 +62,8 @@ function Library() {
   // aggiunto/tolto dal Catalogo, così la sezione dedicata si aggiorna senza
   // dover far perdere al Catalogo il livello di navigazione in cui si trova.
   const [favoritesVersion, setFavoritesVersion] = useState(0);
+  // Ricontrollo dei file collegati (Fase 26): dialog aperto o no.
+  const [checkingFiles, setCheckingFiles] = useState(false);
 
   const refresh = useCallback(async () => {
     const [pending, count] = await Promise.all([getUncategorizedCount(), getChapterCount()]);
@@ -136,8 +140,7 @@ function Library() {
   if (loading) {
     return (
       <div className="page">
-        <h1>{t('library.title')}</h1>
-        <p>{t('library.loading')}</p>
+        <SkeletonPage rows={6} label={t('library.loading')} />
       </div>
     );
   }
@@ -170,7 +173,18 @@ function Library() {
           </span>
           <h1>{t('library.title')}</h1>
         </div>
-        <ImportMenu onPickFiles={() => runPicker(pickFiles)} onPickFolder={() => runPicker(pickDirectory)} />
+        <div className="library-header-actions">
+          <button
+            type="button"
+            className="library-recheck"
+            aria-label={t('library.recheckFiles')}
+            title={t('library.recheckFiles')}
+            onClick={() => setCheckingFiles(true)}
+          >
+            <Icon name="refresh" size={20} />
+          </button>
+          <ImportMenu onPickFiles={() => runPicker(pickFiles)} onPickFolder={() => runPicker(pickDirectory)} />
+        </div>
       </div>
 
       {feedbackBlock}
@@ -203,6 +217,17 @@ function Library() {
         key={favoritesVersion}
         onLibraryChanged={() => setCatalogVersion((version) => version + 1)}
       />
+
+      {checkingFiles && (
+        <FileCheckDialog
+          onClose={() => setCheckingFiles(false)}
+          onChanged={() => {
+            refresh();
+            setCatalogVersion((version) => version + 1);
+            setFavoritesVersion((version) => version + 1);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -45,6 +45,7 @@
     "categorizeSelected": "Categorizza…",
     "selectionBarAria": "Azioni sui capitoli selezionati",
     "categorize": "Categorizza",
+    "recheckFiles": "Ricontrolla i file collegati",
     "deleteUncategorized": "Rimuovi {{fileName}} dalla coda di categorizzazione",
     "deleteUncategorizedLabel": "«{{fileName}}»",
     "catalogHeading": "Catalogo",
@@ -157,6 +158,31 @@
       "rowNumber": "Inserisci un numero di capitolo valido per «{{fileName}}»."
     }
   },
+  "fileCheck": {
+    "title": "Ricontrollo dei file",
+    "starting": "Preparazione…",
+    "progress": "Controllo in corso… {{done}} / {{total}} file",
+    "allFine_one": "Tutto a posto: 1 file raggiungibile.",
+    "allFine_other": "Tutto a posto: {{count}} file raggiungibili.",
+    "reachable_one": "1 file raggiungibile.",
+    "reachable_other": "{{count}} file raggiungibili.",
+    "missing_one": "1 file non c'è più (spostato o cancellato).",
+    "missing_other": "{{count}} file non ci sono più (spostati o cancellati).",
+    "more_one": "…e un altro.",
+    "more_other": "…e altri {{count}}.",
+    "removeNote": "Togliendoli dalla libreria si rimuovono solo i riferimenti, con il loro progresso di lettura: i file non vengono toccati.",
+    "unverified_one": "1 file non si può controllare senza il tuo permesso: si verifica aprendo il capitolo.",
+    "unverified_other": "{{count}} file non si possono controllare senza il tuo permesso: si verificano aprendo i capitoli.",
+    "withoutHandle_one": "1 capitolo non ha un file collegato (ripristinato da un backup): reimporta il file per ricollegarlo.",
+    "withoutHandle_other": "{{count}} capitoli non hanno un file collegato (ripristinati da un backup): reimporta i file per ricollegarli.",
+    "remove_one": "Togli dalla libreria",
+    "remove_other": "Togli {{count}} dalla libreria",
+    "removed_one": "Tolto 1 capitolo dalla libreria.",
+    "removed_other": "Tolti {{count}} capitoli dalla libreria.",
+    "close": "Chiudi",
+    "error": "Ricontrollo non riuscito.",
+    "removeError": "Rimozione non riuscita. Riprova."
+  },
   "rename": {
     "titleSeries": "Rinomina serie",
     "titleVolume": "Cambia numero volume",
@@ -202,6 +228,9 @@
     "seriesHeading": "Serie preferite",
     "volumesHeading": "Volumi preferiti",
     "chaptersHeading": "Capitoli preferiti",
+    "hintTitle": "Nessun preferito ancora",
+    "hintText": "Tocca la stella accanto a una serie, un volume o un capitolo: li ritroverai qui, pronti da aprire.",
+    "hintDismiss": "Chiudi il suggerimento",
     "unstar": "Togli dai preferiti",
     "unstarChapter": "Togli il capitolo dai preferiti",
     "volumeLabel": "Volume {{number}}",
@@ -354,7 +383,9 @@
     "page": "pag. {{page}} / {{total}}"
   },
   "readerHome": {
-    "empty": "Non hai ancora iniziato a leggere. Importa dei file dalla Libreria o aprine uno da qui.",
+    "emptyTitle": "Niente da riprendere",
+    "emptyAction": "Vai alla Libreria",
+    "empty": "Non hai ancora iniziato a leggere. Qui compariranno il capitolo da cui riprendere, quelli in corso e gli ultimi letti. Importa dei file dalla Libreria o aprine uno da qui sotto.",
     "openFile": "Apri un file…",
     "opening": "Apertura…",
     "hint": "Se il file è già in libreria lo riconosco dal nome: ritrovi pagina, segnalibro e preferiti. Altrimenti lo importo e lo apro."

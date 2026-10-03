@@ -1,4 +1,31 @@
-/* Titolo della Libreria con il menu "+" di importazione a destra. */
+/* Titolo della Libreria con, a destra, il ricontrollo dei file e il menu "+" di
+   importazione. */
+.library-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.library-recheck {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+
+.library-recheck:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
 .library-header {
   display: flex;
   align-items: center;
