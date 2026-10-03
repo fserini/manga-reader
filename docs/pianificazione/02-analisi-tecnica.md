@@ -103,6 +103,8 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 29b — Importazione, Lettore a vuoto, Libreria riordinata, pagina iniziale — vedi ADR-002
 - [x] Fase 30a — Prestazioni: database con indici, miniature a parte, ultima lettura sulla serie (schema v3)
 - [x] Fase 30b — Prestazioni: backup a pezzi (completo e leggero), ripristino a flusso
+- [ ] Fase 31 — Guida interattiva — pianificata, non ancora iniziata
+- [ ] Fase 32 — Riassunto "dove eravamo rimasti" con l'IA — ultima fase, da studiare a tempo debito
 
 ---
 

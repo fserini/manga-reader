@@ -236,7 +236,7 @@
 **29b — Importazione, Lettore e Libreria**
 - **Importazione**: icona "+" con tendina File / Cartella e formati accettati, al posto dei due pulsanti di testo
 - **Lettore a vuoto**: "Continua a leggere", letti di recente e "Apri un file…"; il file aperto viene riconosciuto in libreria per nome (pagina, segnalibro, preferiti, statistiche ritrovati) oppure importato e aperto; estrazione della logica di import in un modulo condiviso con la Libreria
-- **Libreria riordinata** (confermato): Catalogo con ricerca in cima, "Da categorizzare" come card, Preferiti sotto, una sola card compatta "Continua a leggere"; "In corso di lettura" e "Ultimi letti" passano alla scheda Lettore
+- **Libreria riordinata** (confermato): Catalogo con ricerca in cima, "Da categorizzare" come card, Preferiti sotto (la card compatta "Continua a leggere" prevista in origine è stata tolta con un fix: sta solo nel Lettore); "In corso di lettura" e "Ultimi letti" passano alla scheda Lettore
 - **Pagina iniziale**: all'avvio, se esiste progresso di lettura, atterraggio sul Lettore (solo all'avvio e solo dalla radice, mai navigando dentro l'app né sui link diretti), con la relativa scelta in Impostazioni → Aspetto (Automatica / Libreria / Lettore, predefinita Automatica)
 
 Verifica responsive di barra e tendine su tablet (orizzontale/verticale) e telefono: a cura di Federico su dispositivo reale.
@@ -267,6 +267,34 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 - **Libreria progressiva** *(da decidere dopo le misure su tablet)*: mostrare la pagina subito e riempire le sezioni mano a mano, invece di attendere la scansione iniziale ("Caricamento…")
 - **Backup che regge le collezioni grandi** *(30b, fatto)*: oggi tutte le copertine finiscono in un'unica stringa JSON in memoria (203 MB e 643 MB di picco a 9.000 capitoli, probabilmente troppo per un tablet o un telefono); scrittura a pezzi del file, oppure un "backup leggero" senza copertine (si rigenerano aprendo i capitoli); da affrontare anche il ripristino, che oggi legge e interpreta il file intero
 - Rifare le misure dopo ogni intervento con lo stesso metodo, per verificare il guadagno reale
+
+---
+
+## Fase 31 — Guida interattiva
+
+> Nata dalla richiesta di un tutorial per chi usa l'app per la prima volta. Un video non si può generare qui, e invecchierebbe a ogni modifica dell'interfaccia: la guida vive dentro l'app, resta offline ed è bilingue (italiano/inglese).
+
+- **Guida interattiva**: un breve giro a riquadri che indica le funzioni principali (importare con il "+", la barra di navigazione, la Libreria e la coda "Da categorizzare", il Lettore e le sue modalità, i Preferiti, il backup in Impostazioni)
+- **Pulsante "Guida" (?)** nella barra di navigazione, in tutte e tre le varianti di menu (icone, tendina, laterale): è un aiuto, non una destinazione di uso quotidiano, quindi con un peso visivo diverso dalle tre schede
+- **Primo avvio**: proposta della guida solo a chi apre l'app per la prima volta (segno salvato in locale) *e* ha la libreria vuota; chi ha già dei capitoli non se la vede imporre. Sempre saltabile, mai bloccante; rivedibile da Impostazioni
+- **Dati di prova** ammessi nel giro (decisione di Federico): generati dall'app, senza manga con diritti d'autore
+- **Guida utente** leggibile con calma: pagina dedicata, aperta da un pulsante "Guida utente" in Impostazioni (oltre al giro e al "?" nella barra)
+- **Contenuto come dati, non scritto nel codice dei componenti** (sezioni e domande/risposte in file separati, in italiano e inglese): così la guida può essere aggiornata senza toccare l'interfaccia, e un giorno può diventare la base di conoscenza di un assistente IA che risponda alle domande dell'utente sull'app (idea da valutare insieme alla Fase 32, con la stessa gestione della chiave e il vincolo "solo online, su richiesta")
+- Ordine deciso da Federico: la Fase 31 parte **dopo** aver concluso le fasi ancora aperte (26 e 27)
+
+---
+
+## Fase 32 — Riassunto "dove eravamo rimasti" con l'IA
+
+> Ultima fase in elenco, da studiare a fondo a tempo debito (decisione di Federico). Funzione **opzionale e su richiesta**: l'app resta pienamente utilizzabile offline.
+
+Punti già emersi nella discussione, da riprendere:
+- **Chiave dell'API**: l'app è un sito statico senza server proprio; una chiave nel codice sarebbe leggibile da chiunque. Ipotesi preferita: chiave dell'utente inserita in Impostazioni e salvata solo sul dispositivo; alternativa, un piccolo server intermedio; da escludere un modello sul dispositivo (pesante e poco adatto alle pagine di un manga)
+- **Cosa si riassume**: le pagine sono immagini, non testo, quindi serve un modello che le legga. Riassunto **per capitolo, una volta sola, salvato nel database**; "dove eravamo rimasti" come riassunto dei riassunti, a costo molto minore. **Mai oltre l'ultima pagina letta** (niente spoiler)
+- **Costi e tempi**: da misurare con poche pagine prima di costruire; mostrare all'utente una stima prima di confermare
+- **Pulsante visibile solo online**: i segnali del browser dicono se c'è una rete, non se c'è internet; si usano per mostrare il pulsante e al tocco si gestisce l'errore con un messaggio chiaro
+- **Privacy e termini d'uso**: inviare pagine di manga a un servizio esterno è una scelta dell'utente; funzione spenta finché non inserisce la chiave
+- Da decidere: cumulativo ("finora") o solo gli ultimi capitoli letti; lingua del riassunto; dove sta il pulsante (scheda Lettore, card di una serie)
 
 ---
 

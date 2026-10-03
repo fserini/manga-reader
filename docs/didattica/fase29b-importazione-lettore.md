@@ -34,11 +34,11 @@ Conseguenza da gestire: un capitolo importato così non è categorizzato, quindi
 
 `getContinueTarget()` in `db.js` decide cosa proporre: il capitolo letto per ultimo. Se quello è già **finito** e nello stesso volume ne segue un altro, propone il successivo (`isNext`, parte dall'inizio, con l'etichetta "Capitolo successivo"); altrimenti riprende lo stesso con il suo avanzamento. Guarda le ultime 5 righe di progresso e non solo la prima, per non restare a mani vuote davanti a un progresso orfano (capitolo nel frattempo rimosso).
 
-`ContinueCard` è puramente presentazionale (i dati e l'apertura li gestisce chi la usa) e ha due forme: **grande** nel Lettore (copertina, titolo, avanzamento, "Riprendi" a tutta larghezza) e **compatta** in cima alla Libreria (una riga). "Riprendi" passa dal solito controllo del permesso, ora raccolto nel hook `useChapterOpener`, che prima era copiato in tre componenti.
+`ContinueCard` è puramente presentazionale (i dati e l'apertura li gestisce chi la usa) e sta solo nella scheda Lettore (copertina, titolo, avanzamento, "Riprendi" a tutta larghezza). *Nota: in origine esisteva anche una forma **compatta** in cima alla Libreria; è stata tolta in un fix successivo perché duplicava le informazioni del Lettore.* "Riprendi" passa dal solito controllo del permesso, ora raccolto nel hook `useChapterOpener`, che prima era copiato in tre componenti.
 
 ## 5. La Libreria riordinata
 
-In Libreria, dall'alto: il titolo con il "+", la riga "Continua a leggere" (solo se c'è), la card "Da categorizzare" (solo se c'è), il **Catalogo con la sua ricerca**, e i Preferiti sotto. "In corso di lettura" e "Ultimi letti" sono passati nel Lettore. Prima il Catalogo, la parte più usata, finiva dopo fino a cinque sezioni; e le due sezioni di lettura duplicavano ciò che il Lettore mostra ora.
+In Libreria, dall'alto: il titolo con il "+", la card "Da categorizzare" (solo se c'è), il **Catalogo con la sua ricerca**, e i Preferiti sotto. "In corso di lettura" e "Ultimi letti" sono passati nel Lettore. Prima il Catalogo, la parte più usata, finiva dopo fino a cinque sezioni; e le due sezioni di lettura duplicavano ciò che il Lettore mostra ora.
 
 Piccole conseguenze: il titolo "蔵書 Libreria" porta ora l'eyebrow in giapponese (che era sul titolo "Catalogo"); `ReadingSections` espone un `onChanged` per far aggiornare la card "Continua a leggere" dopo una rimozione manuale.
 
