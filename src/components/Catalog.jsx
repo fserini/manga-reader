@@ -9,6 +9,8 @@ import {
   getChaptersUnderVolume,
   getReadingProgressMap,
   getSeriesLastReadMap,
+  getAllCategorizedChapters,
+  setVolumeMarkedRead,
   removeSeries,
   removeVolume,
   removeChapter,
@@ -23,17 +25,64 @@ import {
   deleteFileFromHandle,
 } from '../fileAccess.js';
 import DeleteDialog from './DeleteDialog.jsx';
+import ConfirmDialog from './ConfirmDialog.jsx';
+import CoverPicker from './CoverPicker.jsx';
+import TagsDialog from './TagsDialog.jsx';
 import './Catalog.css';
 
 const canDeleteFiles = isFileDeletionSupported();
+// Tetto ai capitoli mostrati come risultato della ricerca globale: oltre,
+// l'elenco diventerebbe di nuovo il muro di righe evitato in Fase 22.
+const MAX_CHAPTER_RESULTS = 50;
 
 function isCompleted(progress) {
   return Boolean(progress && progress.totalPages > 0 && progress.lastPageRead >= progress.totalPages - 1);
 }
 
+// Un capitolo è "letto" se completato davvero oppure segnato a mano (Fase 25).
+function isChapterDone(chapter, progress) {
+  return Boolean(chapter.markedRead) || isCompleted(progress);
+}
+
 function completionPercent(progress) {
   if (!progress || !progress.totalPages) return 0;
   return Math.round(((progress.lastPageRead + 1) / progress.totalPages) * 100);
+}
+
+// Tutti i tag in uso nelle serie, senza duplicati (maiuscole ignorate: vale la
+// prima grafia incontrata), in ordine alfabetico.
+function collectTags(seriesList) {
+  const byKey = new Map();
+  seriesList.forEach((item) => {
+    (item.tags ?? []).forEach((tag) => {
+      if (!byKey.has(tag.toLowerCase())) byKey.set(tag.toLowerCase(), tag);
+    });
+  });
+  return [...byKey.values()].sort((a, b) => a.localeCompare(b));
+}
+
+function hasTag(item, tag) {
+  return (item.tags ?? []).some((existing) => existing.toLowerCase() === tag.toLowerCase());
+}
+
+// URL oggetto per un Blob, creato e revocato col ciclo di vita del componente.
+function useObjectUrl(blob) {
+  const url = useMemo(() => (blob ? URL.createObjectURL(blob) : null), [blob]);
+
+  useEffect(() => {
+    if (!url) return undefined;
+    return () => URL.revokeObjectURL(url);
+  }, [url]);
+
+  return url;
+}
+
+// Piccola copertina in testa a una riga di Serie/Volume: compare solo se
+// l'utente ne ha scelta una apposta (coverCustom) — vedi Fase 25.
+function RowThumb({ blob }) {
+  const url = useObjectUrl(blob);
+  if (!url) return null;
+  return <img className="catalog-index-thumb" src={url} alt="" />;
 }
 
 // Mostra una miniatura da un Blob (creando/revocando l'URL oggetto). Se la
@@ -44,12 +93,7 @@ function completionPercent(progress) {
 // propria — mostrarci sopra la stessa copertina (reale o segnaposto) li
 // rendeva indistinguibili dal Capitolo, tutti con lo stesso "punto" cliccabile.
 function Cover({ blob, alt, title }) {
-  const url = useMemo(() => (blob ? URL.createObjectURL(blob) : null), [blob]);
-
-  useEffect(() => {
-    if (!url) return undefined;
-    return () => URL.revokeObjectURL(url);
-  }, [url]);
+  const url = useObjectUrl(blob);
 
   if (!url) {
     return (
@@ -61,10 +105,12 @@ function Cover({ blob, alt, title }) {
   return <img className="catalog-cover" src={url} alt={alt} />;
 }
 
-// onFavoriteChanged: chiamata dopo ogni cambio di preferito, così la Libreria
-// può aggiornare la sezione dedicata (che vive in un componente sorella,
-// separato per non perdere il livello di navigazione corrente qui dentro).
-function Catalog({ onFavoriteChanged }) {
+// onFavoriteChanged: chiamata dopo ogni cambio di preferito (o di copertina),
+// così la Libreria può aggiornare la sezione dedicata (che vive in un
+// componente sorella, separato per non perdere il livello di navigazione
+// corrente qui dentro). onProgressChanged, allo stesso modo, dopo un "segna
+// come letto" che sposta capitoli fuori da "In corso di lettura".
+function Catalog({ onFavoriteChanged, onProgressChanged }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -95,6 +141,15 @@ function Catalog({ onFavoriteChanged }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
 
+  // Fase 25. Filtro per tag (uno alla volta) sull'elenco delle serie; elenco
+  // dei capitoli per la ricerca globale (null = da (ri)caricare, caricato solo
+  // quando serve davvero); dialog di copertina/tag/"non letto" aperti.
+  const [activeTag, setActiveTag] = useState(null);
+  const [searchableChapters, setSearchableChapters] = useState(null);
+  const [coverTarget, setCoverTarget] = useState(null); // { kind, item, label }
+  const [tagsTarget, setTagsTarget] = useState(null); // una serie
+  const [unreadTarget, setUnreadTarget] = useState(null); // un volume
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -110,22 +165,41 @@ function Catalog({ onFavoriteChanged }) {
     };
   }, []);
 
-  // Calcola, per ogni volume di una serie, quanti capitoli risultano completati.
+  // La ricerca globale (livello Serie, query non vuota) ha bisogno di tutti i
+  // capitoli: li carichiamo la prima volta che si scrive qualcosa, non
+  // all'apertura del Catalogo, e li teniamo finché la libreria non cambia.
+  const searchActive = level === 'series' && searchQuery.trim() !== '';
+  useEffect(() => {
+    if (!searchActive || searchableChapters !== null) return undefined;
+    let cancelled = false;
+    (async () => {
+      const list = await getAllCategorizedChapters();
+      if (!cancelled) setSearchableChapters(list);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [searchActive, searchableChapters]);
+
+  // Calcola, per ogni volume di una serie, quanti capitoli risultano letti.
   async function loadVolumeStats(volumeList) {
     const stats = {};
     await Promise.all(
       volumeList.map(async (volume) => {
         const volumeChapters = await getChaptersForVolume(volume.id);
         const map = await getReadingProgressMap(volumeChapters.map((chapter) => chapter.id));
-        const read = volumeChapters.filter((chapter) => isCompleted(map[chapter.id])).length;
+        const read = volumeChapters.filter((chapter) => isChapterDone(chapter, map[chapter.id])).length;
         stats[volume.id] = { read, total: volumeChapters.length };
       }),
     );
     return stats;
   }
 
-  // Ricarica l'elenco del livello attualmente mostrato, dopo una rimozione.
+  // Ricarica l'elenco del livello attualmente mostrato, dopo una rimozione (o
+  // qualunque modifica). Invalida anche l'elenco dei capitoli della ricerca
+  // globale: si ricarica da solo alla prossima ricerca.
   async function reloadCurrentLevel() {
+    setSearchableChapters(null);
     if (level === 'series') {
       setSeries(await getAllSeries());
       setSeriesLastRead(await getSeriesLastReadMap());
@@ -211,6 +285,41 @@ function Catalog({ onFavoriteChanged }) {
     onFavoriteChanged?.();
   }
 
+  // "Segna come letto" su un volume intero. Se è già tutto letto il gesto
+  // diventa "segna come non letto", che azzera anche il progresso reale dei
+  // suoi capitoli: per questo chiede conferma (vedi setVolumeMarkedRead).
+  async function toggleVolumeRead(volume) {
+    const stats = volumeStats[volume.id];
+    if (stats && stats.total > 0 && stats.read === stats.total) {
+      setUnreadTarget(volume);
+      return;
+    }
+    await setVolumeMarkedRead(volume.id, true);
+    await reloadCurrentLevel();
+    onProgressChanged?.();
+  }
+
+  async function confirmUnread() {
+    const volume = unreadTarget;
+    setUnreadTarget(null);
+    await setVolumeMarkedRead(volume.id, false);
+    await reloadCurrentLevel();
+    onProgressChanged?.();
+  }
+
+  // Dopo aver scelto una copertina: chiude il dialog, ricarica l'elenco e
+  // avvisa la Libreria (i Preferiti mostrano le stesse copertine).
+  async function handleCoverSaved() {
+    setCoverTarget(null);
+    await reloadCurrentLevel();
+    onFavoriteChanged?.();
+  }
+
+  async function handleTagsSaved() {
+    setTagsTarget(null);
+    await reloadCurrentLevel();
+  }
+
   // Raccoglie gli handle di tutti i file coinvolti dalla rimozione (per la
   // cancellazione fisica). Va fatto PRIMA di rimuovere dal DB.
   async function collectHandles({ kind, item }) {
@@ -271,13 +380,49 @@ function Catalog({ onFavoriteChanged }) {
   // sono pochi elementi e il calcolo è economico.
   const normalizedQuery = searchQuery.trim().toLowerCase();
 
+  // Tag in uso e filtro attivo (se il tag scelto non esiste più, es. dopo
+  // averlo tolto dall'ultima serie che lo aveva, il filtro decade da solo).
+  const allTags = collectTags(series);
+  const effectiveTag = activeTag && allTags.some((tag) => tag.toLowerCase() === activeTag.toLowerCase()) ? activeTag : null;
+
+  // A livello Serie la ricerca è globale (Fase 25): cerca nel titolo e nei
+  // tag delle serie, e tra i capitoli di tutta la libreria (serie, volume,
+  // numero, nome del file).
   const visibleSeries = series
-    .filter((item) => !normalizedQuery || item.title.toLowerCase().includes(normalizedQuery))
+    .filter((item) => !effectiveTag || hasTag(item, effectiveTag))
+    .filter(
+      (item) =>
+        !normalizedQuery ||
+        item.title.toLowerCase().includes(normalizedQuery) ||
+        (item.tags ?? []).some((tag) => tag.toLowerCase().includes(normalizedQuery)),
+    )
     .sort((a, b) =>
       sortBy === 'recent'
         ? (seriesLastRead[b.id] ?? 0) - (seriesLastRead[a.id] ?? 0)
         : a.title.localeCompare(b.title, undefined, { numeric: true }),
     );
+
+  const chapterMatches =
+    searchActive && searchableChapters
+      ? searchableChapters
+          .filter((chapter) =>
+            [
+              chapter.seriesTitle,
+              chapter.volumeNumber != null ? t('catalog.volumeLabel', { number: chapter.volumeNumber }) : '',
+              t('catalog.chapterLabel', { number: chapter.number }),
+              chapter.fileName,
+            ]
+              .join(' ')
+              .toLowerCase()
+              .includes(normalizedQuery),
+          )
+          .sort(
+            (a, b) =>
+              a.seriesTitle.localeCompare(b.seriesTitle, undefined, { numeric: true }) ||
+              (a.volumeNumber ?? 0) - (b.volumeNumber ?? 0) ||
+              a.number - b.number,
+          )
+      : [];
 
   const visibleVolumes = volumes.filter(
     (volume) =>
@@ -327,8 +472,14 @@ function Catalog({ onFavoriteChanged }) {
           className="catalog-search"
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
-          placeholder={t('catalog.searchPlaceholder', { level: currentLevelLabel })}
-          aria-label={t('catalog.searchAria', { level: currentLevelLabel })}
+          placeholder={
+            level === 'series'
+              ? t('catalog.searchPlaceholderGlobal')
+              : t('catalog.searchPlaceholder', { level: currentLevelLabel })
+          }
+          aria-label={
+            level === 'series' ? t('catalog.searchAriaGlobal') : t('catalog.searchAria', { level: currentLevelLabel })
+          }
         />
         {level === 'series' && (
           <select
@@ -343,6 +494,23 @@ function Catalog({ onFavoriteChanged }) {
         )}
       </div>
 
+      {level === 'series' && allTags.length > 0 && (
+        <ul className="catalog-tag-filter" aria-label={t('catalog.tagFilterAria')}>
+          {allTags.map((tag) => (
+            <li key={tag}>
+              <button
+                type="button"
+                className={effectiveTag === tag ? 'active' : ''}
+                aria-pressed={effectiveTag === tag}
+                onClick={() => setActiveTag(effectiveTag === tag ? null : tag)}
+              >
+                {tag}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
       {notice && (
         <p className="catalog-error" role="alert">
           {notice}
@@ -350,20 +518,55 @@ function Catalog({ onFavoriteChanged }) {
       )}
 
       {normalizedQuery &&
-        ((level === 'series' && visibleSeries.length === 0) ||
+        ((level === 'series' &&
+          visibleSeries.length === 0 &&
+          searchableChapters !== null &&
+          chapterMatches.length === 0) ||
           (level === 'volumes' && visibleVolumes.length === 0) ||
           (level === 'chapters' && visibleChapters.length === 0)) && (
           <p className="catalog-empty">{t('catalog.noResults', { query: searchQuery.trim() })}</p>
         )}
+
+      {level === 'series' && searchActive && visibleSeries.length > 0 && (
+        <h3 className="catalog-results-heading">{t('catalog.resultsSeries')}</h3>
+      )}
 
       {level === 'series' && (
         <ul className="catalog-index">
           {visibleSeries.map((item) => (
             <li key={item.id} className="catalog-index-row">
               <button type="button" className="catalog-index-main" onClick={() => openSeries(item)}>
-                <span className="catalog-index-title">{item.title}</span>
+                {item.coverCustom && <RowThumb blob={item.coverThumbnail} />}
+                <span className="catalog-index-text">
+                  <span className="catalog-index-title">{item.title}</span>
+                  {(item.tags ?? []).length > 0 && (
+                    <span className="catalog-index-tags">
+                      {item.tags.map((tag) => (
+                        <span key={tag} className="catalog-tag">
+                          {tag}
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                </span>
               </button>
               <div className="catalog-index-actions">
+                <button
+                  type="button"
+                  className="catalog-index-cover"
+                  aria-label={t('catalog.coverSeries', { title: item.title })}
+                  onClick={() => setCoverTarget({ kind: 'series', item, label: item.title })}
+                >
+                  🖼
+                </button>
+                <button
+                  type="button"
+                  className="catalog-index-tagsbtn"
+                  aria-label={t('catalog.tagsSeries', { title: item.title })}
+                  onClick={() => setTagsTarget(item)}
+                >
+                  🏷
+                </button>
                 <button
                   type="button"
                   className="catalog-index-favorite"
@@ -398,12 +601,47 @@ function Catalog({ onFavoriteChanged }) {
         </ul>
       )}
 
+      {level === 'series' && searchActive && chapterMatches.length > 0 && (
+        <>
+          <h3 className="catalog-results-heading">{t('catalog.resultsChapters')}</h3>
+          <ul className="catalog-index">
+            {chapterMatches.slice(0, MAX_CHAPTER_RESULTS).map((chapter) => (
+              <li key={chapter.id} className="catalog-index-row">
+                <button type="button" className="catalog-index-main" onClick={() => openChapter(chapter)}>
+                  <span className="catalog-index-text">
+                    <span className="catalog-index-title">
+                      {t('catalog.chapterLabel', { number: chapter.number })}
+                    </span>
+                    <span className="catalog-index-sub">
+                      {[
+                        chapter.seriesTitle,
+                        chapter.volumeNumber != null
+                          ? t('catalog.volumeLabel', { number: chapter.volumeNumber })
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+          {chapterMatches.length > MAX_CHAPTER_RESULTS && (
+            <p className="catalog-empty">{t('catalog.resultsCapped', { count: MAX_CHAPTER_RESULTS })}</p>
+          )}
+        </>
+      )}
+
       {level === 'volumes' && (
         <ul className="catalog-index">
           {visibleVolumes.map((volume) => (
             <li key={volume.id} className="catalog-index-row">
               <button type="button" className="catalog-index-main" onClick={() => openVolume(volume)}>
-                <span className="catalog-index-title">{t('catalog.volumeLabel', { number: volume.number })}</span>
+                {volume.coverCustom && <RowThumb blob={volume.coverThumbnail} />}
+                <span className="catalog-index-text">
+                  <span className="catalog-index-title">{t('catalog.volumeLabel', { number: volume.number })}</span>
+                </span>
                 {volumeStats[volume.id] && volumeStats[volume.id].total > 0 && (
                   <span className="catalog-index-sub">
                     {t('catalog.readCount', {
@@ -414,6 +652,35 @@ function Catalog({ onFavoriteChanged }) {
                 )}
               </button>
               <div className="catalog-index-actions">
+                <button
+                  type="button"
+                  className="catalog-index-cover"
+                  aria-label={t('catalog.coverVolume', { number: volume.number })}
+                  onClick={() =>
+                    setCoverTarget({
+                      kind: 'volume',
+                      item: volume,
+                      label: t('catalog.volumeLabel', { number: volume.number }),
+                    })
+                  }
+                >
+                  🖼
+                </button>
+                {volumeStats[volume.id] && volumeStats[volume.id].total > 0 && (
+                  <button
+                    type="button"
+                    className="catalog-index-read"
+                    aria-pressed={volumeStats[volume.id].read === volumeStats[volume.id].total}
+                    aria-label={
+                      volumeStats[volume.id].read === volumeStats[volume.id].total
+                        ? t('catalog.markUnread', { number: volume.number })
+                        : t('catalog.markRead', { number: volume.number })
+                    }
+                    onClick={() => toggleVolumeRead(volume)}
+                  >
+                    ✓
+                  </button>
+                )}
                 <button
                   type="button"
                   className="catalog-index-favorite"
@@ -459,7 +726,7 @@ function Catalog({ onFavoriteChanged }) {
                   title={t('catalog.chapterLabel', { number: chapter.number })}
                 />
                 <span className="catalog-card-title">{t('catalog.chapterLabel', { number: chapter.number })}</span>
-                {isCompleted(progressMap[chapter.id]) ? (
+                {isChapterDone(chapter, progressMap[chapter.id]) ? (
                   <span className="catalog-card-sub catalog-card-sub--done">{t('catalog.done')}</span>
                 ) : progressMap[chapter.id] ? (
                   <span
@@ -508,6 +775,36 @@ function Catalog({ onFavoriteChanged }) {
           onCancel={() => setDeleteTarget(null)}
           onRemoveFromLibrary={() => runDelete(false)}
           onDeleteFiles={() => runDelete(true)}
+        />
+      )}
+
+      {coverTarget && (
+        <CoverPicker
+          kind={coverTarget.kind}
+          item={coverTarget.item}
+          label={coverTarget.label}
+          onClose={() => setCoverTarget(null)}
+          onSaved={handleCoverSaved}
+        />
+      )}
+
+      {tagsTarget && (
+        <TagsDialog
+          series={tagsTarget}
+          allTags={allTags}
+          onClose={() => setTagsTarget(null)}
+          onSaved={handleTagsSaved}
+        />
+      )}
+
+      {unreadTarget && (
+        <ConfirmDialog
+          title={t('catalog.unreadTitle', { number: unreadTarget.number })}
+          note={t('catalog.unreadNote')}
+          confirmLabel={t('catalog.unreadConfirm')}
+          cancelLabel={t('catalog.cancel')}
+          onConfirm={confirmUnread}
+          onCancel={() => setUnreadTarget(null)}
         />
       )}
     </div>

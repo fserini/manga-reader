@@ -361,10 +361,83 @@ export async function getRecentlyReadChapters(limit = 10) {
 // prima dell'ultima pagina del capitolo).
 export async function getInProgressChapters(limit = 10) {
   const rows = await db.readingProgress.orderBy('lastReadAt').reverse().toArray();
+  const chapters = await db.chapters.bulkGet(rows.map((progress) => progress.chapterId));
+  // Un capitolo segnato manualmente come letto (Fase 25) non è "in corso",
+  // anche se il suo progresso reale dice il contrario.
   const inProgress = rows
-    .filter((progress) => progress.totalPages > 0 && progress.lastPageRead < progress.totalPages - 1)
+    .filter((progress, index) => {
+      const chapter = chapters[index];
+      return (
+        chapter &&
+        !chapter.markedRead &&
+        progress.totalPages > 0 &&
+        progress.lastPageRead < progress.totalPages - 1
+      );
+    })
     .slice(0, limit);
   return enrichProgressRows(inProgress);
+}
+
+// --- Organizzazione e scoperta (Fase 25) ---
+
+// Tag liberi su una serie: un array di stringhe già normalizzate dal chiamante.
+export async function setSeriesTags(seriesId, tags) {
+  return db.series.update(seriesId, { tags });
+}
+
+// Copertina scelta dall'utente per una serie o un volume. Si salva nello
+// stesso campo coverThumbnail usato dalla copertina automatica (così Preferiti
+// e backup la gestiscono già), più il flag coverCustom: è quello che decide se
+// il Catalogo la mostra — Serie e Volumi restano testuali finché l'utente non
+// ne sceglie una apposta (vedi Fase 22).
+function tableForKind(kind) {
+  return kind === 'series' ? db.series : db.volumes;
+}
+
+export async function setCustomCover(kind, id, thumbnail) {
+  return tableForKind(kind).update(id, { coverThumbnail: thumbnail, coverCustom: true });
+}
+
+// Torna alla copertina automatica: la miniatura del primo capitolo (per
+// numero) che ne ha una, o nessuna se ancora nessun capitolo è stato aperto.
+// Dexie cancella una proprietà aggiornata a undefined.
+export async function clearCustomCover(kind, id) {
+  const chapters = kind === 'series' ? await getChaptersUnderSeries(id) : await getChaptersUnderVolume(id);
+  const first = chapters.filter((chapter) => chapter.thumbnail).sort((a, b) => a.number - b.number)[0];
+  return tableForKind(kind).update(id, { coverThumbnail: first?.thumbnail, coverCustom: false });
+}
+
+// Tutti i capitoli categorizzati, con titolo della serie e numero del volume:
+// alimenta i risultati-capitolo della ricerca globale nel Catalogo.
+export async function getAllCategorizedChapters() {
+  const chapters = await db.chapters.filter((chapter) => Boolean(chapter.categorized)).toArray();
+  const [seriesRows, volumeRows] = await Promise.all([db.series.toArray(), db.volumes.toArray()]);
+  const seriesById = new Map(seriesRows.map((row) => [row.id, row]));
+  const volumeById = new Map(volumeRows.map((row) => [row.id, row]));
+  return chapters.map((chapter) => ({
+    ...chapter,
+    seriesTitle: seriesById.get(chapter.seriesId)?.title ?? '',
+    volumeNumber: volumeById.get(chapter.volumeId)?.number ?? null,
+  }));
+}
+
+// Segna (o toglie il segno) "letto" su tutti i capitoli di un volume. Il segno
+// vive sul capitolo (markedRead), non nel progresso di lettura: i capitoli mai
+// aperti non hanno un numero di pagine, quindi non si può "completare" una
+// riga di progresso che non esiste — e non si vogliono nemmeno inondare gli
+// "Ultimi letti" con un volume intero. Toglierlo, invece, azzera anche il
+// progresso reale (lettura vera inclusa): è il solo modo di tornare a "non
+// letto" senza lasciare capitoli completati per davvero.
+export async function setVolumeMarkedRead(volumeId, markedRead) {
+  const chapters = await getChaptersUnderVolume(volumeId);
+  await db.transaction('rw', db.chapters, db.readingProgress, async () => {
+    for (const chapter of chapters) {
+      await db.chapters.update(chapter.id, { markedRead });
+    }
+    if (!markedRead) {
+      await db.readingProgress.bulkDelete(chapters.map((chapter) => chapter.id));
+    }
+  });
 }
 
 // Toglie un capitolo da "In corso di lettura" e "Ultimi letti" — rimuove

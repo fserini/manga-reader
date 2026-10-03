@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getInProgressChapters, getRecentlyReadChapters, clearReadingProgress } from '../db.js';
 import { verifyPermission, fileStillExists } from '../fileAccess.js';
+import ConfirmDialog from './ConfirmDialog.jsx';
 import './ReadingSections.css';
 
 function completionPercent(item) {
@@ -153,22 +154,14 @@ function ReadingSections({ onLibraryChanged }) {
       )}
 
       {removing && (
-        <div className="rs-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="rs-confirm-title">
-          <div className="rs-confirm-panel">
-            <h2 id="rs-confirm-title">
-              {t('readingSections.removeTitle', { number: removing.chapterNumber })}
-            </h2>
-            <p className="rs-confirm-note">{t('readingSections.removeNote')}</p>
-            <div className="rs-confirm-actions">
-              <button type="button" onClick={() => setRemoving(null)}>
-                {t('readingSections.cancel')}
-              </button>
-              <button type="button" className="rs-confirm-danger" onClick={confirmRemove}>
-                {t('readingSections.remove')}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title={t('readingSections.removeTitle', { number: removing.chapterNumber })}
+          note={t('readingSections.removeNote')}
+          confirmLabel={t('readingSections.remove')}
+          cancelLabel={t('readingSections.cancel')}
+          onConfirm={confirmRemove}
+          onCancel={() => setRemoving(null)}
+        />
       )}
     </div>
   );

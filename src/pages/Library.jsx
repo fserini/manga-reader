@@ -39,6 +39,9 @@ function Library() {
   // aggiunto/tolto dal Catalogo, così la sezione dedicata si aggiorna senza
   // dover far perdere al Catalogo il livello di navigazione in cui si trova.
   const [favoritesVersion, setFavoritesVersion] = useState(0);
+  // E per "In corso di lettura"/"Ultimi letti": cambia quando il Catalogo
+  // segna un volume come letto (o non letto), che sposta capitoli da lì.
+  const [readingVersion, setReadingVersion] = useState(0);
 
   const refresh = useCallback(async () => {
     const [chapters, count] = await Promise.all([getUncategorizedChapters(), getChapterCount()]);
@@ -207,7 +210,10 @@ function Library() {
         onLibraryChanged={() => setCatalogVersion((version) => version + 1)}
       />
 
-      <ReadingSections onLibraryChanged={() => setCatalogVersion((version) => version + 1)} />
+      <ReadingSections
+        key={readingVersion}
+        onLibraryChanged={() => setCatalogVersion((version) => version + 1)}
+      />
 
       {uncategorized.length > 0 && (
         <Link to="/uncategorized" className="library-uncategorized-card">
@@ -232,6 +238,7 @@ function Library() {
         <Catalog
           key={catalogVersion}
           onFavoriteChanged={() => setFavoritesVersion((version) => version + 1)}
+          onProgressChanged={() => setReadingVersion((version) => version + 1)}
         />
       </section>
     </div>
