@@ -7,14 +7,6 @@
   margin-bottom: 16px;
 }
 
-/* Riga "Continua a leggere" in cima alla Libreria (solo se c'è qualcosa). */
-.library-continue {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 8px;
-}
-
 .library-link-button {
   padding: 10px 16px;
   border: 1px solid var(--border);

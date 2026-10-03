@@ -236,7 +236,7 @@
 **29b — Importazione, Lettore e Libreria**
 - **Importazione**: icona "+" con tendina File / Cartella e formati accettati, al posto dei due pulsanti di testo
 - **Lettore a vuoto**: "Continua a leggere", letti di recente e "Apri un file…"; il file aperto viene riconosciuto in libreria per nome (pagina, segnalibro, preferiti, statistiche ritrovati) oppure importato e aperto; estrazione della logica di import in un modulo condiviso con la Libreria
-- **Libreria riordinata** (confermato): Catalogo con ricerca in cima, "Da categorizzare" come card, Preferiti sotto, una sola card compatta "Continua a leggere"; "In corso di lettura" e "Ultimi letti" passano alla scheda Lettore
+- **Libreria riordinata** (confermato): Catalogo con ricerca in cima, "Da categorizzare" come card, Preferiti sotto (la card compatta "Continua a leggere" prevista in origine è stata tolta con un fix: sta solo nel Lettore); "In corso di lettura" e "Ultimi letti" passano alla scheda Lettore
 - **Pagina iniziale**: all'avvio, se esiste progresso di lettura, atterraggio sul Lettore (solo all'avvio e solo dalla radice, mai navigando dentro l'app né sui link diretti), con la relativa scelta in Impostazioni → Aspetto (Automatica / Libreria / Lettore, predefinita Automatica)
 
 Verifica responsive di barra e tendine su tablet (orizzontale/verticale) e telefono: a cura di Federico su dispositivo reale.
