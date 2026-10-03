@@ -270,6 +270,31 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 
 ---
 
+## Fase 31 — Guida interattiva
+
+> Nata dalla richiesta di un tutorial per chi usa l'app per la prima volta. Un video non si può generare qui, e invecchierebbe a ogni modifica dell'interfaccia: la guida vive dentro l'app, resta offline ed è bilingue (italiano/inglese).
+
+- **Guida interattiva**: un breve giro a riquadri che indica le funzioni principali (importare con il "+", la barra di navigazione, la Libreria e la coda "Da categorizzare", il Lettore e le sue modalità, i Preferiti, il backup in Impostazioni)
+- **Pulsante "Guida" (?)** nella barra di navigazione, in tutte e tre le varianti di menu (icone, tendina, laterale): è un aiuto, non una destinazione di uso quotidiano, quindi con un peso visivo diverso dalle tre schede
+- **Primo avvio**: proposta della guida solo a chi apre l'app per la prima volta (segno salvato in locale) *e* ha la libreria vuota; chi ha già dei capitoli non se la vede imporre. Sempre saltabile, mai bloccante; rivedibile da Impostazioni
+- Da decidere in fase di studio: se il giro usa dati di prova o solo riquadri sull'interfaccia reale, e dove mostrare la guida estesa (pagina dedicata o solo il giro)
+
+---
+
+## Fase 32 — Riassunto "dove eravamo rimasti" con l'IA
+
+> Ultima fase in elenco, da studiare a fondo a tempo debito (decisione di Federico). Funzione **opzionale e su richiesta**: l'app resta pienamente utilizzabile offline.
+
+Punti già emersi nella discussione, da riprendere:
+- **Chiave dell'API**: l'app è un sito statico senza server proprio; una chiave nel codice sarebbe leggibile da chiunque. Ipotesi preferita: chiave dell'utente inserita in Impostazioni e salvata solo sul dispositivo; alternativa, un piccolo server intermedio; da escludere un modello sul dispositivo (pesante e poco adatto alle pagine di un manga)
+- **Cosa si riassume**: le pagine sono immagini, non testo, quindi serve un modello che le legga. Riassunto **per capitolo, una volta sola, salvato nel database**; "dove eravamo rimasti" come riassunto dei riassunti, a costo molto minore. **Mai oltre l'ultima pagina letta** (niente spoiler)
+- **Costi e tempi**: da misurare con poche pagine prima di costruire; mostrare all'utente una stima prima di confermare
+- **Pulsante visibile solo online**: i segnali del browser dicono se c'è una rete, non se c'è internet; si usano per mostrare il pulsante e al tocco si gestisce l'errore con un messaggio chiaro
+- **Privacy e termini d'uso**: inviare pagine di manga a un servizio esterno è una scelta dell'utente; funzione spenta finché non inserisce la chiave
+- Da decidere: cumulativo ("finora") o solo gli ultimi capitoli letti; lingua del riassunto; dove sta il pulsante (scheda Lettore, card di una serie)
+
+---
+
 ## 🔮 Backlog futuro (fuori roadmap MVP)
 
 - Migrazione a TypeScript
