@@ -208,7 +208,7 @@
 
 ## Fase 27 — Qualità
 
-> Quarta e ultima fase del gruppo nato dall'analisi complessiva (vedi Fase 24).
+> Quarta e ultima fase del gruppo nato dall'analisi complessiva (vedi Fase 24). **Completata**: dettagli in [`docs/didattica/fase27-statistiche-rinomina.md`](../didattica/fase27-statistiche-rinomina.md). Il tempo di lettura è una stima (20 secondi a pagina), perché l'app non lo misura; la rinomina di un volume è il cambio del suo numero.
 
 - **Statistiche di lettura**: pagine lette, tempo stimato, serie più lette — una nuova sezione in Impostazioni
 - **Rinomina Serie/Volume**: oggi non esiste modo di correggere un titolo sbagliato se non rimuovendo e ricategorizzando

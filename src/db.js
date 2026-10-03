@@ -1,4 +1,5 @@
 import Dexie from 'dexie';
+import { normalizeTitle } from './chapterNameParser.js';
 
 export const db = new Dexie('MangaReaderDB');
 
@@ -625,6 +626,126 @@ export async function getContinueTarget() {
 // resta in libreria. Usata dalla rimozione manuale in ReadingSections.
 export async function clearReadingProgress(chapterId) {
   return db.readingProgress.delete(chapterId);
+}
+
+// --- Rinomina (Fase 27) ---
+//
+// Prima, un titolo sbagliato si correggeva solo rimuovendo la serie e
+// ricategorizzando i capitoli. Le funzioni rifiutano un nome che esiste già
+// (errore con `code: 'duplicate'`) invece di creare due serie o due volumi
+// indistinguibili.
+function duplicateError() {
+  return Object.assign(new Error('duplicate'), { code: 'duplicate' });
+}
+
+// Per confrontare due titoli: "One Piece", "one-piece" e "ONE PIECE!" sono la
+// stessa serie. Se il titolo è fatto solo di simboli (nulla da confrontare
+// dopo la normalizzazione) si ripiega sul testo in minuscolo.
+function titleKey(title) {
+  return normalizeTitle(title) || title.trim().toLowerCase();
+}
+
+export async function renameSeries(seriesId, title) {
+  const clean = title.trim();
+  return db.transaction('rw', db.series, async () => {
+    const key = titleKey(clean);
+    const others = await db.series.toArray();
+    if (others.some((series) => series.id !== seriesId && titleKey(series.title) === key)) {
+      throw duplicateError();
+    }
+    await db.series.update(seriesId, { title: clean });
+  });
+}
+
+// Un volume ha solo un numero: "rinominarlo" è cambiarne il numero, purché la
+// serie non abbia già un altro volume con quel numero.
+export async function renumberVolume(volumeId, number) {
+  return db.transaction('rw', db.volumes, async () => {
+    const volume = await db.volumes.get(volumeId);
+    if (!volume) return;
+    const siblings = await db.volumes.where('seriesId').equals(volume.seriesId).toArray();
+    if (siblings.some((other) => other.id !== volumeId && other.number === number)) throw duplicateError();
+    await db.volumes.update(volumeId, { number });
+  });
+}
+
+// --- Statistiche di lettura (Fase 27) ---
+//
+// Il database non registra il TEMPO di lettura, solo fino a che pagina si è
+// arrivati in ogni capitolo: le pagine lette sono quindi una stima (l'ultima
+// pagina raggiunta, non quante volte si è tornati indietro) e il tempo è un
+// calcolo su un tempo medio per pagina, dichiarato come tale.
+export const SECONDS_PER_PAGE = 20;
+
+// Un capitolo è finito se letto fino in fondo oppure segnato a mano (Fase 25).
+function isFinished(chapter, progress) {
+  if (chapter.markedRead) return true;
+  return Boolean(progress && progress.totalPages > 0 && progress.lastPageRead >= progress.totalPages - 1);
+}
+
+export async function getReadingStats({ topCount = 5 } = {}) {
+  const [progressRows, seriesRows, volumeCount, chapterCount, markedRead] = await Promise.all([
+    db.readingProgress.toArray(),
+    db.series.toArray(),
+    db.volumes.count(),
+    db.chapters.count(),
+    // Segnati come letti a mano: nessun indice, ma sono righe leggere (le
+    // miniature stanno in un'altra tabella, Fase 30a).
+    db.chapters.filter((chapter) => Boolean(chapter.markedRead)).toArray(),
+  ]);
+
+  const chapters = await db.chapters.bulkGet(progressRows.map((progress) => progress.chapterId));
+  const progressById = new Map(progressRows.map((progress) => [progress.chapterId, progress]));
+  const seriesTitle = new Map(seriesRows.map((series) => [series.id, series.title]));
+
+  let pagesRead = 0;
+  let chaptersStarted = 0;
+  let chaptersFinished = 0;
+  const perSeries = new Map();
+
+  function addToSeries(seriesId, pages, finished) {
+    if (seriesId == null || !seriesTitle.has(seriesId)) return;
+    const entry = perSeries.get(seriesId) ?? { id: seriesId, title: seriesTitle.get(seriesId), pages: 0, chaptersRead: 0 };
+    entry.pages += pages;
+    if (finished) entry.chaptersRead += 1;
+    perSeries.set(seriesId, entry);
+  }
+
+  chapters.forEach((chapter) => {
+    if (!chapter) return; // un progresso rimasto senza capitolo
+    const progress = progressById.get(chapter.id);
+    const finished = isFinished(chapter, progress);
+    const pages = finished && progress?.totalPages ? progress.totalPages : (progress?.lastPageRead ?? 0) + 1;
+    pagesRead += pages;
+    chaptersStarted += 1;
+    if (finished) chaptersFinished += 1;
+    addToSeries(chapter.seriesId, pages, finished);
+  });
+
+  // Segnati a mano e senza un progresso proprio: contano come capitoli finiti
+  // (le loro pagine non si conoscono, quindi non si sommano).
+  markedRead.forEach((chapter) => {
+    if (progressById.has(chapter.id)) return;
+    chaptersStarted += 1;
+    chaptersFinished += 1;
+    addToSeries(chapter.seriesId, 0, true);
+  });
+
+  const topSeries = [...perSeries.values()]
+    .filter((entry) => entry.pages > 0 || entry.chaptersRead > 0)
+    .sort((a, b) => b.pages - a.pages || b.chaptersRead - a.chaptersRead)
+    .slice(0, topCount);
+
+  return {
+    library: { series: seriesRows.length, volumes: volumeCount, chapters: chapterCount },
+    reading: {
+      pagesRead,
+      chaptersStarted,
+      chaptersFinished,
+      estimatedMinutes: Math.round((pagesRead * SECONDS_PER_PAGE) / 60),
+    },
+    topSeries,
+  };
 }
 
 // --- Backup e ripristino (Fase 30b) ---
