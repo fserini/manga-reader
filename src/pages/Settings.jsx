@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { exportBackup, restoreBackup } from '../db.js';
 import Brand from '../components/Brand.jsx';
 import { useUiPreferences } from '../UiPreferencesContext.jsx';
-import { LOGO_OPTIONS, MENU_OPTIONS } from '../uiPreferences.js';
+import { LOGO_OPTIONS, MENU_OPTIONS, START_PAGE_OPTIONS } from '../uiPreferences.js';
 import './Settings.css';
 
 // Le lingue supportate, come i18n.js: qui non serve dedurre nulla, solo
@@ -129,6 +129,25 @@ function Settings() {
             </button>
           ))}
         </div>
+
+        <h3 id="start-label" className="settings-subheading">
+          {t('settings.startPageLabel')}
+        </h3>
+        <div className="settings-pill-options" role="radiogroup" aria-labelledby="start-label">
+          {START_PAGE_OPTIONS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              role="radio"
+              aria-checked={prefs.startPage === option}
+              className={prefs.startPage === option ? 'settings-pill-active' : ''}
+              onClick={() => setPref('startPage', option)}
+            >
+              {t(`settings.startPage.${option}`)}
+            </button>
+          ))}
+        </div>
+        <p className="settings-hint settings-hint--small">{t('settings.startPageHint')}</p>
       </section>
 
       <section className="settings-section" aria-labelledby="language-heading">

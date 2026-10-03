@@ -1,11 +1,20 @@
-.library-actions {
+/* Titolo della Libreria con il menu "+" di importazione a destra. */
+.library-header {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin: 16px 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
-.library-actions button,
+/* Riga "Continua a leggere" in cima alla Libreria (solo se c'è qualcosa). */
+.library-continue {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
 .library-link-button {
   padding: 10px 16px;
   border: 1px solid var(--border);
@@ -20,7 +29,6 @@
     border-color 0.15s;
 }
 
-.library-actions button:hover,
 .library-link-button:hover {
   background: var(--surface-hover);
 }
@@ -32,7 +40,7 @@
 }
 
 /* Avviso "attenzione" (es. duplicati saltati): informa senza allarmare. Usa
-   l'accent ambra dell'app, distinto dal rosso degli errori veri. */
+   l'accento azzurro dell'app, distinto dal rosso degli errori veri. */
 .library-notice {
   display: flex;
   align-items: flex-start;

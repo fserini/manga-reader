@@ -1,26 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  getUncategorizedChapters,
-  getChapterCount,
-  importChapter,
-  getChapterByFileName,
-  setChapterHandle,
-} from '../db.js';
+import { getUncategorizedChapters, getChapterCount, getContinueTarget } from '../db.js';
 import {
   isFileSystemAccessSupported,
-  isArchiveFileName,
-  getFileExtension,
   pickFiles,
   pickDirectory,
   SUPPORTED_FORMATS_LABEL,
 } from '../fileAccess.js';
-import { validateArchive } from '../comicFile.js';
+import { importHandles } from '../importFiles.js';
+import { useChapterOpener } from '../useChapterOpener.js';
 import Icon from '../components/Icon.jsx';
 import Catalog from '../components/Catalog.jsx';
-import ReadingSections from '../components/ReadingSections.jsx';
 import Favorites from '../components/Favorites.jsx';
+import ContinueCard from '../components/ContinueCard.jsx';
+import ImportMenu from '../components/ImportMenu.jsx';
 import './Library.css';
 
 const supported = isFileSystemAccessSupported();
@@ -45,12 +39,17 @@ function describeExtensions(extensions) {
   return labels.length > MAX_LISTED_TYPES ? `${shown}…` : shown;
 }
 
+// La Libreria è ciò che si possiede (ADR-002): in cima, quando ci sono, una
+// riga per riprendere la lettura e la coda "Da categorizzare"; poi il
+// Catalogo con la sua ricerca; sotto, i Preferiti. "In corso di lettura" e
+// "Ultimi letti" non sono più qui: stanno nella scheda Lettore.
 function Library() {
   const { t } = useTranslation();
   const [uncategorized, setUncategorized] = useState([]);
   const [chapterCount, setChapterCount] = useState(0);
+  const [continueTarget, setContinueTarget] = useState(null);
   const [loading, setLoading] = useState(true);
-  // Esito dell'ultimo import: { imported, duplicates, ignored } — o null.
+  // Esito dell'ultimo import — o null.
   const [result, setResult] = useState(null);
   // Messaggio d'errore vero e proprio (accesso ai file fallito) — distinto
   // dall'esito normale di un import con duplicati saltati.
@@ -62,14 +61,16 @@ function Library() {
   // aggiunto/tolto dal Catalogo, così la sezione dedicata si aggiorna senza
   // dover far perdere al Catalogo il livello di navigazione in cui si trova.
   const [favoritesVersion, setFavoritesVersion] = useState(0);
-  // E per "In corso di lettura"/"Ultimi letti": cambia quando il Catalogo
-  // segna un volume come letto (o non letto), che sposta capitoli da lì.
-  const [readingVersion, setReadingVersion] = useState(0);
 
   const refresh = useCallback(async () => {
-    const [chapters, count] = await Promise.all([getUncategorizedChapters(), getChapterCount()]);
+    const [chapters, count, target] = await Promise.all([
+      getUncategorizedChapters(),
+      getChapterCount(),
+      getContinueTarget(),
+    ]);
     setUncategorized(chapters);
     setChapterCount(count);
+    setContinueTarget(target);
   }, []);
 
   useEffect(() => {
@@ -83,77 +84,20 @@ function Library() {
     };
   }, [refresh]);
 
-  // Prende un elenco di handle (da file o cartella), scarta i formati non
-  // supportati (ricordandone le estensioni, per avvisare), blocca i duplicati
-  // (stesso nome file già collegato a un handle), scarta gli archivi non
-  // leggibili (corrotti, senza immagini, con password) e importa il resto. La
-  // validazione apre il file (senza estrarne le pagine, vedi validateArchive)
-  // solo dopo aver già escluso estensione sbagliata e duplicati — non ha
-  // senso pagare il costo dell'apertura per un file che verrebbe comunque
-  // scartato.
-  //
-  // Un capitolo con lo stesso nome file può già esistere ma SENZA handle: è
-  // il caso di un capitolo ripristinato da un backup (Fase 16), il cui
-  // riferimento al file fisico non è mai esportabile. Invece di scartarlo
-  // come duplicato, lo si ricollega aggiornando solo il suo handle.
-  async function importHandles(handles) {
-    let imported = 0;
-    let relinked = 0;
-    let duplicates = 0;
-    let ignored = 0;
-    const failures = { invalid: 0, encrypted: 0, timeout: 0 };
-    const unsupportedTypes = new Set();
-
-    for (const handle of handles) {
-      if (!isArchiveFileName(handle.name)) {
-        ignored += 1;
-        unsupportedTypes.add(getFileExtension(handle.name));
-        continue;
-      }
-
-      const existing = await getChapterByFileName(handle.name);
-      if (existing && existing.handle) {
-        duplicates += 1;
-        continue;
-      }
-
-      const file = await handle.getFile();
-      const verdict = await validateArchive(file);
-      if (verdict !== 'ok') {
-        failures[verdict] += 1;
-        continue;
-      }
-
-      if (existing) {
-        await setChapterHandle(existing.id, handle);
-        relinked += 1;
-        continue;
-      }
-
-      await importChapter({ fileName: handle.name, handle });
-      imported += 1;
-    }
-
-    await refresh();
-    setResult({
-      imported,
-      relinked,
-      duplicates,
-      ignored,
-      unreadable: failures.invalid + failures.encrypted + failures.timeout,
-      invalid: failures.invalid,
-      encrypted: failures.encrypted,
-      timeout: failures.timeout,
-      unsupportedTypes: [...unsupportedTypes],
-    });
-  }
+  // Se il file di "Continua a leggere" non c'è più, ricarica la Libreria: il
+  // capitolo morto viene rimosso e la card si aggiorna.
+  const { open: openChapter, notice: openNotice } = useChapterOpener({
+    onFileGone: () => setCatalogVersion((version) => version + 1),
+  });
 
   async function runPicker(picker) {
     setResult(null);
     setError(null);
     try {
       const handles = await picker();
-      await importHandles(handles);
+      const summary = await importHandles(handles);
+      await refresh();
+      setResult(summary);
     } catch (err) {
       // L'utente ha chiuso il picker senza scegliere: non è un errore.
       if (err.name === 'AbortError') return;
@@ -232,28 +176,28 @@ function Library() {
 
   return (
     <div className="page">
-      <h1>{t('library.title')}</h1>
-
-      <div className="library-actions">
-        <button type="button" onClick={() => runPicker(pickFiles)}>
-          {t('library.importFiles')}
-        </button>
-        <button type="button" onClick={() => runPicker(pickDirectory)}>
-          {t('library.importFolder')}
-        </button>
+      <div className="library-header">
+        <div className="page-heading">
+          <span className="page-eyebrow" aria-hidden="true">
+            蔵書
+          </span>
+          <h1>{t('library.title')}</h1>
+        </div>
+        <ImportMenu onPickFiles={() => runPicker(pickFiles)} onPickFolder={() => runPicker(pickDirectory)} />
       </div>
 
       {feedbackBlock}
 
-      <Favorites
-        key={favoritesVersion}
-        onLibraryChanged={() => setCatalogVersion((version) => version + 1)}
-      />
-
-      <ReadingSections
-        key={readingVersion}
-        onLibraryChanged={() => setCatalogVersion((version) => version + 1)}
-      />
+      {continueTarget && (
+        <div className="library-continue">
+          <ContinueCard target={continueTarget} variant="compact" onOpen={openChapter} />
+          {openNotice && (
+            <p className="library-error" role="alert">
+              {openNotice}
+            </p>
+          )}
+        </div>
+      )}
 
       {uncategorized.length > 0 && (
         <Link to="/uncategorized" className="library-uncategorized-card">
@@ -271,16 +215,18 @@ function Library() {
       )}
 
       <section className="library-section" aria-labelledby="catalog-heading">
-        <div className="page-heading">
-          <span className="page-eyebrow" aria-hidden="true">蔵書</span>
-          <h2 id="catalog-heading">{t('library.catalogHeading')}</h2>
-        </div>
+        <h2 id="catalog-heading">{t('library.catalogHeading')}</h2>
         <Catalog
           key={catalogVersion}
           onFavoriteChanged={() => setFavoritesVersion((version) => version + 1)}
-          onProgressChanged={() => setReadingVersion((version) => version + 1)}
+          onProgressChanged={refresh}
         />
       </section>
+
+      <Favorites
+        key={favoritesVersion}
+        onLibraryChanged={() => setCatalogVersion((version) => version + 1)}
+      />
     </div>
   );
 }

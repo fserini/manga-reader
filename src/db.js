@@ -327,6 +327,7 @@ async function enrichChapter(chapter, extra = {}) {
   return {
     chapterId: chapter.id,
     chapterNumber: chapter.number,
+    fileName: chapter.fileName ?? null,
     seriesTitle: series?.title ?? null,
     volumeNumber: volume?.number ?? null,
     thumbnail: chapter.thumbnail ?? null,
@@ -438,6 +439,38 @@ export async function setVolumeMarkedRead(volumeId, markedRead) {
       await db.readingProgress.bulkDelete(chapters.map((chapter) => chapter.id));
     }
   });
+}
+
+// Cosa proporre come "Continua a leggere" (Fase 29b): il capitolo letto per
+// ultimo. Se quello è già finito e nello stesso volume ne segue un altro, si
+// propone il successivo (isNext: parte dall'inizio), altrimenti lo stesso
+// capitolo con il suo avanzamento. Restituisce null se non c'è nessun
+// progresso di lettura: è anche la condizione che decide la pagina iniziale
+// (se non c'è nulla da continuare, si parte dalla Libreria).
+//
+// Si guardano le ultime 5 righe e non solo la prima per non restare a mani
+// vuote davanti a un progresso orfano (il capitolo nel frattempo rimosso).
+export async function getContinueTarget() {
+  const rows = await db.readingProgress.orderBy('lastReadAt').reverse().limit(5).toArray();
+  for (const progress of rows) {
+    const chapter = await db.chapters.get(progress.chapterId);
+    if (!chapter) continue;
+
+    const finished = progress.totalPages > 0 && progress.lastPageRead >= progress.totalPages - 1;
+    if (finished) {
+      const next = await getNextChapterInVolume(chapter.id);
+      if (next) {
+        return { ...(await enrichChapter(next)), lastPageRead: null, totalPages: null, isNext: true };
+      }
+    }
+    return {
+      ...(await enrichChapter(chapter)),
+      lastPageRead: progress.lastPageRead,
+      totalPages: progress.totalPages,
+      isNext: false,
+    };
+  }
+  return null;
 }
 
 // Toglie un capitolo da "In corso di lettura" e "Ultimi letti" — rimuove

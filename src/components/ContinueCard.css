@@ -1,0 +1,146 @@
+.continue {
+  display: flex;
+  gap: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.continue-cover {
+  display: flex;
+  align-items: flex-end;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: linear-gradient(155deg, #22303a, #0a1114);
+}
+
+.continue-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.continue-cover span {
+  padding: 8px;
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  writing-mode: vertical-rl;
+}
+
+.continue-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+}
+
+.continue-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.continue-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.continue-detail {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--text-muted);
+}
+
+.continue-bar {
+  height: 4px;
+  margin-top: 6px;
+  border-radius: 2px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.continue-bar i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.continue-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Grande (scheda Lettore): copertina a sinistra, pulsante sotto il testo. */
+.continue--large {
+  flex-wrap: wrap;
+  padding: 16px;
+  border-radius: 16px;
+}
+
+.continue--large .continue-cover {
+  width: 118px;
+  aspect-ratio: 3 / 4;
+  border-radius: 6px;
+}
+
+.continue--large .continue-title {
+  font-size: 24px;
+}
+
+.continue--large .continue-action {
+  flex-basis: 100%;
+}
+
+/* Compatta (Libreria): una sola riga, il pulsante a destra. */
+.continue--compact {
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+}
+
+.continue--compact .continue-cover {
+  width: 40px;
+  aspect-ratio: 2 / 3;
+  border-radius: 4px;
+}
+
+.continue--compact .continue-cover span {
+  display: none;
+}
+
+.continue--compact .continue-title {
+  font-size: 16px;
+}
+
+.continue--compact .continue-body {
+  gap: 2px;
+}
+
+/* In una riga stretta basta la barra: il "pag. X / Y" andrebbe a capo. */
+.continue--compact .continue-detail--page {
+  display: none;
+}
+
+.continue--compact .continue-action {
+  padding: 9px 14px;
+}
