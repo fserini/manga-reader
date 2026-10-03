@@ -97,6 +97,7 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 25 — Organizzazione e scoperta
 - [ ] Fase 26 — Rifiniture grafiche moderne — pianificata, non ancora iniziata
 - [ ] Fase 27 — Qualità — pianificata, non ancora iniziata
+- [ ] Fase 28 — Nuovi formati di import (28a RAR/ZIP/7z, 28b PDF) — pianificata, non ancora iniziata
 
 ---
 

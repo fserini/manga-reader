@@ -215,6 +215,15 @@
 
 ---
 
+## Fase 28 — Nuovi formati di import
+
+> Idea di Federico emersa durante la Fase 25: oltre a CBZ e CBR potrebbero arrivare file in altri formati. Divisa in due parti di costo molto diverso, da pianificare separatamente.
+
+- **28a — Archivi generici (RAR, ZIP, eventualmente 7z)**: costo basso. `.cbr` è già un RAR rinominato e `.cbz` uno ZIP, e il dispatch in `comicFile.js` è basato solo sull'estensione: si tratta di accettare `.rar`/`.zip` (e `.7z`/`.cb7`, che libarchive.js legge già) in `fileAccess.js`, instradarli sugli estrattori esistenti (libarchive per RAR/7z, JSZip per ZIP) e aggiornare i testi "CBZ o CBR" (picker del Lettore, errori, locali IT/EN)
+- **28b — PDF**: costo alto, pipeline diversa. Servirebbe `pdf.js` (libreria pesante con worker) e le pagine andrebbero renderizzate su canvas **in modo lazy** (non estratte come immagini già pronte), per non esaurire la memoria su PDF grandi; da decidere anche come generare la miniatura (render della prima pagina) e come rientra il PDF nel modello di "gruppi di pagine" del Lettore
+
+---
+
 ## 🔮 Backlog futuro (fuori roadmap MVP)
 
 - Migrazione a TypeScript
