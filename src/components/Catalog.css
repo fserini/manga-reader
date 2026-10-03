@@ -111,7 +111,7 @@
 .catalog-index-main {
   flex: 1;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   min-width: 0;
@@ -124,12 +124,82 @@
   cursor: pointer;
 }
 
+/* Titolo (più eventuali tag o sottotitolo) in colonna, per far spazio alla
+   copertina scelta dall'utente a sinistra e allo stato "letti" a destra. */
+.catalog-index-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .catalog-index-title {
   font-family: var(--display);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Copertina di Serie/Volume: solo se scelta dall'utente (Fase 25). */
+.catalog-index-thumb {
+  flex-shrink: 0;
+  width: 32px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 3px;
+  background: var(--bg);
+}
+
+.catalog-index-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.catalog-tag {
+  padding: 1px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.catalog-tag-filter {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.catalog-tag-filter button {
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.catalog-tag-filter button.active {
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--accent-contrast);
+}
+
+.catalog-results-heading {
+  margin: 20px 0 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .catalog-index-sub {
@@ -145,6 +215,9 @@
   flex-shrink: 0;
 }
 
+.catalog-index-cover,
+.catalog-index-tagsbtn,
+.catalog-index-read,
 .catalog-index-favorite,
 .catalog-index-delete {
   width: 34px;
@@ -163,6 +236,10 @@
 
 .catalog-index-favorite[aria-pressed='true'] {
   color: #e0b23f;
+}
+
+.catalog-index-read[aria-pressed='true'] {
+  color: var(--accent);
 }
 
 .catalog-index-delete:hover {

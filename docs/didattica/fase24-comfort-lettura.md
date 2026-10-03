@@ -95,7 +95,7 @@ Richiesta emersa mentre si lavorava sul Lettore: non c'era modo di togliere un c
 
 Un dettaglio del modello dati: il segnalibro manuale (Fase 12) vive nella **stessa riga** di `readingProgress` del progresso automatico — non sono due cose separate. Rimuovere il progresso rimuove quindi anche un eventuale segnalibro manuale su quel capitolo; il capitolo stesso, e la sua posizione nel Catalogo, non sono invece toccati per nulla.
 
-A differenza della rimozione dal Catalogo (Fase 11, `DeleteDialog`), qui non ha senso offrire la scelta "elimina anche il file fisico": non si sta rimuovendo nulla dalla libreria, solo da due elenchi derivati. Per questo la conferma è un dialog minimale dedicato (`rs-confirm-*` in `ReadingSections.css`), non una riproposizione di `DeleteDialog` con opzioni che non si applicherebbero al caso.
+A differenza della rimozione dal Catalogo (Fase 11, `DeleteDialog`), qui non ha senso offrire la scelta "elimina anche il file fisico": non si sta rimuovendo nulla dalla libreria, solo da due elenchi derivati. Per questo la conferma è un dialog minimale dedicato, non una riproposizione di `DeleteDialog` con opzioni che non si applicherebbero al caso. (Nata dentro `ReadingSections`, è poi diventata il componente condiviso `ConfirmDialog` in Fase 25, quando è servita una seconda volta.)
 
 ## Cosa NON è cambiato
 

@@ -1,0 +1,148 @@
+.tags-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 100;
+}
+
+.tags-panel {
+  width: 100%;
+  max-width: 420px;
+  max-height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.tags-panel h2 {
+  font-size: 20px;
+  word-break: break-word;
+}
+
+.tags-hint {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.tags-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tags-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 4px 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 14px;
+}
+
+.tags-chip button {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.tags-chip button:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.tags-add {
+  display: flex;
+  gap: 8px;
+}
+
+.tags-add input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.tags-add button,
+.tags-actions button {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tags-add button:disabled,
+.tags-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tags-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tags-suggestion {
+  padding: 4px 10px;
+  border: 1px dashed var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.tags-suggestion:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.tags-error {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.tags-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.tags-actions .tags-save {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: transparent;
+}

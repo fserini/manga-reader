@@ -56,59 +56,6 @@
   background: var(--danger);
 }
 
-.rs-confirm-overlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 100;
-}
-
-.rs-confirm-panel {
-  width: 100%;
-  max-width: 380px;
-  padding: 24px;
-  border-radius: 16px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-}
-
-.rs-confirm-panel h2 {
-  font-size: 20px;
-  margin-bottom: 8px;
-}
-
-.rs-confirm-note {
-  color: var(--text-muted);
-  margin-bottom: 16px;
-}
-
-.rs-confirm-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.rs-confirm-actions button {
-  padding: 10px 18px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.rs-confirm-danger {
-  background: var(--danger);
-  color: #fff;
-  border-color: transparent;
-}
-
 .rs-card {
   width: 120px;
   display: flex;
