@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { extractPageGroups, makeThumbnail } from '../comicFile.js';
+import { openChapterPages, makeThumbnail } from '../comicFile.js';
+import { isLazyPage, resolvePageBlob } from '../pdfPages.js';
 import { getFileExtension } from '../fileAccess.js';
 import {
   getChapter,
@@ -66,12 +67,86 @@ function getTouchDistance(touches) {
   return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
 }
 
+// Margine attorno alla vista entro cui una pagina di un PDF in modalità scroll
+// viene disegnata (e, uscendone, rilasciata): circa uno schermo e mezzo sopra
+// e sotto, così si legge senza vedere i segnaposto.
+const LAZY_PAGE_MARGIN = '150% 0px';
+
+// Una pagina di un PDF (Fase 28b): arriva come oggetto { ratio, load } e viene
+// disegnata solo quando serve. In singola/doppia pagina serve subito (è quella
+// mostrata); in scroll solo quando entra, o sta per entrare, nella vista
+// (IntersectionObserver), e si rilascia quando se ne va lontano — altrimenti
+// un volume da 200 pagine riempirebbe la memoria di immagini. Finché non è
+// pronta tiene il suo posto con le proporzioni giuste, così lo scorrimento non
+// salta. Un solo elemento radice, come le altre pagine: handleScroll conta i figli.
+function LazyPage({ page, alt, style, observe }) {
+  const rootRef = useRef(null);
+  // Senza osservatore (singola/doppia pagina) la pagina serve subito.
+  const [near, setNear] = useState(!observe);
+  const [state, setState] = useState({ page: null, url: null, failed: false });
+
+  useEffect(() => {
+    if (!observe) return undefined;
+    const observer = new IntersectionObserver(([entry]) => setNear(entry.isIntersecting), {
+      root: rootRef.current.parentElement, // il contenitore scorrevole
+      rootMargin: LAZY_PAGE_MARGIN,
+    });
+    observer.observe(rootRef.current);
+    return () => observer.disconnect();
+  }, [observe]);
+
+  useEffect(() => {
+    if (!near) return undefined;
+    let cancelled = false;
+    let url = null;
+    page.load().then((blob) => {
+      if (cancelled) return;
+      if (!blob) {
+        setState({ page, url: null, failed: true });
+        return;
+      }
+      url = URL.createObjectURL(blob);
+      setState({ page, url, failed: false });
+    });
+    return () => {
+      cancelled = true;
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [near, page]);
+
+  // Lo stato appartiene alla pagina che l'ha prodotto: se nel frattempo la
+  // pagina è cambiata, non si mostra l'immagine della precedente.
+  const current = state.page === page ? state : { url: null, failed: false };
+  if (current.failed) return <Page page={null} alt={alt} />;
+
+  // Singola/doppia pagina: l'immagine è direttamente l'elemento della pagina,
+  // come per gli archivi; finché non è pronta, un riquadro vuoto.
+  if (!observe) {
+    return current.url ? (
+      <img src={current.url} alt={alt} style={style} />
+    ) : (
+      <div className="reader-page-loading" aria-hidden="true" />
+    );
+  }
+  // Scroll: un contenitore stabile (è lui che l'osservatore tiene d'occhio)
+  // con le proporzioni della pagina, che contiene l'immagine solo finché la
+  // pagina è vicina alla vista.
+  return (
+    <div ref={rootRef} className="reader-page-lazy" style={{ aspectRatio: page.ratio }}>
+      {near && current.url && <img src={current.url} alt={alt} />}
+    </div>
+  );
+}
+
 // Una pagina, o un segnaposto se url è null (immagine danneggiata,
 // rilevata durante l'estrazione): non fa fallire la lettura del resto
-// del capitolo, si salta solo quella pagina.
-function Page({ url, alt, style }) {
+// del capitolo, si salta solo quella pagina. `page` può anche essere una
+// pagina pigra di un PDF, vedi LazyPage.
+function Page({ page, alt, style, observe = false }) {
   const { t } = useTranslation();
 
+  if (isLazyPage(page)) return <LazyPage page={page} alt={alt} style={style} observe={observe} />;
+  const url = page;
   if (!url) {
     return (
       <div className="reader-page-broken">
@@ -166,6 +241,9 @@ function Reader() {
   const { setChromeHidden } = useAppChrome();
 
   const [pageGroups, setPageGroups] = useState([]);
+  // Il capitolo (id) a cui appartengono pageGroups, o null: vedi il
+  // salvataggio del progresso.
+  const [loadedChapterId, setLoadedChapterId] = useState(null);
   const [error, setError] = useState(null);
   // Modalità, direzione e filtro notte: valore iniziale dall'ultima
   // preferenza salvata (Fase 24), letta una sola volta all'avvio.
@@ -200,6 +278,9 @@ function Reader() {
   // URL oggetto attualmente in uso: li teniamo in un ref (non in stato) per
   // poterli revocare senza dipendere dal valore corrente di pageGroups.
   const objectUrlsRef = useRef([]);
+  // Chiusura del documento aperto (vedi openChapterPages): fa qualcosa solo
+  // per i PDF.
+  const disposePagesRef = useRef(() => {});
   // Contenitore scorrevole (modalità scroll) e flag per ripristinare la
   // posizione una volta sola dopo l'apertura di un capitolo.
   const scrollContainerRef = useRef(null);
@@ -255,6 +336,10 @@ function Reader() {
   const revokeCurrentUrls = useCallback(() => {
     objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
     objectUrlsRef.current = [];
+    // Per un PDF, chiude anche il documento (e il suo worker): le pagine
+    // pigre non servono più.
+    disposePagesRef.current();
+    disposePagesRef.current = () => {};
   }, []);
 
   // Estrae e mostra le pagine di un file. Se chapterIdForThumb è indicato,
@@ -263,6 +348,7 @@ function Reader() {
     async (file, chapterIdForThumb = null) => {
       revokeCurrentUrls();
       setPageGroups([]);
+      setLoadedChapterId(null);
       setCurrentIndex(0);
       setManualBookmarkPage(null);
       setNextChapter(null);
@@ -271,7 +357,8 @@ function Reader() {
       explicitModeThisChapterRef.current = false;
 
       try {
-        const groups = await extractPageGroups(file);
+        const { groups, dispose } = await openChapterPages(file);
+        disposePagesRef.current = dispose;
         if (groups.length === 0) {
           setError(t('reader.noImagesFound'));
           return;
@@ -280,6 +367,7 @@ function Reader() {
         const urlGroups = groups.map((group) =>
           group.map((blob) => {
             if (!blob) return null; // pagina illeggibile: nessun URL da creare/revocare
+            if (isLazyPage(blob)) return blob; // pagina di un PDF: si disegna quando serve
             const url = URL.createObjectURL(blob);
             objectUrlsRef.current.push(url);
             return url;
@@ -302,9 +390,11 @@ function Reader() {
 
         setPageGroups(urlGroups);
         setCurrentIndex(restoreIndex);
+        setLoadedChapterId(chapterIdForThumb);
 
         if (chapterIdForThumb != null && groups[0]?.[0]) {
-          makeThumbnail(groups[0][0])
+          resolvePageBlob(groups[0][0])
+            .then((first) => first && makeThumbnail(first))
             .then((thumbnail) => thumbnail && setChapterThumbnail(chapterIdForThumb, thumbnail))
             .catch(() => {});
         }
@@ -373,10 +463,17 @@ function Reader() {
   // corrente (di un capitolo aperto dalla Libreria), registriamo l'ultima
   // pagina letta. È una sincronizzazione con un sistema esterno (IndexedDB),
   // quindi vive in un effetto — senza setState, nessun ciclo di render.
+  //
+  // Si salva solo se le pagine mostrate sono davvero quelle di QUESTO capitolo
+  // (loadedChapterId): passando da un capitolo all'altro dentro il Lettore
+  // ("Capitolo successivo") il componente resta lo stesso, e per un istante
+  // chapterId è già il nuovo mentre pagine e indice sono ancora del vecchio —
+  // senza questo controllo, la pagina del capitolo precedente finiva salvata
+  // come progresso del nuovo, che poi si riapriva a metà.
   useEffect(() => {
-    if (!chapterId || totalPages === 0) return;
+    if (!chapterId || totalPages === 0 || loadedChapterId !== Number(chapterId)) return;
     updateReadingProgress(Number(chapterId), { lastPageRead: currentIndex, totalPages });
-  }, [chapterId, currentIndex, totalPages]);
+  }, [chapterId, currentIndex, totalPages, loadedChapterId]);
 
   // Ripristino della posizione in modalità scroll: una volta sola dopo
   // l'apertura, porta in vista la pagina da cui si riprende.
@@ -605,14 +702,19 @@ function Reader() {
           onClick={handlePagesClick}
         >
           {pages.map((pageUrl, index) => (
-            <Page key={pageUrl ?? `broken-${index}`} url={pageUrl} alt={t('reader.pageAlt', { number: index + 1 })} />
+            <Page
+              key={typeof pageUrl === 'string' ? pageUrl : `page-${index}`}
+              page={pageUrl}
+              observe
+              alt={t('reader.pageAlt', { number: index + 1 })}
+            />
           ))}
         </div>
       )}
 
       {pages.length > 0 && mode === 'single' && (
         <div className="reader-pages reader-pages--single" {...pagesInteractionProps}>
-          <Page url={pages[currentIndex]} alt={t('reader.pageAlt', { number: currentIndex + 1 })} style={zoomStyle} />
+          <Page page={pages[currentIndex]} alt={t('reader.pageAlt', { number: currentIndex + 1 })} style={zoomStyle} />
         </div>
       )}
 
@@ -621,15 +723,15 @@ function Reader() {
           {readingDirection === 'rtl' ? (
             <>
               {secondPageOfSpread !== undefined && (
-                <Page url={secondPageOfSpread} alt={t('reader.pageAlt', { number: currentIndex + 2 })} style={zoomStyle} />
+                <Page page={secondPageOfSpread} alt={t('reader.pageAlt', { number: currentIndex + 2 })} style={zoomStyle} />
               )}
-              <Page url={pages[currentIndex]} alt={t('reader.pageAlt', { number: currentIndex + 1 })} style={zoomStyle} />
+              <Page page={pages[currentIndex]} alt={t('reader.pageAlt', { number: currentIndex + 1 })} style={zoomStyle} />
             </>
           ) : (
             <>
-              <Page url={pages[currentIndex]} alt={t('reader.pageAlt', { number: currentIndex + 1 })} style={zoomStyle} />
+              <Page page={pages[currentIndex]} alt={t('reader.pageAlt', { number: currentIndex + 1 })} style={zoomStyle} />
               {secondPageOfSpread !== undefined && (
-                <Page url={secondPageOfSpread} alt={t('reader.pageAlt', { number: currentIndex + 2 })} style={zoomStyle} />
+                <Page page={secondPageOfSpread} alt={t('reader.pageAlt', { number: currentIndex + 2 })} style={zoomStyle} />
               )}
             </>
           )}

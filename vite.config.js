@@ -29,6 +29,11 @@ export default defineConfig(({ command }) => {
         // service worker resta in attesa finché non è l'utente a confermare —
         // vedi UpdatePrompt.jsx — invece di ricaricare la pagina a sua insaputa.
         registerType: 'prompt',
+        // Il worker di pdf.js (Fase 28b) è un modulo ".mjs": il predefinito
+        // (js, css, html) non lo includerebbe, e un PDF non si aprirebbe offline.
+        workbox: {
+          globPatterns: ['**/*.{js,mjs,css,html}'],
+        },
         devOptions: {
           enabled: true,
         },

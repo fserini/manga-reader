@@ -31,7 +31,7 @@ function Notice({ icon = 'alert', children }) {
   );
 }
 
-// ".pdf, .epub" — le estensioni dei file saltati, per dire quali formati non
+// ".epub, .docx" — le estensioni dei file saltati, per dire quali formati non
 // sono supportati senza riempire l'avviso se ce ne sono molti.
 function describeExtensions(extensions) {
   const labels = extensions.map((extension) => (extension ? `.${extension}` : '—'));
@@ -127,7 +127,6 @@ function Library() {
             types: describeExtensions(result.unsupportedTypes),
             formats: SUPPORTED_FORMATS_LABEL,
           })}
-          {result.unsupportedTypes.includes('pdf') && <> {t('library.notice.pdfSoon')}</>}
         </Notice>
       )}
       {result?.invalid > 0 && <Notice>{t('library.notice.corrupted', { count: result.invalid })}</Notice>}

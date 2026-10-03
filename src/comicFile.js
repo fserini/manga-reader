@@ -9,6 +9,10 @@
 
 import JSZip from 'jszip';
 import { Archive } from 'libarchive.js';
+import { ArchiveError } from './archiveError.js';
+import { openPdfPages, validatePdf } from './pdfPages.js';
+
+export { ArchiveError };
 
 // BASE_URL e non un percorso assoluto: in produzione l'app vive sotto
 // /manga-reader/ (GitHub Pages), dove "/libarchive/..." non esiste. Se il worker
@@ -29,16 +33,8 @@ function naturalCompare(nameA, nameB) {
   return nameA.localeCompare(nameB, undefined, { numeric: true });
 }
 
-// Perché un archivio non si può leggere, in una forma che chi chiama sa
-// tradurre in un messaggio (vedi le chiavi library.notice.* e reader.errors.*).
-export class ArchiveError extends Error {
-  constructor(reason) {
-    super(reason);
-    this.reason = reason; // 'invalid' | 'encrypted' | 'timeout'
-  }
-}
-
-// Quale lettore serve a un file: 'zip' (JSZip) oppure 'libarchive' (RAR, 7z).
+// Quale lettore serve a un file: 'zip' (JSZip), 'libarchive' (RAR, 7z) oppure
+// 'pdf' (pdf.js, Fase 28b).
 // Si guardano i primi byte, NON l'estensione: i file con l'estensione sbagliata
 // sono comuni (molti ".cbr" sono in realtà ZIP, e un ".cbz" può essere un RAR),
 // e un ZIP letto da JSZip non ha nemmeno bisogno del worker. Solo se la firma
@@ -47,15 +43,21 @@ const ZIP_SIGNATURE = [0x50, 0x4b]; // "PK"
 const RAR_SIGNATURE = [0x52, 0x61, 0x72, 0x21, 0x1a, 0x07]; // "Rar!" + 1A 07
 const SEVEN_ZIP_SIGNATURE = [0x37, 0x7a, 0xbc, 0xaf, 0x27, 0x1c]; // "7z" BC AF 27 1C
 const LIBARCHIVE_EXTENSIONS = ['cbr', 'rar', '7z', 'cb7'];
+// Un PDF comincia con "%PDF-", ma la specifica ammette qualche byte di
+// intestazione prima: si cerca entro i primi 1024.
+const PDF_MARKER = '%PDF-';
+const PDF_SCAN_BYTES = 1024;
 
 export async function detectReader(file) {
-  const head = new Uint8Array(await file.slice(0, 8).arrayBuffer());
+  const head = new Uint8Array(await file.slice(0, PDF_SCAN_BYTES).arrayBuffer());
   const startsWith = (signature) => signature.every((byte, index) => head[index] === byte);
 
   if (startsWith(ZIP_SIGNATURE)) return 'zip';
   if (startsWith(RAR_SIGNATURE) || startsWith(SEVEN_ZIP_SIGNATURE)) return 'libarchive';
+  if (new TextDecoder('latin1').decode(head).includes(PDF_MARKER)) return 'pdf';
 
   const extension = /\.([^./\\]+)$/.exec(file.name)?.[1].toLowerCase() ?? '';
+  if (extension === 'pdf') return 'pdf';
   return LIBARCHIVE_EXTENSIONS.includes(extension) ? 'libarchive' : 'zip';
 }
 
@@ -151,7 +153,10 @@ async function extractLibarchivePages(file) {
 // 'timeout' (il lettore di RAR/7z non si è avviato in tempo).
 export async function validateArchive(file) {
   try {
-    if ((await detectReader(file)) === 'zip') {
+    const reader = await detectReader(file);
+    if (reader === 'pdf') return await validatePdf(file);
+
+    if (reader === 'zip') {
       const zip = await loadZip(file);
       const hasImage = Object.values(zip.files).some(
         (entry) => !entry.dir && IMAGE_EXTENSION_REGEX.test(entry.name),
@@ -206,14 +211,13 @@ async function splitSpreadIfNeeded(blob) {
   ]);
 }
 
-// Estrae tutte le pagine come "gruppi" di Blob. Lancia un errore se il file
-// non è affatto un archivio valido (l'intero capitolo è illeggibile); il
-// chiamante lo intercetta per mostrare un messaggio. Una singola pagina
-// danneggiata, invece, NON fa fallire tutto: diventa un gruppo [null], che il
-// Lettore riconosce e mostra come "pagina non disponibile".
-export async function extractPageGroups(file) {
-  const rawImages =
-    (await detectReader(file)) === 'zip' ? await extractZipPages(file) : await extractLibarchivePages(file);
+// Estrae tutte le pagine di un archivio come "gruppi" di Blob. Lancia un
+// errore se il file non è affatto un archivio valido (l'intero capitolo è
+// illeggibile); il chiamante lo intercetta per mostrare un messaggio. Una
+// singola pagina danneggiata, invece, NON fa fallire tutto: diventa un gruppo
+// [null], che il Lettore riconosce e mostra come "pagina non disponibile".
+async function extractPageGroups(file, reader) {
+  const rawImages = reader === 'zip' ? await extractZipPages(file) : await extractLibarchivePages(file);
 
   return Promise.all(
     rawImages.map(async (blob) => {
@@ -225,6 +229,19 @@ export async function extractPageGroups(file) {
       }
     }),
   );
+}
+
+// Il punto d'ingresso del Lettore: apre un capitolo di qualunque formato e
+// restituisce { groups, dispose }.
+// - Archivi: i gruppi contengono Blob già pronti (o null per una pagina
+//   danneggiata); dispose non fa nulla.
+// - PDF: i gruppi contengono pagine "pigre" { ratio, load } da disegnare solo
+//   quando servono (vedi pdfPages.js), e dispose chiude il documento. Va
+//   chiamato quando si lascia il capitolo.
+export async function openChapterPages(file) {
+  const reader = await detectReader(file);
+  if (reader === 'pdf') return openPdfPages(file);
+  return { groups: await extractPageGroups(file, reader), dispose() {} };
 }
 
 // Genera una miniatura (Blob JPEG) da un'immagine di pagina, ridimensionata a
