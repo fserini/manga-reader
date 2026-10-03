@@ -99,6 +99,7 @@ Una fase della roadmap si considera completata quando:
 - [ ] Fase 27 — Qualità — pianificata, non ancora iniziata
 - [x] Fase 28a — Nuovi formati di import: ZIP, RAR, 7z
 - [ ] Fase 28b — Nuovi formati di import: PDF — pianificata, non ancora iniziata
+- [ ] Fase 29 — Barra, marchio, importazione e Lettore — vedi ADR-002 — pianificata, non ancora iniziata
 
 ---
 

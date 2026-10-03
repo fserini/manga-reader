@@ -224,6 +224,20 @@
 
 ---
 
+## Fase 29 — Barra, marchio, importazione e Lettore
+
+> Nata dal feedback "troppo scolastico" dopo l'uso reale. Decisioni e motivazioni in [`docs/decisions/ADR-002-barra-di-navigazione-e-marchio.md`](../decisions/ADR-002-barra-di-navigazione-e-marchio.md).
+
+- **Barra con marchio**: il nome "Manga Reader" come logo (predefinito *Sigillo*: 読 come timbro azzurro) e navigazione a icone in barra (predefinita); la barra continua a sparire al tocco in Lettura
+- **Impostazioni → Aspetto**: scelta del marchio (Dorso / Sigillo / Blueline) e del menu (icone in barra / a tendina / laterale), salvate in locale; implementate tutte e tre le varianti di entrambi
+- **Importazione**: icona "+" con tendina File / Cartella e formati accettati, al posto dei due pulsanti di testo
+- **Lettore a vuoto**: "Continua a leggere", letti di recente e "Apri un file…"; il file aperto viene riconosciuto in libreria per nome (pagina, segnalibro, preferiti, statistiche ritrovati) oppure importato e aperto; estrazione della logica di import in un modulo condiviso con la Libreria
+- **Set di icone SVG** unico al posto delle emoji (Catalogo, sezioni di lettura, Preferiti, coda "Da categorizzare", avvisi)
+- Verifica responsive di barra e tendine su tablet (orizzontale/verticale) e telefono, a cura di Federico su dispositivo reale
+- **Da confermare — ordine delle sezioni della Libreria**: proposta di far salire il Catalogo (con la ricerca) in cima e spostare "In corso di lettura" / "Ultimi letti" nella scheda Lettore, lasciando in Libreria una sola card "Continua a leggere" compatta
+
+---
+
 ## 🔮 Backlog futuro (fuori roadmap MVP)
 
 - Migrazione a TypeScript
