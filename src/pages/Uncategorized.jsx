@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { getUncategorizedChapters, removeChapter } from '../db.js';
 import { isFileDeletionSupported, deleteFileFromHandle } from '../fileAccess.js';
 import CategorizeForm from '../components/CategorizeForm.jsx';
+import BulkCategorizeForm from '../components/BulkCategorizeForm.jsx';
 import DeleteDialog from '../components/DeleteDialog.jsx';
 import Icon from '../components/Icon.jsx';
 import './Uncategorized.css';
@@ -25,9 +26,37 @@ function Uncategorized() {
   const [deleting, setDeleting] = useState(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
 
+  // Capitoli selezionati per la categorizzazione multipla (Fase 23, id) e
+  // apertura del relativo form.
+  const [selected, setSelected] = useState(() => new Set());
+  const [bulkOpen, setBulkOpen] = useState(false);
+
+  // In ordine di nome file "naturale" (cap 2 prima di cap 10): con molti file
+  // importati insieme è l'ordine in cui si vogliono categorizzare.
   const refresh = useCallback(async () => {
-    setChapters(await getUncategorizedChapters());
+    const list = await getUncategorizedChapters();
+    list.sort((a, b) => a.fileName.localeCompare(b.fileName, undefined, { numeric: true }));
+    setChapters(list);
+    // Un capitolo categorizzato o rimosso non è più selezionato.
+    setSelected((current) => {
+      const present = new Set(list.map((chapter) => chapter.id));
+      const kept = new Set([...current].filter((id) => present.has(id)));
+      return kept.size === current.size ? current : kept;
+    });
   }, []);
+
+  function toggleSelected(id) {
+    setSelected((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    setSelected((current) => (current.size === chapters.length ? new Set() : new Set(chapters.map((c) => c.id))));
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -76,13 +105,28 @@ function Uncategorized() {
       ) : chapters.length === 0 ? (
         <p className="library-empty-note">{t('library.noUncategorized')}</p>
       ) : (
+        <>
+        <label className="uncategorized-select-all">
+          <input
+            type="checkbox"
+            checked={selected.size === chapters.length}
+            ref={(input) => {
+              if (input) input.indeterminate = selected.size > 0 && selected.size < chapters.length;
+            }}
+            onChange={toggleAll}
+          />
+          <span>{t('library.selectAll')}</span>
+        </label>
         <ul className="uncategorized-list">
           {chapters.map((chapter) => (
             <li key={chapter.id} className="uncategorized-item">
-              <span className="uncategorized-icon" aria-hidden="true">
-                <Icon name="file" size={20} />
-              </span>
-              <span className="uncategorized-name">{chapter.fileName}</span>
+              <label className="uncategorized-select">
+                <input type="checkbox" checked={selected.has(chapter.id)} onChange={() => toggleSelected(chapter.id)} />
+                <span className="uncategorized-icon" aria-hidden="true">
+                  <Icon name="file" size={20} />
+                </span>
+                <span className="uncategorized-name">{chapter.fileName}</span>
+              </label>
               <button type="button" className="uncategorized-button" onClick={() => setCategorizing(chapter)}>
                 {t('library.categorize')}
               </button>
@@ -97,6 +141,31 @@ function Uncategorized() {
             </li>
           ))}
         </ul>
+        </>
+      )}
+
+      {selected.size > 0 && (
+        <div className="uncategorized-bar" role="region" aria-label={t('library.selectionBarAria')}>
+          <span className="uncategorized-bar-count">{t('library.selectedCount', { count: selected.size })}</span>
+          <button type="button" className="uncategorized-bar-clear" onClick={() => setSelected(new Set())}>
+            {t('library.clearSelection')}
+          </button>
+          <button type="button" className="uncategorized-button" onClick={() => setBulkOpen(true)}>
+            {t('library.categorizeSelected')}
+          </button>
+        </div>
+      )}
+
+      {bulkOpen && (
+        <BulkCategorizeForm
+          chapters={chapters.filter((chapter) => selected.has(chapter.id))}
+          onCancel={() => setBulkOpen(false)}
+          onDone={() => {
+            setBulkOpen(false);
+            setSelected(new Set());
+            refresh();
+          }}
+        />
       )}
 
       {categorizing && (

@@ -178,6 +178,30 @@ export async function categorizeChapter(chapterId, { seriesId, volumeId, number 
   return db.chapters.update(chapterId, { seriesId, volumeId, number, categorized: 1 });
 }
 
+// Categorizza più capitoli in un colpo solo (Fase 23), in un'unica transazione:
+// o va tutto a buon fine, o non cambia niente (niente serie create a metà).
+// La serie è una esistente (seriesId) oppure da creare (newSeriesTitle). Il
+// volume di ogni capitolo si indica per NUMERO: se la serie ha già quel volume
+// lo si usa, altrimenti lo si crea una volta sola, anche se più capitoli lo
+// condividono. assignments: [{ chapterId, volumeNumber, number }].
+export async function categorizeChaptersBatch({ seriesId = null, newSeriesTitle = null, assignments }) {
+  return db.transaction('rw', [db.series, db.volumes, db.chapters], async () => {
+    const targetSeriesId = seriesId ?? (await db.series.add({ title: newSeriesTitle, favorite: false }));
+    const existingVolumes = seriesId != null ? await db.volumes.where('seriesId').equals(seriesId).toArray() : [];
+    const volumeIdByNumber = new Map(existingVolumes.map((volume) => [volume.number, volume.id]));
+
+    for (const { chapterId, volumeNumber, number } of assignments) {
+      let volumeId = volumeIdByNumber.get(volumeNumber);
+      if (volumeId === undefined) {
+        volumeId = await db.volumes.add({ seriesId: targetSeriesId, number: volumeNumber, favorite: false });
+        volumeIdByNumber.set(volumeNumber, volumeId);
+      }
+      await db.chapters.update(chapterId, { seriesId: targetSeriesId, volumeId, number, categorized: 1 });
+    }
+    return targetSeriesId;
+  });
+}
+
 // I capitoli da categorizzare, con la query indicizzata: legge solo quelli.
 export async function getUncategorizedChapters() {
   return db.chapters.where('categorized').equals(0).toArray();

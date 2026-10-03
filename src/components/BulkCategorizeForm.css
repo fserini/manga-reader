@@ -1,0 +1,88 @@
+/* Categorizzazione multipla (Fase 23). Riusa i .cf-* del form singolo; qui solo
+   ciò che serve in più: pannello più largo e l'elenco dei capitoli. */
+.bcf-panel {
+  max-width: 560px;
+}
+
+.bcf-prefilled {
+  margin-top: -8px;
+}
+
+.bcf-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.bcf-switch input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.bcf-hint {
+  margin-top: -8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.bcf-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.bcf-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.bcf-name {
+  flex: 1 1 160px;
+  min-width: 0;
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.bcf-fields {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.bcf-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bcf-mini span {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.bcf-mini input {
+  width: 72px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}

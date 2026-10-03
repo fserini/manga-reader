@@ -164,7 +164,7 @@
 
 ## Fase 23 — Categorizzazione assistita e multipla
 
-> Pianificata, non ancora iniziata — decisa in conversazione dopo il feedback su un import di ~20 capitoli insieme, categorizzabili oggi solo uno alla volta. Si appoggia alla vista dedicata introdotta in Fase 22.
+> **Completata** — decisa in conversazione dopo il feedback su un import di ~20 capitoli insieme, categorizzabili solo uno alla volta. Si appoggia alla vista dedicata introdotta in Fase 22. Dettagli in [`docs/didattica/fase23-categorizzazione-assistita.md`](../didattica/fase23-categorizzazione-assistita.md): il suggerimento dal nome del file è sempre modificabile; un nome senza sigle ("scan_final.cbz") viene letto comunque come serie.
 
 - **Categorizzazione singola (dialog esistente)**: Serie/Volume/Numero capitolo pre-compilati analizzando il nome del file (numero capitolo e volume via pattern tipo `c12`/`ch.12`/`v01`; suggerimento di una Serie già esistente in libreria se il nome vi somiglia) — sempre modificabile, mai un riempimento automatico bloccante; se il parsing non trova nulla, i campi restano vuoti come oggi
 - **Selezione multipla**: checkbox sulle righe di "Da categorizzare", barra azioni quando almeno un capitolo è selezionato, assegnazione della Serie in blocco a tutti i selezionati

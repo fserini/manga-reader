@@ -71,3 +71,68 @@
   background: var(--danger-bg);
   color: var(--danger);
 }
+
+/* Selezione multipla (Fase 23). La riga è un'unica etichetta (casella + icona +
+   nome), così tutto il nome è una zona di tocco per selezionare. */
+.uncategorized-select-all {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  font-size: 14px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.uncategorized-select-all + .uncategorized-list {
+  margin-top: 10px;
+}
+
+.uncategorized-select-all input,
+.uncategorized-select input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}
+
+.uncategorized-select {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+/* Barra delle azioni: fissa in basso finché c'è una selezione, sopra la barra
+   di navigazione dell'app. */
+.uncategorized-bar {
+  position: sticky;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+}
+
+.uncategorized-bar-count {
+  flex: 1;
+  font-weight: 600;
+}
+
+.uncategorized-bar-clear {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
