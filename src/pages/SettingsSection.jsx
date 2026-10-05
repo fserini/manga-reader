@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { estimateBackupSize, inspectBackupFile, restoreBackupFile, getReadingStats, SECONDS_PER_PAGE } from '../db.js';
+import { estimateBackupSize, inspectBackupFile, restoreBackupFile } from '../db.js';
+import { PROFILE_SECTIONS } from '../profileSections.js';
 import { saveBackup } from '../backupFile.js';
 import { formatBytes } from '../formatBytes.js';
 import Brand from '../components/Brand.jsx';
+import Icon from '../components/Icon.jsx';
 import { useUiPreferences } from '../UiPreferencesContext.jsx';
 import { LOGO_OPTIONS, MENU_OPTIONS, START_PAGE_OPTIONS, FULLSCREEN_OPTIONS, THREAD_OPTIONS } from '../uiPreferences.js';
 import { isFullscreenSupported } from '../fullscreen.js';
@@ -16,13 +19,20 @@ const LANGUAGE_OPTIONS = [
   { value: 'en', key: 'settings.language.en' },
 ];
 
-// "3 h 20 min" o "45 min", dai minuti stimati.
-function formatDuration(totalMinutes, t) {
-  if (totalMinutes < 60) return t('settings.statsMinutes', { minutes: totalMinutes });
-  return t('settings.statsHours', { hours: Math.floor(totalMinutes / 60), minutes: totalMinutes % 60 });
+// Una delle pagine delle impostazioni, dentro la scheda Profilo (Fase 35):
+// Aspetto, Lingua oppure Backup e ripristino, a /profilo/<voce>. Prima erano
+// tre sezioni di un'unica pagina lunga; ora il menu della chiave inglese porta
+// a quella che serve. L'indirizzo decide quale mostrare; uno sconosciuto torna
+// al Profilo.
+function SettingsSection() {
+  const { section } = useParams();
+  if (!PROFILE_SECTIONS.some((candidate) => candidate.id === section)) {
+    return <Navigate to="/profilo" replace />;
+  }
+  return <SettingsSectionPage section={section} />;
 }
 
-function Settings() {
+function SettingsSectionPage({ section }) {
   const { t, i18n } = useTranslation();
   const { prefs, setPref } = useUiPreferences();
   const fileInputRef = useRef(null);
@@ -38,13 +48,12 @@ function Settings() {
   const [backupMode, setBackupMode] = useState('full');
   const [estimate, setEstimate] = useState(null);
   const [progress, setProgress] = useState(null);
-  // Statistiche di lettura (Fase 27): null finché si calcolano.
-  const [stats, setStats] = useState(null);
 
   // Quanto pesa il backup (completo e leggero), per far scegliere. Si calcola
-  // una volta all'apertura delle Impostazioni: somma le dimensioni delle
+  // una volta all'apertura della pagina del backup: somma le dimensioni delle
   // miniature, senza leggerle.
   useEffect(() => {
+    if (section !== 'backup') return undefined;
     let cancelled = false;
     estimateBackupSize()
       .then((result) => {
@@ -54,20 +63,7 @@ function Settings() {
     return () => {
       cancelled = true;
     };
-  }, []);
-
-  // Le statistiche si calcolano una volta all'apertura delle Impostazioni.
-  useEffect(() => {
-    let cancelled = false;
-    getReadingStats()
-      .then((result) => {
-        if (!cancelled) setStats(result);
-      })
-      .catch(() => {}); // è solo un riepilogo: senza, il resto delle Impostazioni funziona
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  }, [section]);
 
   async function handleExport() {
     setError(null);
@@ -131,13 +127,18 @@ function Settings() {
 
   return (
     <div className="page">
+      <Link to="/profilo" className="settings-back">
+        <Icon name="back" size={16} />
+        {t('profile.title')}
+      </Link>
+
       <div className="page-heading">
         <span className="page-eyebrow" aria-hidden="true">設定</span>
-        <h1>{t('settings.title')}</h1>
+        <h1>{t(`profile.menu.${section}`)}</h1>
       </div>
 
-      <section className="settings-section" aria-labelledby="appearance-heading">
-        <h2 id="appearance-heading">{t('settings.appearanceHeading')}</h2>
+      {section === 'aspetto' && (
+      <section className="settings-section" aria-label={t('profile.menu.aspetto')}>
         <p className="settings-hint">{t('settings.appearanceHint')}</p>
 
         <h3 id="logo-label" className="settings-subheading">
@@ -236,12 +237,13 @@ function Settings() {
         </div>
         <p className="settings-hint settings-hint--small">{t('settings.threadHint')}</p>
       </section>
+      )}
 
-      <section className="settings-section" aria-labelledby="language-heading">
-        <h2 id="language-heading">{t('settings.languageHeading')}</h2>
+      {section === 'lingua' && (
+      <section className="settings-section" aria-label={t('profile.menu.lingua')}>
         <p className="settings-hint">{t('settings.languageHint')}</p>
 
-        <div className="settings-pill-options" role="radiogroup" aria-labelledby="language-heading">
+        <div className="settings-pill-options" role="radiogroup" aria-label={t('profile.menu.lingua')}>
           {LANGUAGE_OPTIONS.map((option) => (
             <button
               key={option.value}
@@ -256,68 +258,10 @@ function Settings() {
           ))}
         </div>
       </section>
+      )}
 
-      <section className="settings-section" aria-labelledby="stats-heading">
-        <h2 id="stats-heading">{t('settings.statsHeading')}</h2>
-        <p className="settings-hint">{t('settings.statsHint', { seconds: SECONDS_PER_PAGE })}</p>
-
-        {!stats && <p className="settings-hint">{t('settings.statsLoading')}</p>}
-        {stats && stats.reading.chaptersStarted === 0 && (
-          <p className="settings-hint">{t('settings.statsEmpty')}</p>
-        )}
-        {stats && stats.reading.chaptersStarted > 0 && (
-          <>
-            <dl className="stats-tiles">
-              <div className="stats-tile">
-                <dt>{t('settings.statsPages')}</dt>
-                <dd>{stats.reading.pagesRead.toLocaleString(i18n.resolvedLanguage)}</dd>
-              </div>
-              <div className="stats-tile">
-                <dt>{t('settings.statsChaptersFinished')}</dt>
-                <dd>{stats.reading.chaptersFinished.toLocaleString(i18n.resolvedLanguage)}</dd>
-              </div>
-              <div className="stats-tile">
-                <dt>{t('settings.statsChaptersStarted')}</dt>
-                <dd>{stats.reading.chaptersStarted.toLocaleString(i18n.resolvedLanguage)}</dd>
-              </div>
-              <div className="stats-tile">
-                <dt>{t('settings.statsTime')}</dt>
-                <dd>{formatDuration(stats.reading.estimatedMinutes, t)}</dd>
-              </div>
-            </dl>
-
-            {stats.topSeries.length > 0 && (
-              <>
-                <h3 className="settings-subheading stats-top-heading">{t('settings.statsTopHeading')}</h3>
-                <ol className="stats-top">
-                  {stats.topSeries.map((entry) => (
-                    <li key={entry.id} className="stats-top-row">
-                      <span className="stats-top-title">{entry.title}</span>
-                      <span className="stats-top-detail">
-                        {t('settings.statsTopRow', {
-                          pages: t('settings.statsTopPages', { count: entry.pages }),
-                          chapters: t('settings.statsTopChapters', { count: entry.chaptersRead }),
-                        })}
-                      </span>
-                      <span className="stats-top-bar" aria-hidden="true">
-                        <i style={{ width: `${Math.max(4, Math.round((entry.pages / stats.topSeries[0].pages) * 100))}%` }} />
-                      </span>
-                    </li>
-                  ))}
-                </ol>
-              </>
-            )}
-          </>
-        )}
-        {stats && (
-          <p className="settings-hint settings-hint--small">
-            {t('settings.statsLibrary', stats.library)}
-          </p>
-        )}
-      </section>
-
-      <section className="settings-section" aria-labelledby="backup-heading">
-        <h2 id="backup-heading">{t('settings.backupHeading')}</h2>
+      {section === 'backup' && (
+      <section className="settings-section" aria-label={t('profile.menu.backup')}>
         <p className="settings-hint">{t('settings.backupHint')}</p>
 
         <h3 id="backup-mode-label" className="settings-subheading">
@@ -379,6 +323,7 @@ function Settings() {
           </p>
         )}
       </section>
+      )}
 
       {pendingBackup && (
         <div className="settings-overlay" role="dialog" aria-modal="true" aria-labelledby="restore-title">
@@ -409,4 +354,4 @@ function Settings() {
   );
 }
 
-export default Settings;
+export default SettingsSection;
