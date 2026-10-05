@@ -1,0 +1,84 @@
+/* Card "Le mie serie" del Profilo (Fase 34). */
+.my-series-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.my-series-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.my-series-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--display);
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.my-series-count {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.my-series-head .icon {
+  color: var(--text-muted);
+}
+
+.my-series-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Anteprima: UNA riga di titoli. La griglia crea tante colonne quante ne
+   entrano; le righe oltre la prima hanno altezza 0 e restano nascoste — tre
+   titoli sul telefono, cinque sul tablet, senza media query. */
+.my-series-rail {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  column-gap: 10px;
+  row-gap: 0;
+  /* La prima riga ha la sua altezza; ogni riga in più, creata da sola, vale 0. */
+  grid-template-rows: auto;
+  grid-auto-rows: 0;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.my-series-rail > .mlt {
+  padding-bottom: 2px;
+}
+
+.my-series-empty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 4px 0 2px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.my-series-empty .icon {
+  color: var(--accent);
+}

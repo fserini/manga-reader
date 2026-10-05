@@ -207,13 +207,6 @@
       "saveFailed": "Salvataggio non riuscito. Riprova."
     }
   },
-  "favorites": {
-    "seriesHeading": "Serie preferite",
-    "hintTitle": "Nessun preferito ancora",
-    "hintText": "Tocca la stella accanto a una serie: la ritroverai qui, pronta da aprire.",
-    "hintDismiss": "Chiudi il suggerimento",
-    "unstar": "Togli dai preferiti"
-  },
   "readingSections": {
     "inProgressHeading": "In corso di lettura",
     "recentHeading": "Ultimi letti",
@@ -377,5 +370,79 @@
     "cancel": "Annulla",
     "resetDone": "Statistiche azzerate. Il progresso di lettura non è cambiato.",
     "resetError": "Azzeramento non riuscito. Riprova."
+  },
+  "myList": {
+    "title": "Le mie serie",
+    "loading": "Caricamento…",
+    "count_one": "{{count}} titolo",
+    "count_other": "{{count}} titoli",
+    "filterAria": "Filtro della lista",
+    "filters": {
+      "fav": "Preferiti",
+      "progress": "In corso",
+      "done": "Finiti",
+      "toread": "Da leggere"
+    },
+    "empty": {
+      "fav": "Nessun preferito ancora. Tocca la stella accanto a una serie per ritrovarla qui.",
+      "progress": "Nessuna serie in corso. Appena inizi a leggerne una la trovi qui.",
+      "done": "Nessuna serie finita. Compaiono quelle lette fino in fondo e quelle che segni come lette a mano.",
+      "toread": "Nessun titolo da leggere. Apri la lista, tocca la matita e il + per aggiungerne uno."
+    },
+    "hint": {
+      "fav": "Preferiti: le serie con la stella. Tocca la stella per toglierla, la serie per aprirla in Libreria.",
+      "progress": "In corso: serie che hai iniziato e non finito. Tocca una serie per riprendere dal punto in cui eri.",
+      "done": "Finiti: le serie lette fino in fondo compaiono da sole; le voci MANUALE le aggiungi tu.",
+      "toread": "Da leggere: i manga che vuoi leggere. Quelli già in libreria sono segnati."
+    },
+    "openAria": "Apri la lista completa",
+    "searchPlaceholder": "Cerca un titolo",
+    "noResults": "Nessun titolo corrisponde alla ricerca.",
+    "sortAria": "Ordina",
+    "sort": {
+      "read": "Ultima lettura",
+      "recent": "Aggiunti di recente",
+      "alpha": "Alfabetico"
+    },
+    "editAria": "Modifica la lista",
+    "editBanner": "Modifica attiva: tocca la x per togliere una voce manuale, il + per aggiungerne una, o una voce manuale per cambiarla.",
+    "add": "Aggiungi",
+    "tagManual": "MANUALE",
+    "tagInLibrary": "IN LIBRERIA",
+    "starAdd": "Aggiungi {{title}} ai preferiti",
+    "starRemove": "Togli {{title}} dai preferiti",
+    "deleteAria": "Togli {{title}} dalla lista",
+    "notInLibrary": "«{{title}}» non è presente in libreria.",
+    "delete": {
+      "title": "Togliere dalla lista?",
+      "note": "«{{title}}» sparirà dalla lista. I file e la libreria non cambiano.",
+      "confirm": "Togli"
+    },
+    "resume": {
+      "title": "Continuare la lettura?",
+      "confirm": "Continua",
+      "page": "pagina {{page}} di {{total}}"
+    },
+    "entry": {
+      "titleAdd": "Aggiungi un titolo",
+      "titleEdit": "Modifica la voce",
+      "titleLabel": "Titolo",
+      "titlePlaceholder": "Es. One Piece",
+      "stateLabel": "Stato",
+      "state": {
+        "toread": "Da leggere",
+        "done": "Letto"
+      },
+      "noteLabel": "Nota (facoltativa)",
+      "notePlaceholder": "Es. me lo ha consigliato Marco",
+      "cancel": "Annulla",
+      "save": "Salva",
+      "saving": "Salvataggio…"
+    },
+    "errors": {
+      "titleRequired": "Scrivi il titolo.",
+      "duplicate": "Questo titolo è già nella lista.",
+      "saveFailed": "Salvataggio non riuscito. Riprova."
+    }
   }
 }

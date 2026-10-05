@@ -1,0 +1,160 @@
+/* La lista "Le mie serie" a pagina intera (Fase 34). */
+.my-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.my-list-back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.my-list-back:hover {
+  text-decoration: underline;
+}
+
+.my-list-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.my-list .page-heading {
+  margin-bottom: 0;
+}
+
+.my-list-count {
+  margin-left: 10px;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.my-list-edit {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.my-list-edit[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--accent-contrast);
+}
+
+.my-list-toolbar {
+  display: flex;
+  gap: 8px;
+}
+
+.my-list-search {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-muted);
+}
+
+.my-list-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 0;
+  border: 0;
+  outline: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+}
+
+.my-list-toolbar select {
+  max-width: 46%;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.my-list-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.my-list-edit-banner {
+  margin: 0;
+  padding: 9px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  background: rgba(95, 180, 222, 0.1);
+  font-size: 13px;
+  color: var(--accent);
+}
+
+.my-list-empty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 16px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  color: var(--text-muted);
+}
+
+.my-list-empty .icon {
+  color: var(--accent);
+}
+
+/* Griglia: tante colonne quante ne entrano (circa 3 sul telefono, 6 sul tablet). */
+.my-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 16px 10px;
+}
+
+.my-list-add {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.my-list-add-cover {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 2 / 3;
+  border: 1px dashed var(--accent);
+  border-radius: 8px;
+  background: rgba(95, 180, 222, 0.08);
+  color: var(--accent);
+}

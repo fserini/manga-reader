@@ -71,6 +71,13 @@ const PATHS = {
     </>
   ),
   save: <path d="M5 4h11l3 3v13H5zM8 4v5h7M8 20v-6h8v6" />,
+  back: <path d="M15 6l-6 6 6 6" />,
+  search: (
+    <>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="M16 16l4.5 4.5" />
+    </>
+  ),
   edit: <path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" />,
   check: <path d="M5 12.5l4.5 4.5L19 7" />,
   chevron: <path d="M9 6l6 6-6 6" />,
