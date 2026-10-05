@@ -283,7 +283,7 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 - **Banner "nessun preferito"** troppo attaccato alla card Serie: la sezione mostra sempre il suo titolo (come "Serie" per il Catalogo) con il messaggio sotto, finché non ci sono preferiti, con la spaziatura corretta. Sparisce se i preferiti vanno nella nuova scheda (Fase 34)
 - **Rimuovere la copertina personalizzata** per Serie e Volumi (selettore di copertina, `coverCustom`, anteprime nelle righe); da decidere cosa succede alle copertine già scelte (ignorate; i campi restano nei backup)
 - **Categorizzazione**: finita la categorizzazione, se non ci sono altri file da categorizzare, reindirizzamento alla Libreria (singola e multipla)
-- **Suggerimenti nella categorizzazione**: Federico ha scritto "forse togliamo i suggerimenti" in un messaggio poi interrotto e non ripetuto in quello definitivo. **Da confermare** prima di toccare qualcosa (il parser dei nomi resta comunque utile al form multiplo, che funziona)
+- **Suggerimenti nella categorizzazione — risposta di Federico**: nel **form multiplo** non gli piace che il titolo della serie venga ricavato dal nome del file; preferisce com'era prima, con il campo vuoto e l'esempio scritto ("Es. One Piece") prima di inserire un valore. Da chiarire: valgono anche per il form singolo, e restano il numero di volume e di capitolo pre-compilati? (Il dialog singolo era pre-compilato dalla Fase 23.)
 - **Lettore: cambio di direzione senza overlay.** Il filtro notte ha il suo velo, il cambio di direzione (RTL/LTR) non mostra nessun segnale. Interpretazione da confermare: un breve avviso a schermo ("Lettura da destra a sinistra") quando si cambia
 
 ### Fase 34 — Scheda "Da leggere" e Preferiti spostati
