@@ -1,0 +1,141 @@
+/* Una tessera di titolo della lista "Le mie serie" (Fase 34). */
+.mlt {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  text-align: left;
+}
+
+.mlt-open {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mlt-cover-wrap {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Una voce manuale senza serie in libreria ha il bordo tratteggiato: si vede a
+   colpo d'occhio che non c'è niente da aprire. */
+.mlt--manual .mlt-cover-wrap {
+  border: 1px dashed #4a453b;
+}
+
+.mlt-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mlt-cover--placeholder {
+  display: grid;
+  place-items: center;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 34px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.mlt-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.mlt-bar {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.mlt-bar i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.mlt-tag {
+  position: absolute;
+  left: 5px;
+  bottom: 9px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.62);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  color: #d8d2c4;
+}
+
+.mlt-tag--lib {
+  color: var(--accent);
+}
+
+.mlt-star {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.66);
+  color: #8a8477;
+  cursor: pointer;
+}
+
+.mlt-star--on {
+  color: var(--warn);
+}
+
+.mlt-star--on .icon {
+  fill: var(--warn);
+}
+
+/* Stellina nell'anteprima: solo un segno, non un pulsante. */
+.mlt-star--mini {
+  width: 22px;
+  height: 22px;
+  cursor: default;
+}
+
+.mlt-delete {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--danger);
+  color: #fff;
+  cursor: pointer;
+}

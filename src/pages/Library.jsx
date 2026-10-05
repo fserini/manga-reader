@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getUncategorizedCount, getChapterCount } from '../db.js';
 import {
@@ -11,7 +11,6 @@ import {
 import { importHandles } from '../importFiles.js';
 import Icon from '../components/Icon.jsx';
 import Catalog from '../components/Catalog.jsx';
-import Favorites from '../components/Favorites.jsx';
 import ImportMenu from '../components/ImportMenu.jsx';
 import { SkeletonPage } from '../components/Skeleton.jsx';
 import FileCheckDialog from '../components/FileCheckDialog.jsx';
@@ -58,15 +57,12 @@ function Library() {
   // Cambia dopo ogni categorizzazione: usato come `key` del Catalogo per
   // forzarne il ri-montaggio (e quindi il ricaricamento dei dati).
   const [catalogVersion, setCatalogVersion] = useState(0);
-  // Stesso trucco per i Preferiti: cambia quando un preferito viene
-  // aggiunto/tolto dal Catalogo, così la sezione dedicata si aggiorna senza
-  // dover far perdere al Catalogo il livello di navigazione in cui si trova.
-  const [favoritesVersion, setFavoritesVersion] = useState(0);
-  // Cambia quando un preferito viene tolto dalla sezione dedicata: il Catalogo
-  // ricarica le serie e la stella si aggiorna, senza rimontarlo (Fase 33).
-  const [favoritesRevision, setFavoritesRevision] = useState(0);
   // Ricontrollo dei file collegati (Fase 26): dialog aperto o no.
   const [checkingFiles, setCheckingFiles] = useState(false);
+
+  // Una serie da aprire subito (Fase 34): la lista "Le mie serie" porta qui con
+  // navigate('/', { state: { openSeriesId } }).
+  const openSeriesId = useLocation().state?.openSeriesId ?? null;
 
   const refresh = useCallback(async () => {
     const [pending, count] = await Promise.all([getUncategorizedCount(), getChapterCount()]);
@@ -209,15 +205,8 @@ function Library() {
 
       <section className="library-section" aria-labelledby="catalog-heading">
         <h2 id="catalog-heading">{t('library.catalogHeading')}</h2>
-        <Catalog
-          key={catalogVersion}
-          onFavoriteChanged={() => setFavoritesVersion((version) => version + 1)}
-          favoritesRevision={favoritesRevision}
-          onProgressChanged={refresh}
-        />
+        <Catalog key={catalogVersion} initialSeriesId={openSeriesId} onProgressChanged={refresh} />
       </section>
-
-      <Favorites key={favoritesVersion} onChanged={() => setFavoritesRevision((revision) => revision + 1)} />
 
       {checkingFiles && (
         <FileCheckDialog
@@ -225,7 +214,6 @@ function Library() {
           onChanged={() => {
             refresh();
             setCatalogVersion((version) => version + 1);
-            setFavoritesVersion((version) => version + 1);
           }}
         />
       )}

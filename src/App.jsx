@@ -5,6 +5,7 @@ import Uncategorized from './pages/Uncategorized.jsx';
 import Reader from './pages/Reader.jsx';
 import ReaderHome from './pages/ReaderHome.jsx';
 import Profile from './pages/Profile.jsx';
+import MyList from './pages/MyList.jsx';
 import SettingsSection from './pages/SettingsSection.jsx';
 import UpdatePrompt from './components/UpdatePrompt.jsx';
 import Brand from './components/Brand.jsx';
@@ -39,6 +40,7 @@ function App() {
             <Route path="/reader" element={<ReaderHome />} />
             <Route path="/reader/:chapterId" element={<Reader />} />
             <Route path="/profilo" element={<Profile />} />
+            <Route path="/profilo/serie" element={<MyList />} />
             <Route path="/profilo/:section" element={<SettingsSection />} />
             {/* Il vecchio indirizzo delle Impostazioni (Fase 35): un segnalibro o un
                 collegamento salvato porta comunque al Profilo. */}
