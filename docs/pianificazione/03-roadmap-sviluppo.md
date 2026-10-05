@@ -270,6 +270,43 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 
 ---
 
+## Fasi 33–36 — Note dai test su tablet (2026-10-05)
+
+> Raccolte da Federico dopo aver provato le fasi 23-30 sul tablet. Esito dei test: **PDF caricato e visibile, menu corretti, CBR funzionante, categorizzazione multipla funzionante, statistiche visibili**. Le note sotto sono correzioni e nuove richieste, **non ancora iniziate**.
+>
+> **Ordine proposto**: queste fasi vanno fatte **prima della 31** (la guida interattiva descrive l'interfaccia: conviene scriverla quando l'interfaccia ha smesso di cambiare), e la **32 (IA) resta ultima**. I numeri sono d'ordine di elenco, non vincolano la sequenza: la 33 è piccola e indipendente, la 34 è la più grande.
+
+### Fase 33 — Correzioni e semplificazioni
+
+- **Preferiti: solo le serie.** Si potrà mettere tra i preferiti solo una serie, non volumi né capitoli (via le stelle da volumi e capitoli, via le sezioni "Volumi preferiti" e "Capitoli preferiti"). Da decidere: cosa fare dei preferiti di volumi/capitoli già salvati (ignorarli o azzerarli con la migrazione; i dati restano comunque nei backup)
+- **Bug preferiti**: se un preferito viene tolto dalla card dei preferiti, l'icona (stella) nella sezione Serie del Catalogo non si aggiorna. Causa probabile: la Libreria aggiorna i Preferiti quando cambia il Catalogo, ma non il contrario
+- **Banner "nessun preferito"** troppo attaccato alla card Serie: la sezione mostra sempre il suo titolo (come "Serie" per il Catalogo) con il messaggio sotto, finché non ci sono preferiti, con la spaziatura corretta. Sparisce se i preferiti vanno nella nuova scheda (Fase 34)
+- **Rimuovere la copertina personalizzata** per Serie e Volumi (selettore di copertina, `coverCustom`, anteprime nelle righe); da decidere cosa succede alle copertine già scelte (ignorate; i campi restano nei backup)
+- **Categorizzazione**: finita la categorizzazione, se non ci sono altri file da categorizzare, reindirizzamento alla Libreria (singola e multipla)
+- **Suggerimenti nella categorizzazione**: Federico ha scritto "forse togliamo i suggerimenti" in un messaggio poi interrotto e non ripetuto in quello definitivo. **Da confermare** prima di toccare qualcosa (il parser dei nomi resta comunque utile al form multiplo, che funziona)
+- **Lettore: cambio di direzione senza overlay.** Il filtro notte ha il suo velo, il cambio di direzione (RTL/LTR) non mostra nessun segnale. Interpretazione da confermare: un breve avviso a schermo ("Lettura da destra a sinistra") quando si cambia
+
+### Fase 34 — Scheda "Da leggere" e Preferiti spostati
+
+- **Lista di manga da leggere inseriti a mano**: l'utente aggiunge un titolo che intende leggere (anche non ancora in libreria) e lo tiene in lista per ricordare quali ha già letto e quali deve ancora leggere (stati tipo Da leggere / In lettura / Letto)
+- **Nuova scheda** (o la scheda delle statistiche: da decidere), che accoglie anche i **Preferiti**: la card dei preferiti sparisce dalla Libreria
+- Da decidere: nome e posizione della scheda (la barra ha già tre schede e il "?" previsto dalla 31), se una voce della lista può collegarsi a una serie già in libreria, e se i campi servono anche a un'eventuale idea di spesa (vedi 35)
+
+### Fase 35 — Impostazioni a menu e statistiche rivisitate
+
+- **Impostazioni con menu a burger**: le voci Aspetto, Lingua e Backup e ripristino stanno in un menu; la pagina principale mostra **solo le statistiche**
+- **Statistiche senza il tempo** (via il tempo stimato). Si tiene traccia di **numero di serie, volumi e capitoli** (più le pagine lette e i capitoli finiti, da confermare)
+- **Idea: spesa totale in euro**. Da progettare: dove l'utente inserisce il prezzo (per volume? per serie?), come si somma, e se ha senso mostrarla solo se compilata
+- **Reset delle statistiche** con finestra di conferma. Da decidere: cosa si azzera. Le statistiche oggi derivano dal progresso di lettura (pagina raggiunta, "in corso", "continua a leggere"): azzerarlo cancellerebbe anche quelli; un reset "solo statistiche" richiederebbe un punto di partenza separato
+
+### Fase 36 — Schermo intero nel Lettore
+
+- **Occupare anche la parte alta dello schermo** del tablet (barra di stato) leggendo a tutto schermo. Strade tecniche: la Fullscreen API da un tocco (richiede un gesto, si esce con un gesto del sistema), oppure `display: fullscreen` nel manifest della PWA (vale per l'intera app)
+- **Barra in basso**: Federico la vuole provare **trasparente o del tutto nascosta** in modalità a schermo intero. **Da chiarire** quale barra intende (il filo di avanzamento/controlli del Lettore o la barra di navigazione di sistema di Android)
+- Non verificabile in sandbox: va provato sul tablet, e il comportamento cambia tra browser e app installata
+
+---
+
 ## Fase 31 — Guida interattiva
 
 > Nata dalla richiesta di un tutorial per chi usa l'app per la prima volta. Un video non si può generare qui, e invecchierebbe a ogni modifica dell'interfaccia: la guida vive dentro l'app, resta offline ed è bilingue (italiano/inglese).
