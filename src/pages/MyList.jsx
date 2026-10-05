@@ -85,7 +85,7 @@ function MyList() {
       navigate('/', { state: { openSeriesId: item.seriesId } });
       return;
     }
-    setWarning(t('myList.notInLibrary', { title: item.title }));
+    setWarning(t(item.linkRemoved ? 'myList.removedFromLibrary' : 'myList.notInLibrary', { title: item.title }));
   }
 
   async function toggleStar(item) {
