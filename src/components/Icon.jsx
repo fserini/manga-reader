@@ -55,6 +55,22 @@ const PATHS = {
       <path d="M20 4v5h-5" />
     </>
   ),
+  user: (
+    <>
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c1-4 4-6 8-6s7 2 8 6" />
+    </>
+  ),
+  wrench: (
+    <path d="M14.7 6.3a4 4 0 0 0-5 5L3.5 17.5a2 2 0 0 0 2.8 2.8l6.2-6.2a4 4 0 0 0 5-5l-2.4 2.4-2.5-.7-.7-2.5z" />
+  ),
+  globe: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" />
+    </>
+  ),
+  save: <path d="M5 4h11l3 3v13H5zM8 4v5h7M8 20v-6h8v6" />,
   edit: <path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4" />,
   check: <path d="M5 12.5l4.5 4.5L19 7" />,
   chevron: <path d="M9 6l6 6-6 6" />,

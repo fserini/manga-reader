@@ -8,7 +8,7 @@ import './AppNav.css';
 const NAV_LINKS = [
   { to: '/', key: 'nav.library', icon: 'library', jp: '蔵書', end: true },
   { to: '/reader', key: 'nav.reader', icon: 'reader', jp: '頁' },
-  { to: '/settings', key: 'nav.settings', icon: 'settings', jp: '設定' },
+  { to: '/profilo', key: 'nav.profile', icon: 'user', jp: '人' },
 ];
 
 // Navigazione tra le tre sezioni, nel modo scelto in Impostazioni → Aspetto

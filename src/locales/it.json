@@ -2,12 +2,12 @@
   "nav": {
     "library": "Libreria",
     "reader": "Lettore",
-    "settings": "Impostazioni",
     "home": "Manga Reader: vai alla Libreria",
     "menu": "Apri il menu",
     "close": "Chiudi il menu",
     "sections": "Sezioni",
-    "drawerTitle": "Naviga"
+    "drawerTitle": "Naviga",
+    "profile": "Profilo"
   },
   "library": {
     "title": "Libreria",
@@ -264,8 +264,6 @@
     "unsupportedFile": "Formato non supportato ({{format}}). Formati accettati: {{formats}}."
   },
   "settings": {
-    "title": "Impostazioni",
-    "appearanceHeading": "Aspetto",
     "appearanceHint": "Scegli come appaiono il marchio in alto e il menu di navigazione. Le scelte restano su questo dispositivo.",
     "logoLabel": "Marchio",
     "menuLabel": "Menu di navigazione",
@@ -279,30 +277,11 @@
       "pop": "A tendina",
       "drawer": "Laterale"
     },
-    "languageHeading": "Lingua",
     "languageHint": "Scegli la lingua dell'interfaccia.",
     "language": {
       "it": "Italiano",
       "en": "English"
     },
-    "statsHeading": "Statistiche di lettura",
-    "statsHint": "Calcolate sul tuo progresso di lettura. Il tempo è una stima: l'app non lo misura, lo calcola a {{seconds}} secondi a pagina.",
-    "statsLoading": "Calcolo in corso…",
-    "statsEmpty": "Non hai ancora letto nulla: le statistiche compaiono dopo le prime pagine.",
-    "statsPages": "Pagine lette",
-    "statsChaptersFinished": "Capitoli finiti",
-    "statsChaptersStarted": "Capitoli iniziati",
-    "statsTime": "Tempo stimato",
-    "statsLibrary": "In libreria: {{series}} serie, {{volumes}} volumi, {{chapters}} capitoli.",
-    "statsTopHeading": "Serie più lette",
-    "statsTopRow": "{{pages}} · {{chapters}}",
-    "statsTopPages_one": "{{count}} pagina",
-    "statsTopPages_other": "{{count}} pagine",
-    "statsTopChapters_one": "{{count}} capitolo letto",
-    "statsTopChapters_other": "{{count}} capitoli letti",
-    "statsHours": "{{hours}} h {{minutes}} min",
-    "statsMinutes": "{{minutes}} min",
-    "backupHeading": "Backup e ripristino",
     "backupHint": "Esporta l'intera libreria (serie, volumi, capitoli, progressi di lettura, preferiti) in un file da conservare o trasferire su un altro dispositivo.",
     "backupModeLabel": "Tipo di backup",
     "backupMode": {
@@ -374,5 +353,29 @@
     "openFile": "Apri un file…",
     "opening": "Apertura…",
     "hint": "Se il file è già in libreria lo riconosco dal nome: ritrovi pagina, segnalibro e preferiti. Altrimenti lo importo e lo apro."
+  },
+  "profile": {
+    "title": "Profilo",
+    "settings": "Impostazioni",
+    "menu": {
+      "aspetto": "Aspetto",
+      "lingua": "Lingua",
+      "backup": "Backup e ripristino"
+    }
+  },
+  "stats": {
+    "title": "Statistiche",
+    "loading": "Calcolo in corso…",
+    "series": "Serie",
+    "volumes": "Volumi",
+    "chapters": "Capitoli",
+    "pages": "Pagine lette",
+    "resetAria": "Azzera le statistiche",
+    "resetTitle": "Azzerare le statistiche?",
+    "resetNote": "Si azzerano solo i contatori di lettura (le pagine lette). Il tuo progresso, \"Continua a leggere\" e \"In corso\" restano come sono.",
+    "resetConfirm": "Azzera",
+    "cancel": "Annulla",
+    "resetDone": "Statistiche azzerate. Il progresso di lettura non è cambiato.",
+    "resetError": "Azzeramento non riuscito. Riprova."
   }
 }

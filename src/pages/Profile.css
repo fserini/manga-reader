@@ -1,0 +1,18 @@
+/* Scheda Profilo (Fase 35): intestazione con la chiave inglese a destra e, sotto,
+   le card in colonna. */
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.profile .page-heading {
+  margin-bottom: 0;
+}
