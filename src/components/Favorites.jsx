@@ -1,15 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  getFavoriteSeries,
-  getFavoriteVolumes,
-  getFavoriteChapters,
-  toggleSeriesFavorite,
-  toggleVolumeFavorite,
-  toggleChapterFavorite,
-} from '../db.js';
-import { verifyPermission, fileStillExists } from '../fileAccess.js';
+import { getFavoriteSeries, toggleSeriesFavorite } from '../db.js';
 import { isHintDismissed, dismissHint } from '../hints.js';
 import EmptyState from './EmptyState.jsx';
 import Icon from './Icon.jsx';
@@ -33,50 +24,27 @@ function ItemCover({ blob }) {
   return <img className="fav-cover" src={url} alt="" />;
 }
 
-// Sezione dedicata ai preferiti: serie e volumi (mostrati per riconoscerli a
-// colpo d'occhio, senza un'azione di apertura — non sono "leggibili" di per
-// sé) e capitoli (apribili direttamente nel Lettore, come nelle sezioni di
-// lettura). Il componente sta in ascolto di eventuali cambi fatti nel
-// Catalogo tramite la key passata dalla Libreria (vedi Library.jsx).
-function Favorites({ onLibraryChanged }) {
+// Sezione dei preferiti: dalla Fase 33 solo le SERIE (volumi e capitoli non si
+// segnano più; quelli già salvati restano nel database e nei backup ma non si
+// mostrano). Il componente sta in ascolto dei cambi fatti nel Catalogo tramite
+// la key passata dalla Libreria (vedi Library.jsx); in senso inverso, quando si
+// toglie un preferito da qui avvisa la Libreria con onChanged, che fa
+// aggiornare la stella nel Catalogo.
+function Favorites({ onChanged }) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [series, setSeries] = useState([]);
-  const [volumes, setVolumes] = useState([]);
-  const [chapters, setChapters] = useState([]);
-  const [notice, setNotice] = useState(null);
-  // Il suggerimento "nessun preferito ancora" (Fase 26) compare solo a elenchi
-  // caricati — altrimenti lampeggerebbe prima dei dati — e si può chiudere per
+  // Il suggerimento "nessun preferito ancora" (Fase 26) compare solo a elenco
+  // caricato — altrimenti lampeggerebbe prima dei dati — e si può chiudere per
   // sempre.
   const [loaded, setLoaded] = useState(false);
   const [hintDismissed, setHintDismissed] = useState(() => isHintDismissed('favorites'));
 
-  // Ricarica i tre elenchi: usata sia al montaggio sia dopo ogni "togli dai
-  // preferiti" fatto da qui. Non è un useCallback perché non serve come
-  // dipendenza di nessun effetto — viene solo richiamata da gestori di eventi.
-  async function loadFavorites() {
-    const [seriesItems, volumeItems, chapterItems] = await Promise.all([
-      getFavoriteSeries(),
-      getFavoriteVolumes(),
-      getFavoriteChapters(),
-    ]);
-    setSeries(seriesItems);
-    setVolumes(volumeItems);
-    setChapters(chapterItems);
-  }
-
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const [seriesItems, volumeItems, chapterItems] = await Promise.all([
-        getFavoriteSeries(),
-        getFavoriteVolumes(),
-        getFavoriteChapters(),
-      ]);
+      const items = await getFavoriteSeries();
       if (!cancelled) {
-        setSeries(seriesItems);
-        setVolumes(volumeItems);
-        setChapters(chapterItems);
+        setSeries(items);
         setLoaded(true);
       }
     })();
@@ -87,46 +55,11 @@ function Favorites({ onLibraryChanged }) {
 
   async function unstarSeries(item) {
     await toggleSeriesFavorite(item.id);
-    loadFavorites();
+    setSeries(await getFavoriteSeries());
+    onChanged?.();
   }
 
-  async function unstarVolume(item) {
-    await toggleVolumeFavorite(item.id);
-    loadFavorites();
-  }
-
-  async function unstarChapter(item) {
-    await toggleChapterFavorite(item.chapterId);
-    loadFavorites();
-  }
-
-  // Come nel Catalogo e nelle sezioni di lettura: permesso durante il gesto,
-  // poi apertura. Se il file non c'è più, avvisa e chiede alla Libreria di
-  // aggiornarsi.
-  async function openChapter(item) {
-    setNotice(null);
-    if (!item.handle) {
-      setNotice(t('favorites.notice.fileUnavailable'));
-      return;
-    }
-    try {
-      const granted = await verifyPermission(item.handle, 'read');
-      if (!granted) {
-        setNotice(t('favorites.notice.permissionDenied'));
-        return;
-      }
-      if (!(await fileStillExists(item.handle))) {
-        setNotice(t('favorites.notice.fileGone'));
-        onLibraryChanged?.();
-        return;
-      }
-      navigate(`/reader/${item.chapterId}`);
-    } catch {
-      setNotice(t('favorites.notice.accessError'));
-    }
-  }
-
-  if (series.length === 0 && volumes.length === 0 && chapters.length === 0) {
+  if (series.length === 0) {
     if (!loaded || hintDismissed) return null;
     return (
       <EmptyState
@@ -146,92 +79,27 @@ function Favorites({ onLibraryChanged }) {
 
   return (
     <div className="favorites">
-      {notice && (
-        <p className="fav-notice" role="alert">
-          {notice}
-        </p>
-      )}
-
-      {series.length > 0 && (
-        <section aria-labelledby="fav-series-heading">
-          <h2 id="fav-series-heading">{t('favorites.seriesHeading')}</h2>
-          <ul className="fav-row">
-            {series.map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  className="fav-card"
-                  onClick={() => unstarSeries(item)}
-                  title={t('favorites.unstar')}
-                >
-                  <ItemCover blob={item.coverThumbnail} />
-                  <span className="fav-card-title">{item.title}</span>
-                  <span className="fav-star" aria-hidden="true">
-                    <Icon name="star" filled />
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {volumes.length > 0 && (
-        <section aria-labelledby="fav-volumes-heading">
-          <h2 id="fav-volumes-heading">{t('favorites.volumesHeading')}</h2>
-          <ul className="fav-row">
-            {volumes.map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  className="fav-card"
-                  onClick={() => unstarVolume(item)}
-                  title={t('favorites.unstar')}
-                >
-                  <ItemCover blob={item.coverThumbnail} />
-                  <span className="fav-card-title">
-                    {item.seriesTitle ? `${item.seriesTitle} · ` : ''}
-                    {t('favorites.volumeLabel', { number: item.number })}
-                  </span>
-                  <span className="fav-star" aria-hidden="true">
-                    <Icon name="star" filled />
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {chapters.length > 0 && (
-        <section aria-labelledby="fav-chapters-heading">
-          <h2 id="fav-chapters-heading">{t('favorites.chaptersHeading')}</h2>
-          <ul className="fav-row">
-            {chapters.map((item) => (
-              <li key={item.chapterId} className="fav-chapter">
-                <button type="button" className="fav-card" onClick={() => openChapter(item)}>
-                  <ItemCover blob={item.thumbnail} />
-                  <span className="fav-card-title">
-                    {item.seriesTitle ? `${item.seriesTitle} · ` : ''}
-                    {t('favorites.chapterLabel', { number: item.chapterNumber })}
-                  </span>
-                  {item.volumeNumber != null && (
-                    <span className="fav-card-sub">{t('favorites.volumeSub', { number: item.volumeNumber })}</span>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className="fav-unstar"
-                  aria-label={t('favorites.unstarChapter')}
-                  onClick={() => unstarChapter(item)}
-                >
+      <section aria-labelledby="fav-series-heading">
+        <h2 id="fav-series-heading">{t('favorites.seriesHeading')}</h2>
+        <ul className="fav-row">
+          {series.map((item) => (
+            <li key={item.id}>
+              <button
+                type="button"
+                className="fav-card"
+                onClick={() => unstarSeries(item)}
+                title={t('favorites.unstar')}
+              >
+                <ItemCover blob={item.coverThumbnail} />
+                <span className="fav-card-title">{item.title}</span>
+                <span className="fav-star" aria-hidden="true">
                   <Icon name="star" filled />
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }

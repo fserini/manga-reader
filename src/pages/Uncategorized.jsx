@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getUncategorizedChapters, removeChapter } from '../db.js';
 import { isFileDeletionSupported, deleteFileFromHandle } from '../fileAccess.js';
@@ -19,6 +19,7 @@ const canDeleteFiles = isFileDeletionSupported();
 // Library.jsx), e questa vista si apre solo quando serve davvero categorizzare.
 function Uncategorized() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [chapters, setChapters] = useState([]);
   const [loading, setLoading] = useState(true);
   // Capitolo attualmente in fase di categorizzazione (mostra il form) — o null.
@@ -44,7 +45,15 @@ function Uncategorized() {
       const kept = new Set([...current].filter((id) => present.has(id)));
       return kept.size === current.size ? current : kept;
     });
+    return list.length;
   }, []);
+
+  // Dopo una categorizzazione, se la coda si è svuotata non c'è altro da fare
+  // qui: si torna alla Libreria (Fase 33). Se restano file, si resta.
+  async function refreshAfterCategorizing() {
+    const remaining = await refresh();
+    if (remaining === 0) navigate('/');
+  }
 
   function toggleSelected(id) {
     setSelected((current) => {
@@ -164,7 +173,7 @@ function Uncategorized() {
           onDone={() => {
             setBulkOpen(false);
             setSelected(new Set());
-            refresh();
+            refreshAfterCategorizing();
           }}
         />
       )}
@@ -175,7 +184,7 @@ function Uncategorized() {
           onCancel={() => setCategorizing(null)}
           onDone={() => {
             setCategorizing(null);
-            refresh();
+            refreshAfterCategorizing();
           }}
         />
       )}

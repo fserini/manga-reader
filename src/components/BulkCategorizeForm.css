@@ -4,10 +4,6 @@
   max-width: 560px;
 }
 
-.bcf-prefilled {
-  margin-top: -8px;
-}
-
 .bcf-switch {
   display: flex;
   align-items: center;

@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAllSeries, getVolumesForSeries, addSeries, addVolume, categorizeChapter } from '../db.js';
-import { suggestForFileName } from '../chapterNameParser.js';
 import './CategorizeForm.css';
 
 // Valore speciale usato nei menu a tendina per la voce "crea nuovo".
@@ -24,49 +23,21 @@ function CategorizeForm({ chapter, onCancel, onDone }) {
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
-  // true se i campi sono stati pre-compilati dal nome del file (Fase 23): serve
-  // per dirlo all'utente, che deve poter distinguere un suggerimento da un dato.
-  const [prefilled, setPrefilled] = useState(false);
-  // Numero di volume suggerito dal nome, da applicare appena i volumi della
-  // serie suggerita sono stati caricati (non esistono ancora al primo render).
-  const pendingVolumeRef = useRef(null);
 
   const creatingNewSeries = seriesChoice === NEW;
 
-  // Carica le serie esistenti all'apertura del form e, con esse, pre-compila i
-  // campi dal nome del file (Fase 23): una serie esistente se il nome le somiglia,
-  // altrimenti il nome ricavato come serie nuova; volume e numero capitolo se il
-  // nome li dice. Sempre modificabili; se il nome non dice nulla, tutto resta vuoto.
+  // Carica le serie esistenti all'apertura del form. I campi partono vuoti: dal
+  // nome del file non si ricava più nulla (decisione di Federico, Fase 33).
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const list = await getAllSeries();
-      if (cancelled) return;
-      setSeries(list);
-
-      const suggestion = suggestForFileName(chapter.fileName, list);
-      let any = false;
-      if (suggestion.matchedSeries) {
-        pendingVolumeRef.current = suggestion.volume;
-        setSeriesChoice(String(suggestion.matchedSeries.id));
-        any = true;
-      } else if (suggestion.series) {
-        setSeriesChoice(NEW);
-        setNewSeriesTitle(suggestion.series);
-        setVolumeChoice(NEW);
-        if (suggestion.volume != null) setNewVolumeNumber(String(suggestion.volume));
-        any = true;
-      }
-      if (suggestion.chapter != null) {
-        setChapterNumber(String(suggestion.chapter));
-        any = true;
-      }
-      setPrefilled(any);
+      if (!cancelled) setSeries(list);
     })();
     return () => {
       cancelled = true;
     };
-  }, [chapter.fileName]);
+  }, []);
 
   // Quando si sceglie una serie esistente, carica i suoi volumi.
   useEffect(() => {
@@ -74,22 +45,7 @@ function CategorizeForm({ chapter, onCancel, onDone }) {
     let cancelled = false;
     (async () => {
       const list = await getVolumesForSeries(Number(seriesChoice));
-      if (cancelled) return;
-      setVolumes(list);
-
-      // Volume suggerito dal nome del file: lo si seleziona se la serie lo ha
-      // già, altrimenti si propone di crearlo.
-      const suggested = pendingVolumeRef.current;
-      pendingVolumeRef.current = null;
-      if (suggested != null) {
-        const existing = list.find((volume) => volume.number === suggested);
-        if (existing) {
-          setVolumeChoice(String(existing.id));
-        } else {
-          setVolumeChoice(NEW);
-          setNewVolumeNumber(String(suggested));
-        }
-      }
+      if (!cancelled) setVolumes(list);
     })();
     return () => {
       cancelled = true;
@@ -167,7 +123,6 @@ function CategorizeForm({ chapter, onCancel, onDone }) {
           {t('categorizeForm.title')}
         </h2>
         <p className="cf-filename">{chapter.fileName}</p>
-        {prefilled && <p className="cf-prefilled">{t('categorizeForm.prefilled')}</p>}
 
         <label className="cf-field">
           <span>{t('categorizeForm.series')}</span>

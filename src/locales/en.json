@@ -77,10 +77,6 @@
     "progressAria": "{{percent}}% read",
     "addFavorite": "Add {{title}} to favorites",
     "removeFavorite": "Remove {{title}} from favorites",
-    "addFavoriteVolume": "Add volume {{number}} to favorites",
-    "removeFavoriteVolume": "Remove volume {{number}} from favorites",
-    "addFavoriteChapter": "Add chapter {{number}} to favorites",
-    "removeFavoriteChapter": "Remove chapter {{number}} from favorites",
     "deleteSeries": "Remove series {{title}}",
     "deleteVolume": "Remove volume {{number}}",
     "deleteChapter": "Remove chapter {{number}}",
@@ -103,8 +99,6 @@
     "resultsCapped": "Showing the first {{count}} chapters: narrow your search to see the rest.",
     "renameSeries": "Rename the series {{title}}",
     "renameVolume": "Change the number of volume {{number}}",
-    "coverSeries": "Change the cover of {{title}}",
-    "coverVolume": "Change the cover of volume {{number}}",
     "tagsSeries": "Edit tags of {{title}}",
     "markRead": "Mark volume {{number}} as read",
     "markUnread": "Mark volume {{number}} as unread",
@@ -112,16 +106,6 @@
     "unreadNote": "Reading progress of all its chapters will be reset, including progress made by actually reading.",
     "unreadConfirm": "Mark as unread",
     "cancel": "Cancel"
-  },
-  "coverPicker": {
-    "title": "Cover of {{label}}",
-    "hint": "Pick a cover from the chapters, or upload an image.",
-    "noCandidates": "No cover available: a chapter's thumbnail is created the first time you open it. You can still upload an image.",
-    "useChapter": "Use the cover of chapter {{number}}",
-    "upload": "Upload an image…",
-    "reset": "Back to the automatic cover",
-    "close": "Close",
-    "error": "Couldn't use this image. Please try again."
   },
   "tagsDialog": {
     "title": "Tags of {{title}}",
@@ -198,7 +182,6 @@
     }
   },
   "categorizeForm": {
-    "prefilled": "Fields filled in from the file name: check and correct if needed.",
     "title": "Categorize",
     "series": "Series",
     "chooseOption": "— choose —",
@@ -226,22 +209,10 @@
   },
   "favorites": {
     "seriesHeading": "Favorite series",
-    "volumesHeading": "Favorite volumes",
-    "chaptersHeading": "Favorite chapters",
     "hintTitle": "No favorites yet",
-    "hintText": "Tap the star next to a series, a volume or a chapter: you'll find them here, ready to open.",
+    "hintText": "Tap the star next to a series: you'll find it here, ready to open.",
     "hintDismiss": "Dismiss the hint",
-    "unstar": "Remove from favorites",
-    "unstarChapter": "Remove chapter from favorites",
-    "volumeLabel": "Volume {{number}}",
-    "chapterLabel": "Ch. {{number}}",
-    "volumeSub": "Volume {{number}}",
-    "notice": {
-      "fileUnavailable": "File unavailable.",
-      "permissionDenied": "File access permission denied.",
-      "fileGone": "The file is no longer available.",
-      "accessError": "Couldn't access the file."
-    }
+    "unstar": "Remove from favorites"
   },
   "readingSections": {
     "inProgressHeading": "In progress",

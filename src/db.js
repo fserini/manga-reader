@@ -1,5 +1,5 @@
 import Dexie from 'dexie';
-import { normalizeTitle } from './chapterNameParser.js';
+import { normalizeTitle } from './titles.js';
 
 export const db = new Dexie('MangaReaderDB');
 
@@ -362,39 +362,9 @@ export async function toggleSeriesFavorite(seriesId) {
   await db.series.update(seriesId, { favorite: !series.favorite });
 }
 
-export async function toggleVolumeFavorite(volumeId) {
-  const volume = await db.volumes.get(volumeId);
-  if (!volume) return;
-  await db.volumes.update(volumeId, { favorite: !volume.favorite });
-}
-
-export async function toggleChapterFavorite(chapterId) {
-  const chapter = await db.chapters.get(chapterId);
-  if (!chapter) return;
-  await db.chapters.update(chapterId, { favorite: chapter.favorite ? 0 : 1 });
-}
-
 export async function getFavoriteSeries() {
   const series = await db.series.filter((item) => Boolean(item.favorite)).toArray();
   return series.sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true }));
-}
-
-// Volumi preferiti, arricchiti col titolo della loro serie (altrimenti "Volume
-// 3" da solo non direbbe di quale manga si tratta).
-export async function getFavoriteVolumes() {
-  const volumes = await db.volumes.filter((item) => Boolean(item.favorite)).toArray();
-  return Promise.all(
-    volumes.map(async (volume) => {
-      const series = volume.seriesId != null ? await db.series.get(volume.seriesId) : null;
-      return { ...volume, seriesTitle: series?.title ?? null };
-    }),
-  );
-}
-
-export async function getFavoriteChapters() {
-  const chapters = await db.chapters.where('favorite').equals(1).toArray();
-  const enriched = await Promise.all(chapters.map((chapter) => enrichChapter(chapter)));
-  return enriched.filter(Boolean);
 }
 
 export async function getReadingProgress(chapterId) {
@@ -546,28 +516,6 @@ export async function getInProgressChapters(limit = 10) {
 // Tag liberi su una serie: un array di stringhe già normalizzate dal chiamante.
 export async function setSeriesTags(seriesId, tags) {
   return db.series.update(seriesId, { tags });
-}
-
-// Copertina scelta dall'utente per una serie o un volume. Si salva nello
-// stesso campo coverThumbnail usato dalla copertina automatica (così Preferiti
-// e backup la gestiscono già), più il flag coverCustom: è quello che decide se
-// il Catalogo la mostra — Serie e Volumi restano testuali finché l'utente non
-// ne sceglie una apposta (vedi Fase 22).
-function tableForKind(kind) {
-  return kind === 'series' ? db.series : db.volumes;
-}
-
-export async function setCustomCover(kind, id, thumbnail) {
-  return tableForKind(kind).update(id, { coverThumbnail: thumbnail, coverCustom: true });
-}
-
-// Torna alla copertina automatica: la miniatura del primo capitolo (per
-// numero) che ne ha una, o nessuna se ancora nessun capitolo è stato aperto.
-// Dexie cancella una proprietà aggiornata a undefined.
-export async function clearCustomCover(kind, id) {
-  const chapters = kind === 'series' ? await getChaptersUnderSeries(id) : await getChaptersUnderVolume(id);
-  const first = chapters.filter((chapter) => chapter.thumbnail).sort((a, b) => a.number - b.number)[0];
-  return tableForKind(kind).update(id, { coverThumbnail: first?.thumbnail, coverCustom: false });
 }
 
 // Tutti i capitoli categorizzati, con titolo della serie e numero del volume:

@@ -143,16 +143,6 @@
   white-space: nowrap;
 }
 
-/* Copertina di Serie/Volume: solo se scelta dall'utente (Fase 25). */
-.catalog-index-thumb {
-  flex-shrink: 0;
-  width: 32px;
-  aspect-ratio: 2 / 3;
-  object-fit: cover;
-  border-radius: 3px;
-  background: var(--bg);
-}
-
 .catalog-index-tags {
   display: flex;
   flex-wrap: wrap;
@@ -217,7 +207,6 @@
 }
 
 .catalog-index-rename,
-.catalog-index-cover,
 .catalog-index-tagsbtn,
 .catalog-index-read,
 .catalog-index-favorite,
@@ -299,28 +288,6 @@
 
 .catalog-card-delete:hover {
   background: var(--danger);
-}
-
-.catalog-card-favorite {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.catalog-card-favorite[aria-pressed='true'] {
-  color: #e0b23f;
 }
 
 .catalog-cover {
