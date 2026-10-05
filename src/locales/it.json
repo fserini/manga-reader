@@ -337,7 +337,21 @@
       "auto": "Automatica",
       "library": "Libreria",
       "reader": "Lettore"
-    }
+    },
+    "fullscreenLabel": "Schermo intero nel Lettore",
+    "fullscreen": {
+      "on": "Attivo",
+      "off": "Disattivo"
+    },
+    "fullscreenHint": "Toccando al centro della pagina i controlli spariscono e il Lettore copre tutto lo schermo, anche la barra di stato di Android (data e ora). Per tornare indietro tocca di nuovo al centro, o usa il gesto del sistema.",
+    "fullscreenUnsupported": "Questo browser non permette lo schermo intero: i controlli si nascondono, ma la barra di stato resta.",
+    "threadLabel": "Filo di avanzamento a schermo intero",
+    "thread": {
+      "visible": "Visibile",
+      "transparent": "Trasparente",
+      "hidden": "Nascosto"
+    },
+    "threadHint": "La striscia con il numero di pagina quando i controlli sono nascosti: visibile come prima, trasparente sopra la pagina, oppure nascosta del tutto."
   },
   "pwa": {
     "updateAvailable": "È disponibile una nuova versione dell'app.",

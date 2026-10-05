@@ -192,6 +192,27 @@
   padding: 5px 16px 9px;
 }
 
+/* Filo trasparente (schermo intero, Fase 36): sovrapposto al fondo della pagina,
+   senza sfondo né spazio proprio, così le pagine usano tutta l'altezza. Non
+   intercetta i tocchi (che servono alla pagina) e il testo ha un'ombra per
+   restare leggibile su qualunque immagine. */
+.reader-progress--ghost {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px));
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.reader-progress--ghost .reader-progress-count {
+  color: #fff;
+  text-shadow: 0 0 4px #000, 0 0 2px #000;
+}
+
+.reader-progress--ghost .reader-progress-bar {
+  background: rgba(255, 255, 255, 0.22);
+}
+
 .reader-progress-bar {
   flex: 1;
   height: 2px;
