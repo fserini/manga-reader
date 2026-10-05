@@ -106,7 +106,7 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 33 — Correzioni e semplificazioni (preferiti solo serie, bug stella, via copertine personalizzate, redirect dopo la categorizzazione, niente suggerimenti dal nome file, stato del pulsante direzione) — da fare per prima
 - [ ] Fase 34 — Lista unica "Le mie serie" nel Profilo (chip Preferiti / In corso / Finiti / Da leggere, ricerca, ordinamento) — disegno approvato su mockup, da fare dopo la 35 (34a + 34b)
 - [ ] Fase 35 — Scheda Profilo: guscio, impostazioni con chiave inglese, statistiche (serie, volumi, capitoli, pagine lette) con reset — disegno concordato
-- [ ] Fase 36 — Schermo intero nel Lettore — da chiarire e provare sul tablet
+- [x] Fase 36 — Schermo intero nel Lettore (Fullscreen API, filo di avanzamento visibile/trasparente/nascosto) — da provare sul tablet
 - [ ] Fase 31 — Guida interattiva — pianificata, non ancora iniziata
 - [ ] Fase 32 — Riassunto "dove eravamo rimasti" con l'IA — ultima fase, da studiare a tempo debito
 

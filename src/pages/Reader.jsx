@@ -13,6 +13,8 @@ import {
   getNextChapterInVolume,
 } from '../db.js';
 import { useAppChrome } from '../AppChromeContext.jsx';
+import { useUiPreferences } from '../UiPreferencesContext.jsx';
+import { enterFullscreen, exitFullscreen, isFullscreenActive } from '../fullscreen.js';
 import Icon from '../components/Icon.jsx';
 import './Reader.css';
 
@@ -239,6 +241,7 @@ function Reader() {
   const { chapterId } = useParams();
   const navigate = useNavigate();
   const { setChromeHidden } = useAppChrome();
+  const { prefs } = useUiPreferences();
 
   const [pageGroups, setPageGroups] = useState([]);
   // Il capitolo (id) a cui appartengono pageGroups, o null: vedi il
@@ -301,6 +304,31 @@ function Reader() {
     setChromeHidden(!interfaceVisible);
     return () => setChromeHidden(false);
   }, [interfaceVisible, setChromeHidden]);
+
+  // Schermo intero vero (Fase 36): quando i controlli si nascondono, e se
+  // l'utente lo ha scelto, il Lettore chiede al browser lo schermo intero, che
+  // copre anche la barra di stato di sistema. La richiesta parte dal tocco che
+  // ha nascosto i controlli: il browser la accetta solo entro qualche secondo
+  // da un gesto, e qui ci arriva dopo il breve ritardo del doppio tocco.
+  const wantsFullscreen = prefs.fullscreen === 'on';
+  useEffect(() => {
+    if (wantsFullscreen && !interfaceVisible) enterFullscreen();
+    else exitFullscreen();
+  }, [interfaceVisible, wantsFullscreen]);
+
+  // Si può uscire dallo schermo intero anche col gesto del sistema o con Esc:
+  // in quel caso i controlli devono tornare, altrimenti il Lettore resterebbe
+  // "a schermo intero" per l'app ma non per il browser.
+  useEffect(() => {
+    function handleFullscreenChange() {
+      if (!isFullscreenActive()) setInterfaceVisible(true);
+    }
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      exitFullscreen(); // lasciando il Lettore si esce sempre dallo schermo intero
+    };
+  }, []);
 
   // Riarma "nessuna scelta esplicita ancora" ad ogni nuovo capitolo. Un
   // effetto a sé, sincrono rispetto al cambio di chapterId — a differenza del
@@ -763,8 +791,13 @@ function Reader() {
           differenza del vecchio contatore testuale che spariva insieme al
           resto dell'interfaccia — qui l'obiettivo è sapere sempre "a che
           punto sono" senza dover richiamare i controlli. */}
-      {pages.length > 0 && (
-        <div className="reader-progress">
+      {/* A controlli nascosti (schermo intero) il filo segue la scelta in
+          Impostazioni: visibile come prima, trasparente (sovrapposto alla pagina,
+          senza sfondo) o del tutto nascosto — Fase 36. */}
+      {pages.length > 0 && (interfaceVisible || prefs.thread !== 'hidden') && (
+        <div
+          className={`reader-progress${!interfaceVisible && prefs.thread === 'transparent' ? ' reader-progress--ghost' : ''}`}
+        >
           {chapterId && manualBookmarkPage != null && manualBookmarkPage !== currentIndex && (
             <button
               type="button"
