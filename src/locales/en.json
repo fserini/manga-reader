@@ -437,12 +437,16 @@
       "notePlaceholder": "E.g. recommended by Marco",
       "cancel": "Cancel",
       "save": "Save",
-      "saving": "Saving…"
+      "saving": "Saving…",
+      "suggestionsAria": "Series in the library",
+      "linked": "Linked to a series in the library"
     },
     "errors": {
       "titleRequired": "Enter the title.",
       "duplicate": "This title is already in the list.",
       "saveFailed": "Save failed. Try again."
-    }
+    },
+    "tagRemoved": "REMOVED",
+    "removedFromLibrary": "“{{title}}” was removed from the library."
   }
 }

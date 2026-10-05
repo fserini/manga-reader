@@ -43,7 +43,7 @@ function MyListTile({ item, preview = false, editing = false, onOpen, onStar, on
         )}
         {!preview && item.manual && (
           <span className={`mlt-tag${item.lib ? ' mlt-tag--lib' : ''}`}>
-            {t(item.lib ? 'myList.tagInLibrary' : 'myList.tagManual')}
+            {t(item.lib ? 'myList.tagInLibrary' : item.linkRemoved ? 'myList.tagRemoved' : 'myList.tagManual')}
           </span>
         )}
         {preview && item.fav && (
