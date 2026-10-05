@@ -278,10 +278,11 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 
 ### Fase 33 — Correzioni e semplificazioni
 
-- **Preferiti: solo le serie.** Si potrà mettere tra i preferiti solo una serie, non volumi né capitoli (via le stelle da volumi e capitoli, via le sezioni "Volumi preferiti" e "Capitoli preferiti"). Da decidere: cosa fare dei preferiti di volumi/capitoli già salvati (ignorarli o azzerarli con la migrazione; i dati restano comunque nei backup)
+> Il banner "nessun preferito" della Libreria **non si sistema qui** (decisione di Federico): la card unica "Le mie serie" della Fase 34 lo sostituisce, mostrando sempre titolo e messaggio.
+
+- **Preferiti: solo le serie.** Si potrà mettere tra i preferiti solo una serie, non volumi né capitoli (via le stelle da volumi e capitoli, via le sezioni "Volumi preferiti" e "Capitoli preferiti"). **Decisione di Federico**: i preferiti di volumi e capitoli già salvati vengono **ignorati** (non si cancellano né si migrano: i dati restano nel database e nei backup)
 - **Bug preferiti**: se un preferito viene tolto dalla card dei preferiti, l'icona (stella) nella sezione Serie del Catalogo non si aggiorna. Causa probabile: la Libreria aggiorna i Preferiti quando cambia il Catalogo, ma non il contrario
-- **Banner "nessun preferito"** troppo attaccato alla card Serie: la sezione mostra sempre il suo titolo (come "Serie" per il Catalogo) con il messaggio sotto, finché non ci sono preferiti, con la spaziatura corretta. Sparisce se i preferiti vanno nella nuova scheda (Fase 34)
-- **Rimuovere la copertina personalizzata** per Serie e Volumi (selettore di copertina, `coverCustom`, anteprime nelle righe); da decidere cosa succede alle copertine già scelte (ignorate; i campi restano nei backup)
+- **Rimuovere la copertina personalizzata** per Serie e Volumi (selettore di copertina, `coverCustom`, anteprime nelle righe). **Decisione di Federico**: le copertine già scelte vengono **ignorate** (i dati restano nel database e nei backup)
 - **Categorizzazione**: finita la categorizzazione, se non ci sono altri file da categorizzare, reindirizzamento alla Libreria (singola e multipla)
 - **Categorizzazione: niente più informazioni ricavate dal nome del file** (decisione di Federico, vale per il **form singolo e per il multiplo**). Via la pre-compilazione introdotta dalla Fase 23: serie suggerita o nuova, volume e numero di capitolo. Tornano i campi vuoti con l'esempio scritto ("Es. One Piece", "Es. 1"). Restano il form multiplo (selezione, serie unica, "stesso volume per tutti", numero per riga) e il salvataggio in blocco. A implementazione: il parser dei nomi (`chapterNameParser.js`) resta inutilizzato per questo scopo; `normalizeTitle` serve ancora alla rinomina, il resto si può togliere; aggiornare il documento didattico della Fase 23
 - **Lettore: il pulsante del cambio di direzione deve mostrare il suo stato.** Risposta di Federico: l'"overlay" è uno sfondo sul pulsante che renda evidente in ogni momento lo stato, premuto o no (come già fanno i pulsanti delle modalità di lettura e il filtro notte quando sono attivi). La direzione ha due stati e nessuno è "spento": proposta da confermare — sfondo sempre presente più una sigla (RTL / LTR) o l'icona che si inverte
@@ -293,9 +294,8 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 - **La terza scheda diventa "Profilo"** (era "Impostazioni"), con l'icona di una persona nella barra. Dentro, in alto, un'**icona a chiave inglese** apre le impostazioni (Aspetto, Lingua, Backup e ripristino): sostituisce l'idea del burger. La pagina principale mostra le card (vedi 34), a partire dalle statistiche
 - **Card Statistiche**: non cliccabile. In alto a destra un'icona apre una **finestra di conferma per il reset**
   - **Via il tempo stimato**
-  - Si tiene traccia di **numero di serie, volumi e capitoli** (conteggi della libreria: non si azzerano); le pagine lette e i capitoli finiti restano da confermare
-  - **Reset = solo i contatori di lettura, il progresso resta invariato** ("Continua a leggere", "In corso", pagine raggiunte). Serve un **punto di partenza** salvato al reset (i valori dei contatori in quel momento): si mostra la differenza tra il valore attuale e il punto di partenza, mai sotto zero. Da decidere dove salvarlo: nel database (viaggia nel backup) o in locale sul dispositivo
-  - **Idea, da progettare**: spesa totale in euro (dove si inserisce il prezzo: per volume o per serie; mostrata solo se compilata). Riguarda i volumi posseduti, quindi la libreria, non la lista "Da leggere"
+  - Si tiene traccia di **numero di serie, volumi, capitoli e pagine lette** (conteggi di libreria e di lettura); **via i capitoli finiti** (decisione di Federico). Serie, volumi e capitoli sono conteggi della libreria e non si azzerano
+  - **Reset = solo i contatori di lettura** (le pagine lette), **il progresso resta invariato** ("Continua a leggere", "In corso", pagine raggiunte). Serve un **punto di partenza** salvato al reset (il valore del contatore in quel momento): si mostra la differenza tra il valore attuale e il punto di partenza, mai sotto zero. Salvato **nel database**, così viaggia nel backup
 - Le pagine nuove sono **indirizzi veri** (per esempio `/profilo`), così il tasto indietro di Android funziona
 
 ### Fase 34 — Lista unica "Le mie serie" nel Profilo
@@ -376,6 +376,7 @@ Punti già emersi nella discussione, da riprendere:
 
 ## 🔮 Backlog futuro (fuori roadmap MVP)
 
+- **Spesa totale in euro** (idea di Federico, parcheggiata per ora): dove inserire il prezzo (per volume o per serie), come sommarlo, mostrarla solo se compilata; riguarda i volumi posseduti, quindi la libreria, non la lista "Le mie serie"
 - Migrazione a TypeScript
 - Eventuale introduzione di una libreria di gestione stato più avanzata (es. Zustand), se necessario
 - Test automatici (unit test)
