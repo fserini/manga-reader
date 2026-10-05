@@ -775,6 +775,8 @@ export async function getMyListItems() {
       title: series.title,
       seriesId: series.id,
       manualId: null,
+      storedSeriesId: null,
+      linkRemoved: false,
       lib: true,
       manual: false,
       fav: Boolean(series.favorite),
@@ -787,11 +789,24 @@ export async function getMyListItems() {
     };
   });
 
+  // Come una voce manuale trova la sua serie: prima il LEGAME ESPLICITO
+  // (seriesId, scelto dall'utente o salvato in precedenza), che regge anche a una
+  // rinomina; se non c'è, o se quella serie non esiste più, il TITOLO (confronto
+  // normalizzato). Un legame trovato per nome si salva, così non dipende più dal
+  // titolo. Se la voce era collegata e la serie è sparita senza una sostituta,
+  // resta una voce a sé, segnata come rimossa (linkRemoved).
+  const bySeriesId = new Map(items.map((item) => [item.seriesId, item]));
   const byKey = new Map(items.map((item) => [titleKey(item.title), item]));
+  const newLinks = [];
   manualRows.forEach((entry) => {
-    const match = byKey.get(titleKey(entry.title));
+    let match = entry.seriesId != null ? bySeriesId.get(entry.seriesId) : undefined;
+    if (!match) {
+      match = byKey.get(titleKey(entry.title));
+      if (match) newLinks.push({ id: entry.id, seriesId: match.seriesId });
+    }
     if (match) {
       match.manualId = entry.id;
+      match.storedSeriesId = match.seriesId;
       match.manual = true;
       match.note = entry.note ?? '';
       if (match.state === null) match.state = entry.state;
@@ -802,6 +817,8 @@ export async function getMyListItems() {
       title: entry.title,
       seriesId: null,
       manualId: entry.id,
+      storedSeriesId: entry.seriesId ?? null,
+      linkRemoved: entry.seriesId != null,
       lib: false,
       manual: true,
       fav: false,
@@ -813,6 +830,10 @@ export async function getMyListItems() {
       cover: null,
     });
   });
+
+  if (newLinks.length > 0) {
+    await Promise.all(newLinks.map((link) => db.readingList.update(link.id, { seriesId: link.seriesId })));
+  }
 
   // Fanno parte della lista solo le serie con la stella o uno stato, e le voci
   // manuali: le altre serie della libreria stanno solo nel Catalogo.
@@ -827,21 +848,26 @@ function duplicateEntryError() {
 // manuale, o come serie della libreria con la stella o con uno stato) è
 // rifiutato; una serie in libreria che non fa ancora parte della lista, invece,
 // può essere aggiunta: la voce si unisce a lei.
-export async function addListEntry({ title, state, note = '' }) {
-  const clean = title.trim();
-  const key = titleKey(clean);
-  if ((await getMyListItems()).some((item) => titleKey(item.title) === key)) throw duplicateEntryError();
-  return db.readingList.add({ title: clean, state, note: note.trim(), createdAt: Date.now() });
-}
-
-// Modifica titolo, stato e nota di una voce manuale (stesso controllo dei
-// duplicati, escludendo la voce stessa).
-export async function updateListEntry(id, { title, state, note = '' }) {
+export async function addListEntry({ title, state, note = '', seriesId = null }) {
   const clean = title.trim();
   const key = titleKey(clean);
   const items = await getMyListItems();
-  if (items.some((item) => item.manualId !== id && titleKey(item.title) === key)) throw duplicateEntryError();
-  await db.readingList.update(id, { title: clean, state, note: note.trim() });
+  const duplicate = items.some((item) => titleKey(item.title) === key || (seriesId != null && item.seriesId === seriesId));
+  if (duplicate) throw duplicateEntryError();
+  return db.readingList.add({ title: clean, state, note: note.trim(), seriesId, createdAt: Date.now() });
+}
+
+// Modifica titolo, stato, nota e serie collegata di una voce manuale (stesso
+// controllo dei duplicati, escludendo la voce stessa).
+export async function updateListEntry(id, { title, state, note = '', seriesId = null }) {
+  const clean = title.trim();
+  const key = titleKey(clean);
+  const items = await getMyListItems();
+  const duplicate = items.some(
+    (item) => item.manualId !== id && (titleKey(item.title) === key || (seriesId != null && item.seriesId === seriesId)),
+  );
+  if (duplicate) throw duplicateEntryError();
+  await db.readingList.update(id, { title: clean, state, note: note.trim(), seriesId });
 }
 
 export async function removeListEntry(id) {

@@ -437,12 +437,16 @@
       "notePlaceholder": "Es. me lo ha consigliato Marco",
       "cancel": "Annulla",
       "save": "Salva",
-      "saving": "Salvataggio…"
+      "saving": "Salvataggio…",
+      "suggestionsAria": "Serie in libreria",
+      "linked": "Collegato a una serie in libreria"
     },
     "errors": {
       "titleRequired": "Scrivi il titolo.",
       "duplicate": "Questo titolo è già nella lista.",
       "saveFailed": "Salvataggio non riuscito. Riprova."
-    }
+    },
+    "tagRemoved": "RIMOSSA",
+    "removedFromLibrary": "«{{title}}» è stato rimosso dalla libreria."
   }
 }

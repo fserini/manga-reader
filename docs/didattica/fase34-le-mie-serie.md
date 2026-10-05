@@ -83,7 +83,39 @@ In sandbox (anche a 375 px), con dati noti:
 
 Cosa **non** è stato verificato: il tablet; l'apertura vera di un capitolo da "Continua" (in sandbox il capitolo di prova non ha un file collegato: l'avviso "File non disponibile" ha dimostrato che la richiesta parte, non che il Lettore si apra); la griglia a pagina intera con molte decine di titoli.
 
-## 9. Cosa si è imparato
+## 9. Fase 34b — Il collegamento con le serie in libreria
+
+Nella 34a una voce manuale si univa a una serie solo se i **titoli coincidevano**. È fragile: basta una rinomina (della serie, o della voce) e il legame si spezza. La 34b aggiunge un **legame esplicito**: la voce ricorda *quale* serie è, per id.
+
+### Come si crea
+
+Scrivendo il titolo nella finestra di aggiunta, l'app **suggerisce le serie in libreria** il cui titolo contiene il testo (dopo la normalizzazione: senza maiuscole, accenti, punteggiatura). Scegliere un suggerimento mette il titolo della serie, mostra "Collegato a una serie in libreria" e salva l'id (`seriesId`) con la voce. Cambiare il testo a mano **toglie** il legame. Non si suggeriscono le serie **già presenti nella lista** (sarebbero un duplicato), tranne la serie della voce che si sta modificando.
+
+### Come si trova la serie, in ordine
+
+`getMyListItems` cerca la serie di una voce così:
+
+1. per **legame esplicito** (`seriesId`): regge alla rinomina — la voce mostra il nuovo titolo della serie;
+2. se non c'è, o se quella serie non esiste più, per **titolo normalizzato**; un legame trovato per nome **si salva** subito, così da quel momento non dipende più dal titolo (stesso effetto se si importa in seguito una serie con quel nome: la voce "Da leggere" si ricollega e la stella diventa disponibile);
+3. se la voce era collegata e la serie è sparita senza una sostituta, resta una voce a sé, segnata **rimossa** (`linkRemoved`): nella griglia ha l'etichetta RIMOSSA e il tocco mostra un avviso giallo ("è stato rimosso dalla libreria"), diverso da "non è presente in libreria" delle voci mai collegate.
+
+Il controllo dei duplicati considera anche l'id: la stessa serie non può comparire due volte, comunque sia scritto il titolo.
+
+### Una scelta tolta
+
+Avevo messo accanto al legame un pulsante "Scollega". Provandolo, **non faceva niente di utile**: se il titolo coincide con quello di una serie in libreria, il confronto per nome (punto 2) ricollega subito la voce. Un controllo che sembra funzionare e invece no è peggio di nessun controllo: l'ho tolto. Per slegare una voce basta cambiarne il titolo.
+
+### Verifica (sandbox)
+
+- scrivendo "omega" si suggeriscono le serie in libreria che non sono già nella lista; "alfa" non suggerisce nulla perché quella serie ha la stella (una correzione: un test ha mostrato che il filtro non escludeva le serie già presenti, per un confronto `null` contro `null`);
+- scegliere un suggerimento salva `seriesId` e mostra l'indicazione; un titolo uguale a quello di una serie già in lista è respinto;
+- **rinominando** la serie collegata la voce segue il nuovo titolo; **rimuovendola** la voce resta, con l'etichetta RIMOSSA e l'avviso giallo dedicato;
+- **reimportando** una serie con lo stesso titolo la voce si ricollega e il legame si salva; una voce libera si collega da sola quando arriva la serie;
+- lint e build passano.
+
+Non verificato: il tablet.
+
+## 10. Cosa si è imparato
 
 - **Un dato che si può ricavare non si salva**: lo stato di una serie in libreria si calcola dalla lettura, e così non può andare fuori sincrono.
 - **Unire invece di duplicare**: lo stesso titolo da due fonti diventa una sola voce, con una regola chiara su quale stato vince.

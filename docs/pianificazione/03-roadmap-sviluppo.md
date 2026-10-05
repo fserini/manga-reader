@@ -302,9 +302,9 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
   - **Reset = solo i contatori di lettura** (le pagine lette), **il progresso resta invariato** ("Continua a leggere", "In corso", pagine raggiunte). Serve un **punto di partenza** salvato al reset (il valore del contatore in quel momento): si mostra la differenza tra il valore attuale e il punto di partenza, mai sotto zero. Salvato **nel database**, così viaggia nel backup
 - Le pagine nuove sono **indirizzi veri** (per esempio `/profilo`), così il tasto indietro di Android funziona
 
-### Fase 34 — Lista unica "Le mie serie" nel Profilo — 34a completata
+### Fase 34 — Lista unica "Le mie serie" nel Profilo — completata (34a e 34b)
 
-> **34a completata** (con il confronto per nome e l'unione automatica tra voce manuale e serie in libreria, che erano nella 34b): dettagli in [`docs/didattica/fase34-le-mie-serie.md`](../didattica/fase34-le-mie-serie.md). **Resta alla 34b**: il collegamento esplicito (suggerimento delle serie in libreria mentre si scrive il titolo, `seriesId` sulla voce) e l'avviso giallo quando una serie collegata viene rimossa dalla libreria.
+> **Completata** (34a e 34b): dettagli in [`docs/didattica/fase34-le-mie-serie.md`](../didattica/fase34-le-mie-serie.md). La 34b ha aggiunto il collegamento esplicito (suggerimento delle serie in libreria mentre si scrive il titolo, `seriesId` sulla voce, che regge alla rinomina), il ricollegamento per nome quando una serie viene reimportata, e l'avviso giallo dedicato per una serie collegata e poi rimossa. Il pulsante "Scollega" è stato tolto: il confronto per nome avrebbe ricollegato subito la voce.
 
 > Disegno concordato con Federico (2026-10-05) e approvato su mockup interattivo: **una sola card con una sola lista**, gestita con filtri a chip, ricerca e ordinamento (scelta preferita alle quattro card separate Preferiti / In corso / Finiti / Da leggere). Dipende dalla 35 (la scheda Profilo) e dalla 33 (Preferiti solo serie).
 
