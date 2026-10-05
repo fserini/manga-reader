@@ -5,7 +5,8 @@ import { saveBackup } from '../backupFile.js';
 import { formatBytes } from '../formatBytes.js';
 import Brand from '../components/Brand.jsx';
 import { useUiPreferences } from '../UiPreferencesContext.jsx';
-import { LOGO_OPTIONS, MENU_OPTIONS, START_PAGE_OPTIONS } from '../uiPreferences.js';
+import { LOGO_OPTIONS, MENU_OPTIONS, START_PAGE_OPTIONS, FULLSCREEN_OPTIONS, THREAD_OPTIONS } from '../uiPreferences.js';
+import { isFullscreenSupported } from '../fullscreen.js';
 import './Settings.css';
 
 // Le lingue supportate, come i18n.js: qui non serve dedurre nulla, solo
@@ -194,6 +195,46 @@ function Settings() {
           ))}
         </div>
         <p className="settings-hint settings-hint--small">{t('settings.startPageHint')}</p>
+
+        <h3 id="fullscreen-label" className="settings-subheading">
+          {t('settings.fullscreenLabel')}
+        </h3>
+        <div className="settings-pill-options" role="radiogroup" aria-labelledby="fullscreen-label">
+          {FULLSCREEN_OPTIONS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              role="radio"
+              aria-checked={prefs.fullscreen === option}
+              className={prefs.fullscreen === option ? 'settings-pill-active' : ''}
+              onClick={() => setPref('fullscreen', option)}
+            >
+              {t(`settings.fullscreen.${option}`)}
+            </button>
+          ))}
+        </div>
+        <p className="settings-hint settings-hint--small">
+          {t(isFullscreenSupported() ? 'settings.fullscreenHint' : 'settings.fullscreenUnsupported')}
+        </p>
+
+        <h3 id="thread-label" className="settings-subheading">
+          {t('settings.threadLabel')}
+        </h3>
+        <div className="settings-pill-options" role="radiogroup" aria-labelledby="thread-label">
+          {THREAD_OPTIONS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              role="radio"
+              aria-checked={prefs.thread === option}
+              className={prefs.thread === option ? 'settings-pill-active' : ''}
+              onClick={() => setPref('thread', option)}
+            >
+              {t(`settings.thread.${option}`)}
+            </button>
+          ))}
+        </div>
+        <p className="settings-hint settings-hint--small">{t('settings.threadHint')}</p>
       </section>
 
       <section className="settings-section" aria-labelledby="language-heading">

@@ -337,7 +337,21 @@
       "auto": "Automatic",
       "library": "Library",
       "reader": "Reader"
-    }
+    },
+    "fullscreenLabel": "Full screen in the Reader",
+    "fullscreen": {
+      "on": "On",
+      "off": "Off"
+    },
+    "fullscreenHint": "Tapping the middle of the page hides the controls and the Reader covers the whole screen, even Android's status bar (date and time). To go back, tap the middle again or use the system gesture.",
+    "fullscreenUnsupported": "This browser doesn't allow full screen: the controls hide, but the status bar stays.",
+    "threadLabel": "Progress line in full screen",
+    "thread": {
+      "visible": "Visible",
+      "transparent": "Transparent",
+      "hidden": "Hidden"
+    },
+    "threadHint": "The strip with the page number when the controls are hidden: visible as before, transparent over the page, or hidden altogether."
   },
   "pwa": {
     "updateAvailable": "A new version of the app is available.",

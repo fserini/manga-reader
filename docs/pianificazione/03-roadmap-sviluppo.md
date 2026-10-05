@@ -340,7 +340,9 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 
 **Da sapere**: "In corso" per serie assomiglia a "In corso di lettura" della scheda Lettore, che è per capitolo. Convivono. Da tenere presente per la guida (31).
 
-### Fase 36 — Schermo intero nel Lettore
+### Fase 36 — Schermo intero nel Lettore — completata
+
+> **Completata**: dettagli in [`docs/didattica/fase36-schermo-intero.md`](../didattica/fase36-schermo-intero.md). Fullscreen API attivata dal tocco centrale (scelta in Impostazioni → Aspetto, attiva di default); il filo di avanzamento a controlli nascosti ha tre varianti selezionabili (visibile, trasparente di default, nascosto). La barra dell'app nascosta non lascia spazi vuoti: la striscia vista da Federico era la barra di stato di Android. **Non provabile in sandbox**: la prova vera resta sul tablet.
 
 - **Parte alta dello schermo** (chiarito da Federico): la striscia che resta visibile in modalità a tutto schermo è quella che copre **data e ora di Android**, cioè la barra di stato di sistema. Il tocco centrale che nasconde i controlli e la barra dell'app c'è già ma non nasconde quella. Serve un vero schermo intero: Fullscreen API da un tocco nel Lettore (si esce con un gesto del sistema) oppure `display: fullscreen` nel manifest della PWA (vale per l'intera app). Da verificare anche se la barra dell'app nascosta lascia uno spazio vuoto nel layout
 - **Barra in basso = il filo di avanzamento** del Lettore (risposta di Federico). In modalità a tutto schermo la vuole provare **trasparente oppure del tutto nascosta**: due varianti da provare sul tablet, eventualmente come scelta in Impostazioni
