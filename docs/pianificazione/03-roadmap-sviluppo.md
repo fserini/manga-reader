@@ -270,17 +270,95 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 
 ---
 
+## Fasi 33–36 — Note dai test su tablet (2026-10-05)
+
+> Raccolte da Federico dopo aver provato le fasi 23-30 sul tablet. Esito dei test: **PDF caricato e visibile, menu corretti, CBR funzionante, categorizzazione multipla funzionante, statistiche visibili**. Le note sotto sono correzioni e nuove richieste, **non ancora iniziate**.
+>
+> **Ordine proposto**: 33 → 36 → **35 → 34** (la 35 crea la scheda Profilo che la 34 riempie). Tutte **prima della 31** (la guida interattiva descrive l'interfaccia: conviene scriverla quando ha smesso di cambiare); la **32 (IA) resta ultima**. I numeri sono d'ordine di elenco, non di esecuzione.
+
+### Fase 33 — Correzioni e semplificazioni — completata
+
+> **Completata**: dettagli in [`docs/didattica/fase33-correzioni-semplificazioni.md`](../didattica/fase33-correzioni-semplificazioni.md).
+
+> Il banner "nessun preferito" della Libreria **non si sistema qui** (decisione di Federico): la card unica "Le mie serie" della Fase 34 lo sostituisce, mostrando sempre titolo e messaggio.
+
+- **Preferiti: solo le serie.** Si potrà mettere tra i preferiti solo una serie, non volumi né capitoli (via le stelle da volumi e capitoli, via le sezioni "Volumi preferiti" e "Capitoli preferiti"). **Decisione di Federico**: i preferiti di volumi e capitoli già salvati vengono **ignorati** (non si cancellano né si migrano: i dati restano nel database e nei backup)
+- **Bug preferiti**: se un preferito viene tolto dalla card dei preferiti, l'icona (stella) nella sezione Serie del Catalogo non si aggiorna. Causa probabile: la Libreria aggiorna i Preferiti quando cambia il Catalogo, ma non il contrario
+- **Rimuovere la copertina personalizzata** per Serie e Volumi (selettore di copertina, `coverCustom`, anteprime nelle righe). **Decisione di Federico**: le copertine già scelte vengono **ignorate** (i dati restano nel database e nei backup)
+- **Categorizzazione**: finita la categorizzazione, se non ci sono altri file da categorizzare, reindirizzamento alla Libreria (singola e multipla)
+- **Categorizzazione: niente più informazioni ricavate dal nome del file** (decisione di Federico, vale per il **form singolo e per il multiplo**). Via la pre-compilazione introdotta dalla Fase 23: serie suggerita o nuova, volume e numero di capitolo. Tornano i campi vuoti con l'esempio scritto ("Es. One Piece", "Es. 1"). Restano il form multiplo (selezione, serie unica, "stesso volume per tutti", numero per riga) e il salvataggio in blocco. A implementazione: il parser dei nomi (`chapterNameParser.js`) resta inutilizzato per questo scopo; `normalizeTitle` serve ancora alla rinomina, il resto si può togliere; aggiornare il documento didattico della Fase 23
+- **Lettore: il pulsante del cambio di direzione deve mostrare il suo stato.** Risposta di Federico: l'"overlay" è uno sfondo sul pulsante che renda evidente in ogni momento lo stato, premuto o no (come già fanno i pulsanti delle modalità di lettura e il filtro notte quando sono attivi). La direzione ha due stati e nessuno è "spento": proposta da confermare — sfondo sempre presente più una sigla (RTL / LTR) o l'icona che si inverte
+
+### Fase 35 — Scheda Profilo: il guscio, le Impostazioni e le statistiche
+
+> Si fa **prima della 34**: crea la scheda che la 34 riempie. Disegno concordato con Federico (2026-10-05).
+
+- **La terza scheda diventa "Profilo"** (era "Impostazioni"), con l'icona di una persona nella barra. Dentro, in alto, un'**icona a chiave inglese** apre le impostazioni (Aspetto, Lingua, Backup e ripristino): sostituisce l'idea del burger. La pagina principale mostra le card (vedi 34), a partire dalle statistiche
+- **Card Statistiche**: non cliccabile. In alto a destra un'icona apre una **finestra di conferma per il reset**
+  - **Via il tempo stimato**
+  - Si tiene traccia di **numero di serie, volumi, capitoli e pagine lette** (conteggi di libreria e di lettura); **via i capitoli finiti** (decisione di Federico). Serie, volumi e capitoli sono conteggi della libreria e non si azzerano
+  - **Reset = solo i contatori di lettura** (le pagine lette), **il progresso resta invariato** ("Continua a leggere", "In corso", pagine raggiunte). Serve un **punto di partenza** salvato al reset (il valore del contatore in quel momento): si mostra la differenza tra il valore attuale e il punto di partenza, mai sotto zero. Salvato **nel database**, così viaggia nel backup
+- Le pagine nuove sono **indirizzi veri** (per esempio `/profilo`), così il tasto indietro di Android funziona
+
+### Fase 34 — Lista unica "Le mie serie" nel Profilo
+
+> Disegno concordato con Federico (2026-10-05) e approvato su mockup interattivo: **una sola card con una sola lista**, gestita con filtri a chip, ricerca e ordinamento (scelta preferita alle quattro card separate Preferiti / In corso / Finiti / Da leggere). Dipende dalla 35 (la scheda Profilo) e dalla 33 (Preferiti solo serie).
+
+**Scheda Profilo**: la card Statistiche (35) e la card **"Le mie serie"**.
+- La card ha il titolo, **quattro chip con i contatori** (Preferiti, In corso, Finiti, Da leggere), **un solo chip selezionato alla volta**, e sotto **una riga di anteprima** dei titoli del chip scelto (3 sul telefono, 5 sul tablet: il CSS nasconde quelli che non entrano in una riga, senza media query)
+- **Chip di partenza: Preferiti.** Il chip scelto è ricordato in locale da una visita all'altra
+- La card è **sempre visibile**: se il chip scelto è vuoto mostra comunque il titolo e i chip, con un messaggio dentro (è anche la correzione del banner "nessun preferito" della 33)
+- Niente chip "Tutti" (non comprenderebbe le serie in libreria mai iniziate né segnate e sembrerebbe una copia del Catalogo) e niente filtri combinabili, per ora
+
+**Lista a pagina intera**: si apre toccando la card, già sul chip scelto, a un **indirizzo vero** (per esempio `/profilo/serie`) perché il tasto indietro di Android funzioni. Contiene i chip, la **ricerca** per titolo, l'**ordinamento** (ultima lettura, aggiunti di recente, alfabetico) e una matita per la modalità Modifica. Griglia di circa 3 colonne sul telefono, 6 sul tablet.
+
+**Cosa significano i filtri** ("In corso" è la **lettura**, non lo stato di uscita del manga)
+- **Preferiti**: serie con la stella. La stella è un'etichetta, non uno stato: un titolo può avere la stella senza essere né in corso né finito né da leggere, e allora compare solo sotto Preferiti
+- **In corso**: serie in libreria con la lettura iniziata e non finita, **in automatico**
+- **Finiti**: serie in libreria con tutti i capitoli letti, in automatico, **più** le voci manuali segnate "Letto" (manga letti altrove, per esempio su carta)
+- **Da leggere**: solo voci **manuali**
+
+**La stella, su ogni titolo**: si aggiunge e si toglie dalla lista nello stesso modo ovunque, come nel Catalogo (che si aggiorna: è anche la correzione del bug della stella, Fase 33). Solo le serie **in libreria** hanno la stella: una voce manuale non collegata a nessuna serie in libreria **non** ha la stella (i preferiti sono serie della libreria). Una voce manuale collegata a una serie in libreria sì.
+
+**Cosa fa il tocco su un titolo, secondo il suo stato**
+- **In corso**: finestra di conferma "Continuare la lettura di …?"; con "Continua" si va nel Lettore sull'ultimo capitolo letto di quella serie, alla pagina dove si era rimasti. Il pulsante "Continua" è il tocco che serve per chiedere il permesso di lettura sul file (come l'attuale "Riprendi")
+- **Tutti gli altri** (Preferiti, Finiti, Da leggere): se il titolo è ancora in libreria, si va alla scheda **Libreria direttamente sulla serie** (serve un collegamento diretto che oggi non c'è); altrimenti un **avviso giallo** dice che il titolo non è più presente (serve un nuovo avviso di colore giallo)
+
+**Aggiungere e togliere voci manuali: modalità "Modifica"**
+- La matita attiva la modalità: compaiono la "x" sulle voci **manuali** (conferma di rimozione; le voci automatiche non si tolgono a mano) e una card "+" per aggiungere
+- Il "+" apre una piccola finestra con **titolo**, **stato** (Da leggere / Letto) e **nota facoltativa**
+- **Un titolo già presente nella lista è bloccato** con un messaggio, come per la rinomina delle serie (stesso confronto normalizzato, su tutta la lista)
+
+**Dati**
+- Nuova tabella `readingList` (nuova versione dello schema): titolo, stato, nota, `seriesId` facoltativo, date. Solo voci manuali: **non** si creano serie vuote nel Catalogo. In corso, Finiti automatici e Preferiti si ricavano dalla libreria
+- **Backup**: la lista entra nel file e nel ripristino; un backup vecchio senza lista **non cancella** la lista già presente
+- La tabella può ospitare anche il punto di partenza delle statistiche (35), per non fare due aggiornamenti di schema
+
+**Dividere in due**
+- **34a**: tabella, card e lista a pagina intera con chip/ricerca/ordinamento, stella (Preferiti spostati fuori dalla Libreria), collegamento diretto alla serie, In corso e Finiti automatici, finestra "Continua", modalità Modifica con aggiunta/rimozione di titoli liberi, avviso giallo
+- **34b**: **collegamento con le serie in libreria**: mentre si scrive il titolo di una voce, l'app suggerisce le serie già in libreria e, se se ne sceglie una, la voce si collega a quella serie in modo sicuro (altrimenti, per un titolo libero, il collegamento si prova per nome). Una voce collegata e rimossa dalla libreria dà l'avviso giallo. Se una voce manuale non collegata corrisponde, per nome, a una serie importata in seguito, si collega e la stella diventa disponibile. Una voce "Da leggere" collegata a una serie su cui si è iniziato a leggere passa da sola in "In corso"
+
+**Da sapere**: "In corso" per serie assomiglia a "In corso di lettura" della scheda Lettore, che è per capitolo. Convivono. Da tenere presente per la guida (31).
+
+### Fase 36 — Schermo intero nel Lettore
+
+- **Parte alta dello schermo** (chiarito da Federico): la striscia che resta visibile in modalità a tutto schermo è quella che copre **data e ora di Android**, cioè la barra di stato di sistema. Il tocco centrale che nasconde i controlli e la barra dell'app c'è già ma non nasconde quella. Serve un vero schermo intero: Fullscreen API da un tocco nel Lettore (si esce con un gesto del sistema) oppure `display: fullscreen` nel manifest della PWA (vale per l'intera app). Da verificare anche se la barra dell'app nascosta lascia uno spazio vuoto nel layout
+- **Barra in basso = il filo di avanzamento** del Lettore (risposta di Federico). In modalità a tutto schermo la vuole provare **trasparente oppure del tutto nascosta**: due varianti da provare sul tablet, eventualmente come scelta in Impostazioni
+- Non verificabile in sandbox: va provato sul tablet, e il comportamento cambia tra browser e app installata
+
+---
+
 ## Fase 31 — Guida interattiva
 
 > Nata dalla richiesta di un tutorial per chi usa l'app per la prima volta. Un video non si può generare qui, e invecchierebbe a ogni modifica dell'interfaccia: la guida vive dentro l'app, resta offline ed è bilingue (italiano/inglese).
 
-- **Guida interattiva**: un breve giro a riquadri che indica le funzioni principali (importare con il "+", la barra di navigazione, la Libreria e la coda "Da categorizzare", il Lettore e le sue modalità, i Preferiti, il backup in Impostazioni)
+- **Guida interattiva**: un breve giro a riquadri che indica le funzioni principali (importare con il "+", la barra di navigazione, la Libreria e la coda "Da categorizzare", il Lettore e le sue modalità, la scheda Profilo con la lista "Le mie serie", il backup nel menu della chiave inglese del Profilo)
 - **Pulsante "Guida" (?)** nella barra di navigazione, in tutte e tre le varianti di menu (icone, tendina, laterale): è un aiuto, non una destinazione di uso quotidiano, quindi con un peso visivo diverso dalle tre schede
-- **Primo avvio**: proposta della guida solo a chi apre l'app per la prima volta (segno salvato in locale) *e* ha la libreria vuota; chi ha già dei capitoli non se la vede imporre. Sempre saltabile, mai bloccante; rivedibile da Impostazioni
+- **Primo avvio**: proposta della guida solo a chi apre l'app per la prima volta (segno salvato in locale) *e* ha la libreria vuota; chi ha già dei capitoli non se la vede imporre. Sempre saltabile, mai bloccante; rivedibile dal menu della chiave inglese del Profilo
 - **Dati di prova** ammessi nel giro (decisione di Federico): generati dall'app, senza manga con diritti d'autore
-- **Guida utente** leggibile con calma: pagina dedicata, aperta da un pulsante "Guida utente" in Impostazioni (oltre al giro e al "?" nella barra)
+- **Guida utente** leggibile con calma: pagina dedicata, aperta da un pulsante "Guida utente" nel menu della chiave inglese del Profilo (oltre al giro e al "?" nella barra)
 - **Contenuto come dati, non scritto nel codice dei componenti** (sezioni e domande/risposte in file separati, in italiano e inglese): così la guida può essere aggiornata senza toccare l'interfaccia, e un giorno può diventare la base di conoscenza di un assistente IA che risponda alle domande dell'utente sull'app (idea da valutare insieme alla Fase 32, con la stessa gestione della chiave e il vincolo "solo online, su richiesta")
-- Ordine deciso da Federico: la Fase 31 parte **dopo** aver concluso le fasi ancora aperte (26 e 27)
+- Ordine deciso da Federico: la Fase 31 parte **dopo** aver concluso le fasi 33-36 (correzioni, schermo intero, scheda Profilo, lista unica), così la guida descrive l'interfaccia definitiva
 
 ---
 
@@ -300,6 +378,7 @@ Punti già emersi nella discussione, da riprendere:
 
 ## 🔮 Backlog futuro (fuori roadmap MVP)
 
+- **Spesa totale in euro** (idea di Federico, parcheggiata per ora): dove inserire il prezzo (per volume o per serie), come sommarlo, mostrarla solo se compilata; riguarda i volumi posseduti, quindi la libreria, non la lista "Le mie serie"
 - Migrazione a TypeScript
 - Eventuale introduzione di una libreria di gestione stato più avanzata (es. Zustand), se necessario
 - Test automatici (unit test)

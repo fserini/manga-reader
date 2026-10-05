@@ -1,5 +1,7 @@
 # Fase 23 — Categorizzazione assistita e multipla
 
+> **Aggiornamento (Fase 33):** la pre-compilazione dal nome del file descritta nei punti 1 e 2 è stata **tolta** su richiesta di Federico (i campi tornano vuoti, con l'esempio scritto) e il parser `chapterNameParser.js` è stato cancellato; restano la selezione multipla, il form multiplo e il salvataggio in blocco. Vedi [fase33](fase33-correzioni-semplificazioni.md).
+>
 > Nata dal feedback su un import di ~20 capitoli insieme, categorizzabili solo uno alla volta, ognuno con tre campi da compilare a mano. Si appoggia alla coda dedicata `/uncategorized` della [Fase 22](fase22-coda-categorizzazione-copertine.md). Due idee: **farsi aiutare dal nome del file** (il lavoro che si fa a mano spesso è già scritto lì) e **lavorare su più capitoli insieme**.
 
 ---

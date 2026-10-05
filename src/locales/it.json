@@ -77,10 +77,6 @@
     "progressAria": "{{percent}}% letto",
     "addFavorite": "Aggiungi {{title}} ai preferiti",
     "removeFavorite": "Togli {{title}} dai preferiti",
-    "addFavoriteVolume": "Aggiungi il volume {{number}} ai preferiti",
-    "removeFavoriteVolume": "Togli il volume {{number}} dai preferiti",
-    "addFavoriteChapter": "Aggiungi il capitolo {{number}} ai preferiti",
-    "removeFavoriteChapter": "Togli il capitolo {{number}} dai preferiti",
     "deleteSeries": "Rimuovi la serie {{title}}",
     "deleteVolume": "Rimuovi il volume {{number}}",
     "deleteChapter": "Rimuovi il capitolo {{number}}",
@@ -103,8 +99,6 @@
     "resultsCapped": "Mostrati i primi {{count}} capitoli: restringi la ricerca per vedere gli altri.",
     "renameSeries": "Rinomina la serie {{title}}",
     "renameVolume": "Cambia il numero del volume {{number}}",
-    "coverSeries": "Cambia la copertina di {{title}}",
-    "coverVolume": "Cambia la copertina del volume {{number}}",
     "tagsSeries": "Modifica i tag di {{title}}",
     "markRead": "Segna il volume {{number}} come letto",
     "markUnread": "Segna il volume {{number}} come non letto",
@@ -112,16 +106,6 @@
     "unreadNote": "Il progresso di lettura di tutti i suoi capitoli verrà azzerato, anche quello fatto leggendo davvero.",
     "unreadConfirm": "Segna come non letto",
     "cancel": "Annulla"
-  },
-  "coverPicker": {
-    "title": "Copertina di {{label}}",
-    "hint": "Scegli una copertina fra quelle dei capitoli, oppure carica un'immagine.",
-    "noCandidates": "Nessuna copertina disponibile: la miniatura di un capitolo si crea la prima volta che lo apri. Puoi comunque caricare un'immagine.",
-    "useChapter": "Usa la copertina del capitolo {{number}}",
-    "upload": "Carica un'immagine…",
-    "reset": "Torna alla copertina automatica",
-    "close": "Chiudi",
-    "error": "Impossibile usare questa immagine. Riprova."
   },
   "tagsDialog": {
     "title": "Tag di {{title}}",
@@ -198,7 +182,6 @@
     }
   },
   "categorizeForm": {
-    "prefilled": "Campi compilati dal nome del file: controlla e correggi se serve.",
     "title": "Categorizza",
     "series": "Serie",
     "chooseOption": "— scegli —",
@@ -226,22 +209,10 @@
   },
   "favorites": {
     "seriesHeading": "Serie preferite",
-    "volumesHeading": "Volumi preferiti",
-    "chaptersHeading": "Capitoli preferiti",
     "hintTitle": "Nessun preferito ancora",
-    "hintText": "Tocca la stella accanto a una serie, un volume o un capitolo: li ritroverai qui, pronti da aprire.",
+    "hintText": "Tocca la stella accanto a una serie: la ritroverai qui, pronta da aprire.",
     "hintDismiss": "Chiudi il suggerimento",
-    "unstar": "Togli dai preferiti",
-    "unstarChapter": "Togli il capitolo dai preferiti",
-    "volumeLabel": "Volume {{number}}",
-    "chapterLabel": "Cap {{number}}",
-    "volumeSub": "Volume {{number}}",
-    "notice": {
-      "fileUnavailable": "File non disponibile.",
-      "permissionDenied": "Permesso di accesso al file negato.",
-      "fileGone": "Il file non è più disponibile.",
-      "accessError": "Impossibile accedere al file."
-    }
+    "unstar": "Togli dai preferiti"
   },
   "readingSections": {
     "inProgressHeading": "In corso di lettura",

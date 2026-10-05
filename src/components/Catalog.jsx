@@ -14,8 +14,6 @@ import {
   removeVolume,
   removeChapter,
   toggleSeriesFavorite,
-  toggleVolumeFavorite,
-  toggleChapterFavorite,
 } from '../db.js';
 import {
   verifyPermission,
@@ -27,7 +25,6 @@ import { useObjectUrl } from '../useObjectUrl.js';
 import Icon from './Icon.jsx';
 import DeleteDialog from './DeleteDialog.jsx';
 import ConfirmDialog from './ConfirmDialog.jsx';
-import CoverPicker from './CoverPicker.jsx';
 import TagsDialog from './TagsDialog.jsx';
 import RenameDialog from './RenameDialog.jsx';
 import { SkeletonList } from './Skeleton.jsx';
@@ -68,14 +65,6 @@ function hasTag(item, tag) {
   return (item.tags ?? []).some((existing) => existing.toLowerCase() === tag.toLowerCase());
 }
 
-// Piccola copertina in testa a una riga di Serie/Volume: compare solo se
-// l'utente ne ha scelta una apposta (coverCustom) — vedi Fase 25.
-function RowThumb({ blob }) {
-  const url = useObjectUrl(blob);
-  if (!url) return null;
-  return <img className="catalog-index-thumb" src={url} alt="" />;
-}
-
 // Mostra una miniatura da un Blob (creando/revocando l'URL oggetto). Se la
 // copertina non è ancora disponibile, il segnaposto non è una semplice icona:
 // è un "dorso" con il titolo in verticale, sullo stesso principio delle
@@ -96,12 +85,15 @@ function Cover({ blob, alt, title }) {
   return <img className="catalog-cover" src={url} alt={alt} />;
 }
 
-// onFavoriteChanged: chiamata dopo ogni cambio di preferito (o di copertina),
-// così la Libreria può aggiornare la sezione dedicata (che vive in un
-// componente sorella, separato per non perdere il livello di navigazione
-// corrente qui dentro). onProgressChanged, allo stesso modo, dopo un "segna
-// come letto" (o "non letto"), che può cambiare cosa c'è da continuare.
-function Catalog({ onFavoriteChanged, onProgressChanged }) {
+// onFavoriteChanged: chiamata dopo ogni cambio di preferito, così la Libreria
+// può aggiornare la sezione dedicata (che vive in un componente sorella,
+// separato per non perdere il livello di navigazione corrente qui dentro).
+// favoritesRevision è il senso inverso: la Libreria lo incrementa quando un
+// preferito viene tolto dalla sezione dedicata, e il Catalogo ricarica le serie
+// perché la stella sia aggiornata (Fase 33). onProgressChanged, allo stesso
+// modo di onFavoriteChanged, dopo un "segna come letto" (o "non letto"), che
+// può cambiare cosa c'è da continuare.
+function Catalog({ onFavoriteChanged, onProgressChanged, favoritesRevision = 0 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -136,7 +128,6 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
   // quando serve davvero); dialog di copertina/tag/"non letto" aperti.
   const [activeTag, setActiveTag] = useState(null);
   const [searchableChapters, setSearchableChapters] = useState(null);
-  const [coverTarget, setCoverTarget] = useState(null); // { kind, item, label }
   const [tagsTarget, setTagsTarget] = useState(null); // una serie
   const [unreadTarget, setUnreadTarget] = useState(null); // un volume
   // Fase 27: serie o volume da rinominare, { kind, item, label }.
@@ -159,6 +150,21 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
       cancelled = true;
     };
   }, []);
+
+  // Un preferito è stato tolto dalla sezione dedicata (Fase 33): si ricaricano
+  // le serie, così la stella è aggiornata. Si salta il valore iniziale, che il
+  // caricamento qui sopra già copre.
+  useEffect(() => {
+    if (favoritesRevision === 0) return undefined;
+    let cancelled = false;
+    (async () => {
+      const list = await getAllSeries();
+      if (!cancelled) setSeries(list);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [favoritesRevision]);
 
   // La ricerca globale (livello Serie, query non vuota) ha bisogno di tutti i
   // capitoli: li carichiamo la prima volta che si scrive qualcosa, non
@@ -271,14 +277,9 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
     setDeleteTarget({ kind, item, label, note });
   }
 
-  const FAVORITE_TOGGLES = {
-    series: toggleSeriesFavorite,
-    volume: toggleVolumeFavorite,
-    chapter: toggleChapterFavorite,
-  };
-
-  async function toggleFavorite(kind, id) {
-    await FAVORITE_TOGGLES[kind](id);
+  // Dalla Fase 33 solo le serie si segnano come preferite.
+  async function toggleFavorite(id) {
+    await toggleSeriesFavorite(id);
     await reloadCurrentLevel();
     onFavoriteChanged?.();
   }
@@ -303,14 +304,6 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
     await setVolumeMarkedRead(volume.id, false);
     await reloadCurrentLevel();
     onProgressChanged?.();
-  }
-
-  // Dopo aver scelto una copertina: chiude il dialog, ricarica l'elenco e
-  // avvisa la Libreria (i Preferiti mostrano le stesse copertine).
-  async function handleCoverSaved() {
-    setCoverTarget(null);
-    await reloadCurrentLevel();
-    onFavoriteChanged?.();
   }
 
   async function handleTagsSaved() {
@@ -548,7 +541,6 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
           {visibleSeries.map((item) => (
             <li key={item.id} className="catalog-index-row">
               <button type="button" className="catalog-index-main" onClick={() => openSeries(item)}>
-                {item.coverCustom && <RowThumb blob={item.coverThumbnail} />}
                 <span className="catalog-index-text">
                   <span className="catalog-index-title">{item.title}</span>
                   {(item.tags ?? []).length > 0 && (
@@ -573,14 +565,6 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
                 </button>
                 <button
                   type="button"
-                  className="catalog-index-cover"
-                  aria-label={t('catalog.coverSeries', { title: item.title })}
-                  onClick={() => setCoverTarget({ kind: 'series', item, label: item.title })}
-                >
-                  <Icon name="image" />
-                </button>
-                <button
-                  type="button"
                   className="catalog-index-tagsbtn"
                   aria-label={t('catalog.tagsSeries', { title: item.title })}
                   onClick={() => setTagsTarget(item)}
@@ -596,7 +580,7 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
                       : t('catalog.addFavorite', { title: item.title })
                   }
                   aria-pressed={Boolean(item.favorite)}
-                  onClick={() => toggleFavorite('series', item.id)}
+                  onClick={() => toggleFavorite(item.id)}
                 >
                   <Icon name="star" filled={Boolean(item.favorite)} />
                 </button>
@@ -658,7 +642,6 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
           {visibleVolumes.map((volume) => (
             <li key={volume.id} className="catalog-index-row">
               <button type="button" className="catalog-index-main" onClick={() => openVolume(volume)}>
-                {volume.coverCustom && <RowThumb blob={volume.coverThumbnail} />}
                 <span className="catalog-index-text">
                   <span className="catalog-index-title">{t('catalog.volumeLabel', { number: volume.number })}</span>
                 </span>
@@ -686,20 +669,6 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
                 >
                   <Icon name="edit" />
                 </button>
-                <button
-                  type="button"
-                  className="catalog-index-cover"
-                  aria-label={t('catalog.coverVolume', { number: volume.number })}
-                  onClick={() =>
-                    setCoverTarget({
-                      kind: 'volume',
-                      item: volume,
-                      label: t('catalog.volumeLabel', { number: volume.number }),
-                    })
-                  }
-                >
-                  <Icon name="image" />
-                </button>
                 {volumeStats[volume.id] && volumeStats[volume.id].total > 0 && (
                   <button
                     type="button"
@@ -715,19 +684,6 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
                     <Icon name="check" />
                   </button>
                 )}
-                <button
-                  type="button"
-                  className="catalog-index-favorite"
-                  aria-label={
-                    volume.favorite
-                      ? t('catalog.removeFavoriteVolume', { number: volume.number })
-                      : t('catalog.addFavoriteVolume', { number: volume.number })
-                  }
-                  aria-pressed={Boolean(volume.favorite)}
-                  onClick={() => toggleFavorite('volume', volume.id)}
-                >
-                  <Icon name="star" filled={Boolean(volume.favorite)} />
-                </button>
                 <button
                   type="button"
                   className="catalog-index-delete"
@@ -779,19 +735,6 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
               </button>
               <button
                 type="button"
-                className="catalog-card-favorite"
-                aria-label={
-                  chapter.favorite
-                    ? t('catalog.removeFavoriteChapter', { number: chapter.number })
-                    : t('catalog.addFavoriteChapter', { number: chapter.number })
-                }
-                aria-pressed={Boolean(chapter.favorite)}
-                onClick={() => toggleFavorite('chapter', chapter.id)}
-              >
-                <Icon name="star" filled={Boolean(chapter.favorite)} />
-              </button>
-              <button
-                type="button"
                 className="catalog-card-delete"
                 aria-label={t('catalog.deleteChapter', { number: chapter.number })}
                 onClick={() => askDelete('chapter', chapter, t('catalog.deleteChapterLabel', { number: chapter.number }), null)}
@@ -814,16 +757,6 @@ function Catalog({ onFavoriteChanged, onProgressChanged }) {
           onCancel={() => setDeleteTarget(null)}
           onRemoveFromLibrary={() => runDelete(false)}
           onDeleteFiles={() => runDelete(true)}
-        />
-      )}
-
-      {coverTarget && (
-        <CoverPicker
-          kind={coverTarget.kind}
-          item={coverTarget.item}
-          label={coverTarget.label}
-          onClose={() => setCoverTarget(null)}
-          onSaved={handleCoverSaved}
         />
       )}
 

@@ -62,6 +62,9 @@ function Library() {
   // aggiunto/tolto dal Catalogo, così la sezione dedicata si aggiorna senza
   // dover far perdere al Catalogo il livello di navigazione in cui si trova.
   const [favoritesVersion, setFavoritesVersion] = useState(0);
+  // Cambia quando un preferito viene tolto dalla sezione dedicata: il Catalogo
+  // ricarica le serie e la stella si aggiorna, senza rimontarlo (Fase 33).
+  const [favoritesRevision, setFavoritesRevision] = useState(0);
   // Ricontrollo dei file collegati (Fase 26): dialog aperto o no.
   const [checkingFiles, setCheckingFiles] = useState(false);
 
@@ -209,14 +212,12 @@ function Library() {
         <Catalog
           key={catalogVersion}
           onFavoriteChanged={() => setFavoritesVersion((version) => version + 1)}
+          favoritesRevision={favoritesRevision}
           onProgressChanged={refresh}
         />
       </section>
 
-      <Favorites
-        key={favoritesVersion}
-        onLibraryChanged={() => setCatalogVersion((version) => version + 1)}
-      />
+      <Favorites key={favoritesVersion} onChanged={() => setFavoritesRevision((revision) => revision + 1)} />
 
       {checkingFiles && (
         <FileCheckDialog
