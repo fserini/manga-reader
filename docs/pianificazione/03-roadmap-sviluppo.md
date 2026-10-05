@@ -276,7 +276,9 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 >
 > **Ordine proposto**: 33 → 36 → **35 → 34** (la 35 crea la scheda Profilo che la 34 riempie). Tutte **prima della 31** (la guida interattiva descrive l'interfaccia: conviene scriverla quando ha smesso di cambiare); la **32 (IA) resta ultima**. I numeri sono d'ordine di elenco, non di esecuzione.
 
-### Fase 33 — Correzioni e semplificazioni
+### Fase 33 — Correzioni e semplificazioni — completata
+
+> **Completata**: dettagli in [`docs/didattica/fase33-correzioni-semplificazioni.md`](../didattica/fase33-correzioni-semplificazioni.md).
 
 > Il banner "nessun preferito" della Libreria **non si sistema qui** (decisione di Federico): la card unica "Le mie serie" della Fase 34 lo sostituisce, mostrando sempre titolo e messaggio.
 

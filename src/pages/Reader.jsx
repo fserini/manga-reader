@@ -806,13 +806,17 @@ function Reader() {
           <div className="reader-controls-divider" />
 
           <div className="reader-controls-group reader-controls-group--actions">
+            {/* La direzione ha due stati e nessuno è "spento": il pulsante ha sempre
+                uno sfondo e una sigla (RTL / LTR) che dicono quale è attivo (Fase 33). */}
             <button
               type="button"
+              className="reader-direction"
               onClick={toggleReadingDirection}
               aria-label={readingDirection === 'rtl' ? t('reader.directionRtl') : t('reader.directionLtr')}
               title={readingDirection === 'rtl' ? t('reader.directionRtl') : t('reader.directionLtr')}
             >
               <IconDirection />
+              <span>{readingDirection === 'rtl' ? 'RTL' : 'LTR'}</span>
             </button>
             <button
               type="button"

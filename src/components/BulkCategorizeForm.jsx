@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAllSeries, getVolumesForSeries, categorizeChaptersBatch } from '../db.js';
-import { suggestForFileName, mostCommon } from '../chapterNameParser.js';
 import './CategorizeForm.css';
 import './BulkCategorizeForm.css';
 
@@ -17,8 +16,9 @@ function toNumber(text) {
 
 // Categorizzazione di più capitoli insieme (Fase 23). Serie unica per tutti;
 // il volume è uno solo per tutti ("stesso volume", attivo di default) oppure
-// uno per riga; il numero di capitolo è sempre per riga. Tutto è pre-compilato
-// dai nomi dei file quando possibile, e resta modificabile.
+// uno per riga; il numero di capitolo è sempre per riga. I campi partono vuoti,
+// con l'esempio come segnaposto: dal nome dei file non si ricava più nulla
+// (decisione di Federico, Fase 33).
 //
 // Il volume si indica per NUMERO, non scegliendolo da un elenco: se la serie ha
 // già quel volume lo si usa, altrimenti si crea (vedi categorizeChaptersBatch).
@@ -41,54 +41,22 @@ function BulkCategorizeForm({ chapters, onCancel, onDone }) {
     chapters.map((chapter) => ({ id: chapter.id, fileName: chapter.fileName, volume: '', number: '' })),
   );
 
-  const [prefilled, setPrefilled] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
   const creatingNewSeries = seriesChoice === NEW;
   const existingVolumes = loadedVolumes.seriesChoice === seriesChoice ? loadedVolumes.list : [];
 
-  // All'apertura: carica le serie e pre-compila dai nomi dei file. Serie: la
-  // più frequente tra quelle esistenti a cui i nomi somigliano, altrimenti il
-  // nome più frequente come serie nuova. Volume condiviso: il più frequente.
+  // All'apertura: carica le serie tra cui scegliere.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const list = await getAllSeries();
-      if (cancelled) return;
-      setSeries(list);
-
-      const suggestions = chapters.map((chapter) => suggestForFileName(chapter.fileName, list));
-      const matchedId = mostCommon(suggestions.map((s) => s.matchedSeries?.id ?? null));
-      const guessedTitle = mostCommon(suggestions.map((s) => s.series));
-      if (matchedId != null) {
-        setSeriesChoice(String(matchedId));
-      } else if (guessedTitle) {
-        setSeriesChoice(NEW);
-        setNewSeriesTitle(guessedTitle);
-      }
-
-      const volume = mostCommon(suggestions.map((s) => s.volume));
-      if (volume != null) setSharedVolume(String(volume));
-      setRows((current) =>
-        current.map((row, index) => ({
-          ...row,
-          volume: suggestions[index].volume != null ? String(suggestions[index].volume) : '',
-          number: suggestions[index].chapter != null ? String(suggestions[index].chapter) : '',
-        })),
-      );
-      setPrefilled(
-        matchedId != null ||
-          Boolean(guessedTitle) ||
-          volume != null ||
-          suggestions.some((s) => s.chapter != null),
-      );
+      if (!cancelled) setSeries(list);
     })();
     return () => {
       cancelled = true;
     };
-    // Solo all'apertura: i capitoli del form non cambiano finché è aperto.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // I volumi già presenti nella serie scelta, come promemoria sotto il campo.
@@ -171,7 +139,6 @@ function BulkCategorizeForm({ chapters, onCancel, onDone }) {
         <h2 id="bcf-title" className="cf-title">
           {t('bulkCategorize.title', { count: rows.length })}
         </h2>
-        {prefilled && <p className="cf-prefilled bcf-prefilled">{t('categorizeForm.prefilled')}</p>}
 
         <label className="cf-field">
           <span>{t('categorizeForm.series')}</span>
@@ -240,6 +207,7 @@ function BulkCategorizeForm({ chapters, onCancel, onDone }) {
                       type="number"
                       value={row.volume}
                       onChange={(event) => updateRow(row.id, { volume: event.target.value })}
+                      placeholder={t('categorizeForm.newVolumeNumberPlaceholder')}
                       min="0"
                       aria-label={t('bulkCategorize.rowVolumeAria', { fileName: row.fileName })}
                     />
@@ -251,6 +219,7 @@ function BulkCategorizeForm({ chapters, onCancel, onDone }) {
                     type="number"
                     value={row.number}
                     onChange={(event) => updateRow(row.id, { number: event.target.value })}
+                    placeholder={t('categorizeForm.chapterNumberPlaceholder')}
                     min="0"
                     step="any"
                     aria-label={t('bulkCategorize.rowNumberAria', { fileName: row.fileName })}
