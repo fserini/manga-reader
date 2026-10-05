@@ -1,0 +1,35 @@
+/* Aggiunta/modifica di una voce della lista (Fase 34): riusa il pannello .cf-*
+   dei form; qui solo il selettore a due pulsanti dello stato e il campo nota. */
+.led-seg {
+  display: flex;
+  gap: 6px;
+}
+
+.led-seg button {
+  flex: 1;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.led-seg button[aria-checked='true'] {
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--accent-contrast);
+}
+
+.cf-field textarea {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  resize: vertical;
+}

@@ -121,6 +121,14 @@ db.version(4).stores({
   meta: 'key',
 });
 
+// Versione 5 (Fase 34): la lista "Le mie serie". `readingList` contiene SOLO le
+// voci scritte a mano dall'utente (titolo, stato, nota): i Preferiti, "In
+// corso" e "Finiti" automatici si ricavano dalla libreria e non si salvano.
+// Una voce manuale non crea mai una serie nel Catalogo.
+db.version(5).stores({
+  readingList: '++id, state',
+});
+
 // Dà alle righe dei capitoli la loro miniatura (campo `thumbnail`, come prima
 // della v3), leggendola dalla tabella a parte. Si usa solo dove le miniature
 // servono davvero: la griglia dei capitoli di un volume, la scelta della
@@ -568,25 +576,47 @@ export async function setVolumeMarkedRead(volumeId, markedRead) {
 //
 // Si guardano le ultime 5 righe e non solo la prima per non restare a mani
 // vuote davanti a un progresso orfano (il capitolo nel frattempo rimosso).
+// Da un progresso di lettura al capitolo da riprendere: lo stesso capitolo, alla
+// pagina dove si era rimasti; oppure, se era finito e nel volume ne segue un
+// altro, quel successivo dall'inizio (isNext).
+async function resumeTargetFor(chapter, progress) {
+  const finished = progress.totalPages > 0 && progress.lastPageRead >= progress.totalPages - 1;
+  if (finished) {
+    const next = await getNextChapterInVolume(chapter.id);
+    if (next) {
+      return { ...(await enrichChapter(next)), lastPageRead: null, totalPages: null, isNext: true };
+    }
+  }
+  return {
+    ...(await enrichChapter(chapter)),
+    lastPageRead: progress.lastPageRead,
+    totalPages: progress.totalPages,
+    isNext: false,
+  };
+}
+
 export async function getContinueTarget() {
   const rows = await db.readingProgress.orderBy('lastReadAt').reverse().limit(5).toArray();
   for (const progress of rows) {
     const chapter = await db.chapters.get(progress.chapterId);
     if (!chapter) continue;
+    return resumeTargetFor(chapter, progress);
+  }
+  return null;
+}
 
-    const finished = progress.totalPages > 0 && progress.lastPageRead >= progress.totalPages - 1;
-    if (finished) {
-      const next = await getNextChapterInVolume(chapter.id);
-      if (next) {
-        return { ...(await enrichChapter(next)), lastPageRead: null, totalPages: null, isNext: true };
-      }
-    }
-    return {
-      ...(await enrichChapter(chapter)),
-      lastPageRead: progress.lastPageRead,
-      totalPages: progress.totalPages,
-      isNext: false,
-    };
+// Dove riprendere la lettura di UNA serie (Fase 34): il suo capitolo letto per
+// ultimo, con le stesse regole di getContinueTarget — o null se non si è mai
+// aperto nulla di quella serie.
+export async function getSeriesResumeTarget(seriesId) {
+  const chapters = await db.chapters.where('seriesId').equals(seriesId).toArray();
+  const byId = new Map(chapters.map((chapter) => [chapter.id, chapter]));
+  const progressRows = (await db.readingProgress.bulkGet(chapters.map((chapter) => chapter.id)))
+    .filter(Boolean)
+    .sort((a, b) => b.lastReadAt - a.lastReadAt);
+  for (const progress of progressRows) {
+    const chapter = byId.get(progress.chapterId);
+    if (chapter) return resumeTargetFor(chapter, progress);
   }
   return null;
 }
@@ -697,6 +727,127 @@ export async function resetReadingStats() {
   await db.meta.put({ key: STATS_BASELINE_KEY, pagesRead: await countPagesRead(), at: Date.now() });
 }
 
+// --- Le mie serie (Fase 34) ---
+//
+// Una sola lista di titoli, con filtri: Preferiti, In corso, Finiti, Da leggere.
+// I titoli vengono da due fonti: le serie della libreria (con la stella, o con
+// uno stato ricavato dalla lettura) e le voci scritte a mano (tabella
+// readingList). Una voce manuale il cui titolo coincide (confronto normalizzato)
+// con una serie della libreria si unisce a quella serie invece di comparire due
+// volte: lo stato che conta è quello ricavato dalla lettura, e solo se la serie
+// non ne ha uno vale quello scelto a mano.
+//
+// Stato di una serie in libreria: "finita" se tutti i suoi capitoli sono finiti,
+// "in corso" se ne ha iniziato qualcuno, altrimenti nessuno stato.
+function seriesReadingState(stats) {
+  if (!stats || stats.total === 0) return null;
+  if (stats.finished === stats.total) return 'done';
+  return stats.started > 0 ? 'progress' : null;
+}
+
+export async function getMyListItems() {
+  const [seriesRows, manualRows, chapters, progressRows] = await Promise.all([
+    db.series.toArray(),
+    db.readingList.toArray(),
+    db.chapters.where('categorized').equals(1).toArray(),
+    db.readingProgress.toArray(),
+  ]);
+  const progressById = new Map(progressRows.map((progress) => [progress.chapterId, progress]));
+
+  // Per ogni serie: quanti capitoli ha, quanti iniziati, quanti finiti, e
+  // quando è stato importato il primo (per "aggiunti di recente").
+  const statsBySeries = new Map();
+  chapters.forEach((chapter) => {
+    if (chapter.seriesId == null) return;
+    const stats = statsBySeries.get(chapter.seriesId) ?? { total: 0, started: 0, finished: 0, firstImport: Infinity };
+    const progress = progressById.get(chapter.id);
+    stats.total += 1;
+    if (chapter.markedRead || progress) stats.started += 1;
+    if (isFinished(chapter, progress)) stats.finished += 1;
+    stats.firstImport = Math.min(stats.firstImport, chapter.importedAt ?? Infinity);
+    statsBySeries.set(chapter.seriesId, stats);
+  });
+
+  const items = seriesRows.map((series) => {
+    const stats = statsBySeries.get(series.id);
+    return {
+      key: `s${series.id}`,
+      title: series.title,
+      seriesId: series.id,
+      manualId: null,
+      lib: true,
+      manual: false,
+      fav: Boolean(series.favorite),
+      state: seriesReadingState(stats),
+      note: '',
+      last: series.lastReadAt ?? 0,
+      added: Number.isFinite(stats?.firstImport) ? stats.firstImport : 0,
+      pct: stats && stats.total > 0 ? Math.round((stats.finished / stats.total) * 100) : 0,
+      cover: series.coverThumbnail ?? null,
+    };
+  });
+
+  const byKey = new Map(items.map((item) => [titleKey(item.title), item]));
+  manualRows.forEach((entry) => {
+    const match = byKey.get(titleKey(entry.title));
+    if (match) {
+      match.manualId = entry.id;
+      match.manual = true;
+      match.note = entry.note ?? '';
+      if (match.state === null) match.state = entry.state;
+      return;
+    }
+    items.push({
+      key: `m${entry.id}`,
+      title: entry.title,
+      seriesId: null,
+      manualId: entry.id,
+      lib: false,
+      manual: true,
+      fav: false,
+      state: entry.state,
+      note: entry.note ?? '',
+      last: 0,
+      added: entry.createdAt ?? 0,
+      pct: 0,
+      cover: null,
+    });
+  });
+
+  // Fanno parte della lista solo le serie con la stella o uno stato, e le voci
+  // manuali: le altre serie della libreria stanno solo nel Catalogo.
+  return items.filter((item) => item.fav || item.state !== null || item.manual);
+}
+
+function duplicateEntryError() {
+  return Object.assign(new Error('duplicate'), { code: 'duplicate' });
+}
+
+// Aggiunge una voce manuale. Un titolo già presente nella lista (come voce
+// manuale, o come serie della libreria con la stella o con uno stato) è
+// rifiutato; una serie in libreria che non fa ancora parte della lista, invece,
+// può essere aggiunta: la voce si unisce a lei.
+export async function addListEntry({ title, state, note = '' }) {
+  const clean = title.trim();
+  const key = titleKey(clean);
+  if ((await getMyListItems()).some((item) => titleKey(item.title) === key)) throw duplicateEntryError();
+  return db.readingList.add({ title: clean, state, note: note.trim(), createdAt: Date.now() });
+}
+
+// Modifica titolo, stato e nota di una voce manuale (stesso controllo dei
+// duplicati, escludendo la voce stessa).
+export async function updateListEntry(id, { title, state, note = '' }) {
+  const clean = title.trim();
+  const key = titleKey(clean);
+  const items = await getMyListItems();
+  if (items.some((item) => item.manualId !== id && titleKey(item.title) === key)) throw duplicateEntryError();
+  await db.readingList.update(id, { title: clean, state, note: note.trim() });
+}
+
+export async function removeListEntry(id) {
+  await db.readingList.delete(id);
+}
+
 // --- Backup e ripristino (Fase 30b) ---
 //
 // Il file di backup è un JSON valido, ma scritto "a righe": un'intestazione,
@@ -713,6 +864,7 @@ export async function resetReadingStats() {
 //   "volumes":[…],
 //   "readingProgress":[…],
 //   "meta":[…],
+//   "readingList":[…],
 //   "chapters":[
 //   {capitolo},
 //   {capitolo}
@@ -782,11 +934,12 @@ export async function estimateBackupSize() {
 // significato altrove — dopo un ripristino i capitoli vanno ricollegati
 // re-importando gli stessi file (vedi getChapterByFileName/setChapterHandle).
 export async function* exportBackupParts({ light = false, onProgress } = {}) {
-  const [seriesRows, volumeRows, progressRows, metaRows, chapterCount] = await Promise.all([
+  const [seriesRows, volumeRows, progressRows, metaRows, listRows, chapterCount] = await Promise.all([
     db.series.toArray(),
     db.volumes.toArray(),
     db.readingProgress.toArray(),
     db.meta.toArray(),
+    db.readingList.toArray(),
     db.chapters.count(),
   ]);
   const header = {
@@ -802,6 +955,7 @@ export async function* exportBackupParts({ light = false, onProgress } = {}) {
   yield `"volumes":${JSON.stringify(await rowsWithCoverAsDataUrl(volumeRows))},\n`;
   yield `"readingProgress":${JSON.stringify(progressRows)},\n`;
   yield `"meta":${JSON.stringify(metaRows)},\n`;
+  yield `"readingList":${JSON.stringify(listRows)},\n`;
   yield '"chapters":[\n';
 
   // I capitoli si leggono a blocchi, in ordine di id: "dopo l'ultimo id visto"
@@ -899,9 +1053,10 @@ export async function inspectBackupFile(file) {
 // Dalle righe del file ai pezzi che servono al ripristino: serie, volumi,
 // progressi (righe piccole, una volta sola) e i capitoli, uno alla volta.
 async function readLinesBackup(file) {
-  // meta resta undefined se il file non la contiene (backup precedenti alla
-  // Fase 35): in quel caso il ripristino lascia la tabella com'è.
-  const parts = { series: [], volumes: [], readingProgress: [], meta: undefined };
+  // meta e readingList restano undefined se il file non le contiene (backup
+  // precedenti alle Fasi 35 e 34): in quel caso il ripristino lascia le tabelle
+  // com'è.
+  const parts = { series: [], volumes: [], readingProgress: [], meta: undefined, readingList: undefined };
   // Iteratore manuale: con un `for await … break` il generatore verrebbe
   // chiuso, e i capitoli non si potrebbero più leggere dopo l'intestazione.
   const lines = readLines(file)[Symbol.asyncIterator]();
@@ -912,7 +1067,7 @@ async function readLinesBackup(file) {
       inChapters = true;
       break;
     }
-    const match = /^"(series|volumes|readingProgress|meta)":(.*?),?$/.exec(step.value);
+    const match = /^"(series|volumes|readingProgress|meta|readingList)":(.*?),?$/.exec(step.value);
     if (match) parts[match[1]] = JSON.parse(match[2]);
   }
   if (!inChapters) throw Object.assign(new Error('invalid'), { code: 'invalid' });
@@ -951,6 +1106,7 @@ export async function restoreBackupFile(file, inspected, { onProgress } = {}) {
           volumes: inspected.legacy.volumes ?? [],
           readingProgress: inspected.legacy.readingProgress ?? [],
           meta: inspected.legacy.meta,
+          readingList: inspected.legacy.readingList,
           chapters: chaptersOf(inspected.legacy.chapters ?? []),
         };
 
@@ -989,7 +1145,7 @@ export async function restoreBackupFile(file, inspected, { onProgress } = {}) {
 
   await db.transaction(
     'rw',
-    [db.series, db.volumes, db.chapters, db.readingProgress, db.thumbnails, db.meta],
+    [db.series, db.volumes, db.chapters, db.readingProgress, db.thumbnails, db.meta, db.readingList],
     async () => {
       await Promise.all([
         db.series.clear(),
@@ -998,6 +1154,7 @@ export async function restoreBackupFile(file, inspected, { onProgress } = {}) {
         db.readingProgress.clear(),
         db.thumbnails.clear(),
         ...(source.meta ? [db.meta.clear()] : []),
+        ...(source.readingList ? [db.readingList.clear()] : []),
       ]);
       await Promise.all([
         db.series.bulkAdd(series),
@@ -1006,6 +1163,7 @@ export async function restoreBackupFile(file, inspected, { onProgress } = {}) {
         db.readingProgress.bulkAdd(source.readingProgress),
         db.thumbnails.bulkAdd(thumbnails),
         ...(source.meta ? [db.meta.bulkAdd(source.meta)] : []),
+        ...(source.readingList ? [db.readingList.bulkAdd(source.readingList)] : []),
       ]);
     },
   );

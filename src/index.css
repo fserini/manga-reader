@@ -12,6 +12,8 @@
   --accent-contrast: #05141a;
   --danger: #d9584f;
   --danger-bg: rgba(217, 88, 79, 0.14);
+  --warn: #e0b23f;
+  --warn-bg: rgba(224, 178, 63, 0.14);
 
   --sans: 'Work Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
   --display: 'Shippori Mincho', serif;

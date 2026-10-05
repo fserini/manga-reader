@@ -207,13 +207,6 @@
       "saveFailed": "Save failed. Please try again."
     }
   },
-  "favorites": {
-    "seriesHeading": "Favorite series",
-    "hintTitle": "No favorites yet",
-    "hintText": "Tap the star next to a series: you'll find it here, ready to open.",
-    "hintDismiss": "Dismiss the hint",
-    "unstar": "Remove from favorites"
-  },
   "readingSections": {
     "inProgressHeading": "In progress",
     "recentHeading": "Recently read",
@@ -377,5 +370,79 @@
     "cancel": "Cancel",
     "resetDone": "Statistics reset. Your reading progress has not changed.",
     "resetError": "Reset failed. Try again."
+  },
+  "myList": {
+    "title": "My series",
+    "loading": "Loading…",
+    "count_one": "{{count}} title",
+    "count_other": "{{count}} titles",
+    "filterAria": "List filter",
+    "filters": {
+      "fav": "Favorites",
+      "progress": "In progress",
+      "done": "Finished",
+      "toread": "To read"
+    },
+    "empty": {
+      "fav": "No favorites yet. Tap the star next to a series to find it here.",
+      "progress": "No series in progress. As soon as you start one, you'll find it here.",
+      "done": "No finished series. Series read to the end appear here, and so do the ones you mark as read by hand.",
+      "toread": "Nothing to read yet. Open the list, tap the pencil and the + to add one."
+    },
+    "hint": {
+      "fav": "Favorites: series with a star. Tap the star to remove it, the series to open it in the Library.",
+      "progress": "In progress: series you started and haven't finished. Tap one to resume where you left off.",
+      "done": "Finished: series read to the end appear on their own; MANUAL entries are the ones you add.",
+      "toread": "To read: manga you want to read. The ones already in the library are marked."
+    },
+    "openAria": "Open the full list",
+    "searchPlaceholder": "Search for a title",
+    "noResults": "No title matches the search.",
+    "sortAria": "Sort",
+    "sort": {
+      "read": "Last read",
+      "recent": "Recently added",
+      "alpha": "Alphabetical"
+    },
+    "editAria": "Edit the list",
+    "editBanner": "Edit mode: tap the x to remove a manual entry, the + to add one, or a manual entry to change it.",
+    "add": "Add",
+    "tagManual": "MANUAL",
+    "tagInLibrary": "IN LIBRARY",
+    "starAdd": "Add {{title}} to favorites",
+    "starRemove": "Remove {{title}} from favorites",
+    "deleteAria": "Remove {{title}} from the list",
+    "notInLibrary": "“{{title}}” is not in the library.",
+    "delete": {
+      "title": "Remove from the list?",
+      "note": "“{{title}}” will disappear from the list. Your files and library don't change.",
+      "confirm": "Remove"
+    },
+    "resume": {
+      "title": "Continue reading?",
+      "confirm": "Continue",
+      "page": "page {{page}} of {{total}}"
+    },
+    "entry": {
+      "titleAdd": "Add a title",
+      "titleEdit": "Edit the entry",
+      "titleLabel": "Title",
+      "titlePlaceholder": "E.g. One Piece",
+      "stateLabel": "Status",
+      "state": {
+        "toread": "To read",
+        "done": "Read"
+      },
+      "noteLabel": "Note (optional)",
+      "notePlaceholder": "E.g. recommended by Marco",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving…"
+    },
+    "errors": {
+      "titleRequired": "Enter the title.",
+      "duplicate": "This title is already in the list.",
+      "saveFailed": "Save failed. Try again."
+    }
   }
 }

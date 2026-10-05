@@ -1,0 +1,17 @@
+.warning-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--warn);
+  border-radius: 10px;
+  background: var(--warn-bg);
+  color: #f1dfa6;
+  font-size: 14px;
+}
+
+.warning-notice .icon {
+  margin-top: 1px;
+  color: var(--warn);
+}

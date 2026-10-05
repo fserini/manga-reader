@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -85,15 +85,13 @@ function Cover({ blob, alt, title }) {
   return <img className="catalog-cover" src={url} alt={alt} />;
 }
 
-// onFavoriteChanged: chiamata dopo ogni cambio di preferito, così la Libreria
-// può aggiornare la sezione dedicata (che vive in un componente sorella,
-// separato per non perdere il livello di navigazione corrente qui dentro).
-// favoritesRevision è il senso inverso: la Libreria lo incrementa quando un
-// preferito viene tolto dalla sezione dedicata, e il Catalogo ricarica le serie
-// perché la stella sia aggiornata (Fase 33). onProgressChanged, allo stesso
-// modo di onFavoriteChanged, dopo un "segna come letto" (o "non letto"), che
-// può cambiare cosa c'è da continuare.
-function Catalog({ onFavoriteChanged, onProgressChanged, favoritesRevision = 0 }) {
+// onProgressChanged: chiamata dopo un "segna come letto" (o "non letto"), che
+// può cambiare cosa c'è da continuare. initialSeriesId (Fase 34): una serie da
+// aprire appena il Catalogo è caricato, quando si arriva dalla lista "Le mie
+// serie". I preferiti non hanno più una sezione in Libreria: la stella qui sulle
+// serie si legge e si scrive da sola, e la lista del Profilo si ricarica
+// aprendola.
+function Catalog({ onProgressChanged, initialSeriesId = null }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -151,20 +149,19 @@ function Catalog({ onFavoriteChanged, onProgressChanged, favoritesRevision = 0 }
     };
   }, []);
 
-  // Un preferito è stato tolto dalla sezione dedicata (Fase 33): si ricaricano
-  // le serie, così la stella è aggiornata. Si salta il valore iniziale, che il
-  // caricamento qui sopra già copre.
+  // Serie da aprire subito, quando si arriva dalla lista "Le mie serie" (Fase
+  // 34): una volta sola, appena le serie sono caricate. Se nel frattempo la serie
+  // non esiste più, si resta sull'elenco.
+  const openedInitialRef = useRef(false);
   useEffect(() => {
-    if (favoritesRevision === 0) return undefined;
-    let cancelled = false;
-    (async () => {
-      const list = await getAllSeries();
-      if (!cancelled) setSeries(list);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [favoritesRevision]);
+    if (initialSeriesId == null || loading || openedInitialRef.current) return;
+    openedInitialRef.current = true;
+    const match = series.find((item) => item.id === initialSeriesId);
+    if (match) openSeries(match);
+    // openSeries è una funzione del componente, ricreata a ogni render: serve
+    // solo una volta, qui.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialSeriesId, loading, series]);
 
   // La ricerca globale (livello Serie, query non vuota) ha bisogno di tutti i
   // capitoli: li carichiamo la prima volta che si scrive qualcosa, non
@@ -281,7 +278,6 @@ function Catalog({ onFavoriteChanged, onProgressChanged, favoritesRevision = 0 }
   async function toggleFavorite(id) {
     await toggleSeriesFavorite(id);
     await reloadCurrentLevel();
-    onFavoriteChanged?.();
   }
 
   // "Segna come letto" su un volume intero. Se è già tutto letto il gesto
@@ -312,12 +308,10 @@ function Catalog({ onFavoriteChanged, onProgressChanged, favoritesRevision = 0 }
   }
 
   // Dopo una rinomina: ricarica il livello (anche la ricerca globale, che porta
-  // titoli e numeri di volume) e fa aggiornare i Preferiti, che mostrano il
-  // titolo della serie accanto ai loro volumi e capitoli.
+  // titoli e numeri di volume).
   async function handleRenamed() {
     setRenameTarget(null);
     await reloadCurrentLevel();
-    onFavoriteChanged?.();
   }
 
   // Raccoglie gli handle di tutti i file coinvolti dalla rimozione (per la
