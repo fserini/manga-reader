@@ -284,7 +284,7 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 - **Rimuovere la copertina personalizzata** per Serie e Volumi (selettore di copertina, `coverCustom`, anteprime nelle righe); da decidere cosa succede alle copertine già scelte (ignorate; i campi restano nei backup)
 - **Categorizzazione**: finita la categorizzazione, se non ci sono altri file da categorizzare, reindirizzamento alla Libreria (singola e multipla)
 - **Suggerimenti nella categorizzazione — risposta di Federico**: nel **form multiplo** non gli piace che il titolo della serie venga ricavato dal nome del file; preferisce com'era prima, con il campo vuoto e l'esempio scritto ("Es. One Piece") prima di inserire un valore. Da chiarire: valgono anche per il form singolo, e restano il numero di volume e di capitolo pre-compilati? (Il dialog singolo era pre-compilato dalla Fase 23.)
-- **Lettore: cambio di direzione senza overlay.** Il filtro notte ha il suo velo, il cambio di direzione (RTL/LTR) non mostra nessun segnale. Interpretazione da confermare: un breve avviso a schermo ("Lettura da destra a sinistra") quando si cambia
+- **Lettore: il pulsante del cambio di direzione deve mostrare il suo stato.** Risposta di Federico: l'"overlay" è uno sfondo sul pulsante che renda evidente in ogni momento lo stato, premuto o no (come già fanno i pulsanti delle modalità di lettura e il filtro notte quando sono attivi). La direzione ha due stati e nessuno è "spento": proposta da confermare — sfondo sempre presente più una sigla (RTL / LTR) o l'icona che si inverte
 
 ### Fase 34 — Scheda "Da leggere" e Preferiti spostati
 
@@ -297,12 +297,12 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 - **Impostazioni con menu a burger**: le voci Aspetto, Lingua e Backup e ripristino stanno in un menu; la pagina principale mostra **solo le statistiche**
 - **Statistiche senza il tempo** (via il tempo stimato). Si tiene traccia di **numero di serie, volumi e capitoli** (più le pagine lette e i capitoli finiti, da confermare)
 - **Idea: spesa totale in euro**. Da progettare: dove l'utente inserisce il prezzo (per volume? per serie?), come si somma, e se ha senso mostrarla solo se compilata
-- **Reset delle statistiche** con finestra di conferma. Da decidere: cosa si azzera. Le statistiche oggi derivano dal progresso di lettura (pagina raggiunta, "in corso", "continua a leggere"): azzerarlo cancellerebbe anche quelli; un reset "solo statistiche" richiederebbe un punto di partenza separato
+- **Reset delle statistiche** con finestra di conferma. Risposta di Federico: si azzerano **solo i contatori, il progresso di lettura resta invariato** ("Continua a leggere", "In corso", pagine raggiunte). Implicazione tecnica: le statistiche oggi sono calcolate dal progresso, quindi serve un **punto di partenza** salvato al reset (i valori dei contatori in quel momento), e si mostra la differenza tra il valore attuale e il punto di partenza (mai sotto zero). Da decidere dove salvarlo: nel database (viaggia nel backup) o in locale sul dispositivo. Serie, volumi e capitoli sono conteggi della libreria e non si azzerano
 
 ### Fase 36 — Schermo intero nel Lettore
 
-- **Occupare anche la parte alta dello schermo** del tablet (barra di stato) leggendo a tutto schermo. Strade tecniche: la Fullscreen API da un tocco (richiede un gesto, si esce con un gesto del sistema), oppure `display: fullscreen` nel manifest della PWA (vale per l'intera app)
-- **Barra in basso**: Federico la vuole provare **trasparente o del tutto nascosta** in modalità a schermo intero. **Da chiarire** quale barra intende (il filo di avanzamento/controlli del Lettore o la barra di navigazione di sistema di Android)
+- **Parte alta dello schermo**: Federico chiede se il Lettore a tutto schermo può occupare anche la parte alta del tablet. Il tocco centrale che nasconde i controlli e la barra dell'app esiste già ma "non copre l'intero schermo". Da indagare in due punti: (a) se resta uno spazio vuoto lasciato dalla barra nascosta (layout), (b) se si può coprire anche la barra di stato di sistema (Fullscreen API da un tocco, oppure `display: fullscreen` nel manifest della PWA, che vale per l'intera app)
+- **Barra in basso = il filo di avanzamento** del Lettore (risposta di Federico). In modalità a tutto schermo la vuole provare **trasparente oppure del tutto nascosta**: due varianti da provare sul tablet, eventualmente come scelta in Impostazioni
 - Non verificabile in sandbox: va provato sul tablet, e il comportamento cambia tra browser e app installata
 
 ---
