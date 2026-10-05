@@ -350,13 +350,13 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 
 > Nata dalla richiesta di un tutorial per chi usa l'app per la prima volta. Un video non si può generare qui, e invecchierebbe a ogni modifica dell'interfaccia: la guida vive dentro l'app, resta offline ed è bilingue (italiano/inglese).
 
-- **Guida interattiva**: un breve giro a riquadri che indica le funzioni principali (importare con il "+", la barra di navigazione, la Libreria e la coda "Da categorizzare", il Lettore e le sue modalità, i Preferiti, il backup in Impostazioni)
+- **Guida interattiva**: un breve giro a riquadri che indica le funzioni principali (importare con il "+", la barra di navigazione, la Libreria e la coda "Da categorizzare", il Lettore e le sue modalità, la scheda Profilo con la lista "Le mie serie", il backup nel menu della chiave inglese del Profilo)
 - **Pulsante "Guida" (?)** nella barra di navigazione, in tutte e tre le varianti di menu (icone, tendina, laterale): è un aiuto, non una destinazione di uso quotidiano, quindi con un peso visivo diverso dalle tre schede
-- **Primo avvio**: proposta della guida solo a chi apre l'app per la prima volta (segno salvato in locale) *e* ha la libreria vuota; chi ha già dei capitoli non se la vede imporre. Sempre saltabile, mai bloccante; rivedibile da Impostazioni
+- **Primo avvio**: proposta della guida solo a chi apre l'app per la prima volta (segno salvato in locale) *e* ha la libreria vuota; chi ha già dei capitoli non se la vede imporre. Sempre saltabile, mai bloccante; rivedibile dal menu della chiave inglese del Profilo
 - **Dati di prova** ammessi nel giro (decisione di Federico): generati dall'app, senza manga con diritti d'autore
-- **Guida utente** leggibile con calma: pagina dedicata, aperta da un pulsante "Guida utente" in Impostazioni (oltre al giro e al "?" nella barra)
+- **Guida utente** leggibile con calma: pagina dedicata, aperta da un pulsante "Guida utente" nel menu della chiave inglese del Profilo (oltre al giro e al "?" nella barra)
 - **Contenuto come dati, non scritto nel codice dei componenti** (sezioni e domande/risposte in file separati, in italiano e inglese): così la guida può essere aggiornata senza toccare l'interfaccia, e un giorno può diventare la base di conoscenza di un assistente IA che risponda alle domande dell'utente sull'app (idea da valutare insieme alla Fase 32, con la stessa gestione della chiave e il vincolo "solo online, su richiesta")
-- Ordine deciso da Federico: la Fase 31 parte **dopo** aver concluso le fasi ancora aperte (26 e 27)
+- Ordine deciso da Federico: la Fase 31 parte **dopo** aver concluso le fasi 33-36 (correzioni, schermo intero, scheda Profilo, lista unica), così la guida descrive l'interfaccia definitiva
 
 ---
 
