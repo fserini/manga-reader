@@ -274,7 +274,7 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 
 > Raccolte da Federico dopo aver provato le fasi 23-30 sul tablet. Esito dei test: **PDF caricato e visibile, menu corretti, CBR funzionante, categorizzazione multipla funzionante, statistiche visibili**. Le note sotto sono correzioni e nuove richieste, **non ancora iniziate**.
 >
-> **Ordine proposto**: queste fasi vanno fatte **prima della 31** (la guida interattiva descrive l'interfaccia: conviene scriverla quando l'interfaccia ha smesso di cambiare), e la **32 (IA) resta ultima**. I numeri sono d'ordine di elenco, non vincolano la sequenza: la 33 è piccola e indipendente, la 34 è la più grande.
+> **Ordine proposto**: 33 → 36 → **35 → 34** (la 35 crea la scheda Profilo che la 34 riempie). Tutte **prima della 31** (la guida interattiva descrive l'interfaccia: conviene scriverla quando ha smesso di cambiare); la **32 (IA) resta ultima**. I numeri sono d'ordine di elenco, non di esecuzione.
 
 ### Fase 33 — Correzioni e semplificazioni
 
@@ -286,18 +286,52 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 - **Categorizzazione: niente più informazioni ricavate dal nome del file** (decisione di Federico, vale per il **form singolo e per il multiplo**). Via la pre-compilazione introdotta dalla Fase 23: serie suggerita o nuova, volume e numero di capitolo. Tornano i campi vuoti con l'esempio scritto ("Es. One Piece", "Es. 1"). Restano il form multiplo (selezione, serie unica, "stesso volume per tutti", numero per riga) e il salvataggio in blocco. A implementazione: il parser dei nomi (`chapterNameParser.js`) resta inutilizzato per questo scopo; `normalizeTitle` serve ancora alla rinomina, il resto si può togliere; aggiornare il documento didattico della Fase 23
 - **Lettore: il pulsante del cambio di direzione deve mostrare il suo stato.** Risposta di Federico: l'"overlay" è uno sfondo sul pulsante che renda evidente in ogni momento lo stato, premuto o no (come già fanno i pulsanti delle modalità di lettura e il filtro notte quando sono attivi). La direzione ha due stati e nessuno è "spento": proposta da confermare — sfondo sempre presente più una sigla (RTL / LTR) o l'icona che si inverte
 
-### Fase 34 — Scheda "Da leggere" e Preferiti spostati
+### Fase 35 — Scheda Profilo: il guscio, le Impostazioni e le statistiche
 
-- **Lista di manga da leggere inseriti a mano**: l'utente aggiunge un titolo che intende leggere (anche non ancora in libreria) e lo tiene in lista per ricordare quali ha già letto e quali deve ancora leggere (stati tipo Da leggere / In lettura / Letto)
-- **Nuova scheda** (o la scheda delle statistiche: da decidere), che accoglie anche i **Preferiti**: la card dei preferiti sparisce dalla Libreria
-- Da decidere: nome e posizione della scheda (la barra ha già tre schede e il "?" previsto dalla 31), se una voce della lista può collegarsi a una serie già in libreria, e se i campi servono anche a un'eventuale idea di spesa (vedi 35)
+> Si fa **prima della 34**: crea la scheda che la 34 riempie. Disegno concordato con Federico (2026-10-05).
 
-### Fase 35 — Impostazioni a menu e statistiche rivisitate
+- **La terza scheda diventa "Profilo"** (era "Impostazioni"), con l'icona di una persona nella barra. Dentro, in alto, un'**icona a chiave inglese** apre le impostazioni (Aspetto, Lingua, Backup e ripristino): sostituisce l'idea del burger. La pagina principale mostra le card (vedi 34), a partire dalle statistiche
+- **Card Statistiche**: non cliccabile. In alto a destra un'icona apre una **finestra di conferma per il reset**
+  - **Via il tempo stimato**
+  - Si tiene traccia di **numero di serie, volumi e capitoli** (conteggi della libreria: non si azzerano); le pagine lette e i capitoli finiti restano da confermare
+  - **Reset = solo i contatori di lettura, il progresso resta invariato** ("Continua a leggere", "In corso", pagine raggiunte). Serve un **punto di partenza** salvato al reset (i valori dei contatori in quel momento): si mostra la differenza tra il valore attuale e il punto di partenza, mai sotto zero. Da decidere dove salvarlo: nel database (viaggia nel backup) o in locale sul dispositivo
+  - **Idea, da progettare**: spesa totale in euro (dove si inserisce il prezzo: per volume o per serie; mostrata solo se compilata). Riguarda i volumi posseduti, quindi la libreria, non la lista "Da leggere"
+- Le pagine nuove sono **indirizzi veri** (per esempio `/profilo`), così il tasto indietro di Android funziona
 
-- **Impostazioni con menu a burger**: le voci Aspetto, Lingua e Backup e ripristino stanno in un menu; la pagina principale mostra **solo le statistiche**
-- **Statistiche senza il tempo** (via il tempo stimato). Si tiene traccia di **numero di serie, volumi e capitoli** (più le pagine lette e i capitoli finiti, da confermare)
-- **Idea: spesa totale in euro**. Da progettare: dove l'utente inserisce il prezzo (per volume? per serie?), come si somma, e se ha senso mostrarla solo se compilata
-- **Reset delle statistiche** con finestra di conferma. Risposta di Federico: si azzerano **solo i contatori, il progresso di lettura resta invariato** ("Continua a leggere", "In corso", pagine raggiunte). Implicazione tecnica: le statistiche oggi sono calcolate dal progresso, quindi serve un **punto di partenza** salvato al reset (i valori dei contatori in quel momento), e si mostra la differenza tra il valore attuale e il punto di partenza (mai sotto zero). Da decidere dove salvarlo: nel database (viaggia nel backup) o in locale sul dispositivo. Serie, volumi e capitoli sono conteggi della libreria e non si azzerano
+### Fase 34 — Liste nel Profilo (Preferiti, In corso, Finiti, Da leggere)
+
+> Disegno concordato con Federico (2026-10-05). Dipende dalla 35 (la scheda Profilo) e dalla 33 (Preferiti solo serie).
+
+**La scheda Profilo mostra queste card, in quest'ordine**: Statistiche (35), **Preferiti, In corso, Finiti, Da leggere**.
+- Ogni card ha il titolo, il **numero totale** e mostra **al massimo 5 titoli in una sola riga**: il CSS nasconde quelli che non entrano (3 sul telefono, 5 sul tablet; senza media query, come il resto dell'app). Se la lista è vuota la card **mostra comunque il suo titolo con un messaggio sotto** (è anche la correzione del banner "nessun preferito" della 33)
+- Toccando una card si apre una **pagina a griglia a tutta pagina** con tutti i titoli (circa 3 colonne sul telefono, 6 sul tablet), a un **indirizzo vero** (per esempio `/profilo/preferiti`) perché il tasto indietro funzioni
+
+**Cosa significano le liste** ("In corso" è la **lettura**, non lo stato di uscita del manga, che sarebbe un'altra informazione, eventualmente futura)
+- **Preferiti**: le serie con la stella (solo serie, vedi 33)
+- **In corso**: serie in libreria con la lettura iniziata e non finita, **in automatico**
+- **Finiti**: serie in libreria con tutti i capitoli letti, in automatico, **più** le voci manuali segnate "Letto" (manga letti altrove, per esempio su carta)
+- **Da leggere**: solo voci **manuali**
+
+**Cosa fa il tocco su un titolo**
+- **Preferiti**: porta alla scheda **Libreria direttamente sulla serie** (serve un collegamento diretto che oggi non c'è). Una serie rimossa perde anche la stella, quindi qui non esiste il caso "non più presente". Nella griglia si può **togliere il preferito**
+- **In corso**: una **finestra di conferma** "Continuare la lettura di …?"; con "Continua" si va nel Lettore, sull'ultimo capitolo letto di quella serie, alla pagina dove si era rimasti. Il pulsante "Continua" è il tocco che serve per chiedere il permesso di lettura sul file (come l'attuale "Riprendi")
+- **Finiti e Da leggere**: come i Preferiti, ma **senza** la possibilità di togliere uno stato di preferito. Se il titolo è ancora in libreria, si va alla Libreria; altrimenti un **avviso giallo** a schermo dice che il titolo non è più presente (serve un nuovo avviso di colore giallo)
+
+**Aggiungere e togliere voci (solo liste manuali): modalità "Modifica"**
+- Una matita nell'intestazione della pagina a griglia attiva la modalità: compaiono una "x" su ogni card (conferma di rimozione) e una card "+" per aggiungere. Fuori da questa modalità, un tocco apre la serie
+- Il "+" apre una piccola finestra con **titolo**, **stato** (Da leggere / Letto) e **nota facoltativa**
+- **Un titolo già presente nella lista è bloccato** con un messaggio, come per la rinomina delle serie (stesso confronto normalizzato)
+
+**Dati**
+- Nuova tabella `readingList` (nuova versione dello schema): titolo, stato, nota, `seriesId` facoltativo, date. Solo voci manuali: **non** si creano serie vuote nel Catalogo
+- **Backup**: la lista entra nel file e nel ripristino; un backup vecchio senza lista **non cancella** la lista già presente
+- La tabella può ospitare anche il punto di partenza delle statistiche (35), per non fare due aggiornamenti di schema
+
+**Dividere in due**
+- **34a**: tabella, card e pagine a griglia, Preferiti spostati con collegamento diretto alla serie, In corso e Finiti automatici, finestra "Continua", modalità Modifica con aggiunta/rimozione di titoli liberi, avviso giallo
+- **34b**: **collegamento con le serie in libreria**: mentre si scrive il titolo di una voce, l'app suggerisce le serie già in libreria e, se se ne sceglie una, la voce si collega a quella serie in modo sicuro (altrimenti, per un titolo libero, il collegamento si prova per nome). Una voce collegata e rimossa dalla libreria dà l'avviso giallo. Una voce "Da leggere" collegata a una serie su cui si è iniziato a leggere passa da sola in "In corso"
+
+**Da sapere**: "In corso" per serie assomiglia a "In corso di lettura" della scheda Lettore, che è per capitolo. Convivono. Da tenere presente per la guida (31).
 
 ### Fase 36 — Schermo intero nel Lettore
 
