@@ -104,7 +104,7 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 30a — Prestazioni: database con indici, miniature a parte, ultima lettura sulla serie (schema v3)
 - [x] Fase 30b — Prestazioni: backup a pezzi (completo e leggero), ripristino a flusso
 - [ ] Fase 33 — Correzioni e semplificazioni (preferiti solo serie, bug stella, copertine, reindirizzamenti, direzione) — note dai test su tablet, da fare prima della 31
-- [ ] Fase 34 — Liste nel Profilo (Preferiti, In corso, Finiti, Da leggere) — disegno concordato, da fare dopo la 35 (34a + 34b)
+- [ ] Fase 34 — Lista unica "Le mie serie" nel Profilo (chip Preferiti / In corso / Finiti / Da leggere, ricerca, ordinamento) — disegno approvato su mockup, da fare dopo la 35 (34a + 34b)
 - [ ] Fase 35 — Scheda Profilo: guscio, impostazioni con chiave inglese, statistiche senza tempo con reset — disegno concordato
 - [ ] Fase 36 — Schermo intero nel Lettore — da chiarire e provare sul tablet
 - [ ] Fase 31 — Guida interattiva — pianificata, non ancora iniziata

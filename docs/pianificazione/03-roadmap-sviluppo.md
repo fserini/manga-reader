@@ -298,38 +298,43 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
   - **Idea, da progettare**: spesa totale in euro (dove si inserisce il prezzo: per volume o per serie; mostrata solo se compilata). Riguarda i volumi posseduti, quindi la libreria, non la lista "Da leggere"
 - Le pagine nuove sono **indirizzi veri** (per esempio `/profilo`), così il tasto indietro di Android funziona
 
-### Fase 34 — Liste nel Profilo (Preferiti, In corso, Finiti, Da leggere)
+### Fase 34 — Lista unica "Le mie serie" nel Profilo
 
-> Disegno concordato con Federico (2026-10-05). Dipende dalla 35 (la scheda Profilo) e dalla 33 (Preferiti solo serie).
+> Disegno concordato con Federico (2026-10-05) e approvato su mockup interattivo: **una sola card con una sola lista**, gestita con filtri a chip, ricerca e ordinamento (scelta preferita alle quattro card separate Preferiti / In corso / Finiti / Da leggere). Dipende dalla 35 (la scheda Profilo) e dalla 33 (Preferiti solo serie).
 
-**La scheda Profilo mostra queste card, in quest'ordine**: Statistiche (35), **Preferiti, In corso, Finiti, Da leggere**.
-- Ogni card ha il titolo, il **numero totale** e mostra **al massimo 5 titoli in una sola riga**: il CSS nasconde quelli che non entrano (3 sul telefono, 5 sul tablet; senza media query, come il resto dell'app). Se la lista è vuota la card **mostra comunque il suo titolo con un messaggio sotto** (è anche la correzione del banner "nessun preferito" della 33)
-- Toccando una card si apre una **pagina a griglia a tutta pagina** con tutti i titoli (circa 3 colonne sul telefono, 6 sul tablet), a un **indirizzo vero** (per esempio `/profilo/preferiti`) perché il tasto indietro funzioni
+**Scheda Profilo**: la card Statistiche (35) e la card **"Le mie serie"**.
+- La card ha il titolo, **quattro chip con i contatori** (Preferiti, In corso, Finiti, Da leggere), **un solo chip selezionato alla volta**, e sotto **una riga di anteprima** dei titoli del chip scelto (3 sul telefono, 5 sul tablet: il CSS nasconde quelli che non entrano in una riga, senza media query)
+- **Chip di partenza: Preferiti.** Il chip scelto è ricordato in locale da una visita all'altra
+- La card è **sempre visibile**: se il chip scelto è vuoto mostra comunque il titolo e i chip, con un messaggio dentro (è anche la correzione del banner "nessun preferito" della 33)
+- Niente chip "Tutti" (non comprenderebbe le serie in libreria mai iniziate né segnate e sembrerebbe una copia del Catalogo) e niente filtri combinabili, per ora
 
-**Cosa significano le liste** ("In corso" è la **lettura**, non lo stato di uscita del manga, che sarebbe un'altra informazione, eventualmente futura)
-- **Preferiti**: le serie con la stella (solo serie, vedi 33)
+**Lista a pagina intera**: si apre toccando la card, già sul chip scelto, a un **indirizzo vero** (per esempio `/profilo/serie`) perché il tasto indietro di Android funzioni. Contiene i chip, la **ricerca** per titolo, l'**ordinamento** (ultima lettura, aggiunti di recente, alfabetico) e una matita per la modalità Modifica. Griglia di circa 3 colonne sul telefono, 6 sul tablet.
+
+**Cosa significano i filtri** ("In corso" è la **lettura**, non lo stato di uscita del manga)
+- **Preferiti**: serie con la stella. La stella è un'etichetta, non uno stato: un titolo può avere la stella senza essere né in corso né finito né da leggere, e allora compare solo sotto Preferiti
 - **In corso**: serie in libreria con la lettura iniziata e non finita, **in automatico**
 - **Finiti**: serie in libreria con tutti i capitoli letti, in automatico, **più** le voci manuali segnate "Letto" (manga letti altrove, per esempio su carta)
 - **Da leggere**: solo voci **manuali**
 
-**Cosa fa il tocco su un titolo**
-- **Preferiti**: porta alla scheda **Libreria direttamente sulla serie** (serve un collegamento diretto che oggi non c'è). Una serie rimossa perde anche la stella, quindi qui non esiste il caso "non più presente". Nella griglia si può **togliere il preferito**
-- **In corso**: una **finestra di conferma** "Continuare la lettura di …?"; con "Continua" si va nel Lettore, sull'ultimo capitolo letto di quella serie, alla pagina dove si era rimasti. Il pulsante "Continua" è il tocco che serve per chiedere il permesso di lettura sul file (come l'attuale "Riprendi")
-- **Finiti e Da leggere**: come i Preferiti, ma **senza** la possibilità di togliere uno stato di preferito. Se il titolo è ancora in libreria, si va alla Libreria; altrimenti un **avviso giallo** a schermo dice che il titolo non è più presente (serve un nuovo avviso di colore giallo)
+**La stella, su ogni titolo**: si aggiunge e si toglie dalla lista nello stesso modo ovunque, come nel Catalogo (che si aggiorna: è anche la correzione del bug della stella, Fase 33). Solo le serie **in libreria** hanno la stella: una voce manuale non collegata a nessuna serie in libreria **non** ha la stella (i preferiti sono serie della libreria). Una voce manuale collegata a una serie in libreria sì.
 
-**Aggiungere e togliere voci (solo liste manuali): modalità "Modifica"**
-- Una matita nell'intestazione della pagina a griglia attiva la modalità: compaiono una "x" su ogni card (conferma di rimozione) e una card "+" per aggiungere. Fuori da questa modalità, un tocco apre la serie
+**Cosa fa il tocco su un titolo, secondo il suo stato**
+- **In corso**: finestra di conferma "Continuare la lettura di …?"; con "Continua" si va nel Lettore sull'ultimo capitolo letto di quella serie, alla pagina dove si era rimasti. Il pulsante "Continua" è il tocco che serve per chiedere il permesso di lettura sul file (come l'attuale "Riprendi")
+- **Tutti gli altri** (Preferiti, Finiti, Da leggere): se il titolo è ancora in libreria, si va alla scheda **Libreria direttamente sulla serie** (serve un collegamento diretto che oggi non c'è); altrimenti un **avviso giallo** dice che il titolo non è più presente (serve un nuovo avviso di colore giallo)
+
+**Aggiungere e togliere voci manuali: modalità "Modifica"**
+- La matita attiva la modalità: compaiono la "x" sulle voci **manuali** (conferma di rimozione; le voci automatiche non si tolgono a mano) e una card "+" per aggiungere
 - Il "+" apre una piccola finestra con **titolo**, **stato** (Da leggere / Letto) e **nota facoltativa**
-- **Un titolo già presente nella lista è bloccato** con un messaggio, come per la rinomina delle serie (stesso confronto normalizzato)
+- **Un titolo già presente nella lista è bloccato** con un messaggio, come per la rinomina delle serie (stesso confronto normalizzato, su tutta la lista)
 
 **Dati**
-- Nuova tabella `readingList` (nuova versione dello schema): titolo, stato, nota, `seriesId` facoltativo, date. Solo voci manuali: **non** si creano serie vuote nel Catalogo
+- Nuova tabella `readingList` (nuova versione dello schema): titolo, stato, nota, `seriesId` facoltativo, date. Solo voci manuali: **non** si creano serie vuote nel Catalogo. In corso, Finiti automatici e Preferiti si ricavano dalla libreria
 - **Backup**: la lista entra nel file e nel ripristino; un backup vecchio senza lista **non cancella** la lista già presente
 - La tabella può ospitare anche il punto di partenza delle statistiche (35), per non fare due aggiornamenti di schema
 
 **Dividere in due**
-- **34a**: tabella, card e pagine a griglia, Preferiti spostati con collegamento diretto alla serie, In corso e Finiti automatici, finestra "Continua", modalità Modifica con aggiunta/rimozione di titoli liberi, avviso giallo
-- **34b**: **collegamento con le serie in libreria**: mentre si scrive il titolo di una voce, l'app suggerisce le serie già in libreria e, se se ne sceglie una, la voce si collega a quella serie in modo sicuro (altrimenti, per un titolo libero, il collegamento si prova per nome). Una voce collegata e rimossa dalla libreria dà l'avviso giallo. Una voce "Da leggere" collegata a una serie su cui si è iniziato a leggere passa da sola in "In corso"
+- **34a**: tabella, card e lista a pagina intera con chip/ricerca/ordinamento, stella (Preferiti spostati fuori dalla Libreria), collegamento diretto alla serie, In corso e Finiti automatici, finestra "Continua", modalità Modifica con aggiunta/rimozione di titoli liberi, avviso giallo
+- **34b**: **collegamento con le serie in libreria**: mentre si scrive il titolo di una voce, l'app suggerisce le serie già in libreria e, se se ne sceglie una, la voce si collega a quella serie in modo sicuro (altrimenti, per un titolo libero, il collegamento si prova per nome). Una voce collegata e rimossa dalla libreria dà l'avviso giallo. Se una voce manuale non collegata corrisponde, per nome, a una serie importata in seguito, si collega e la stella diventa disponibile. Una voce "Da leggere" collegata a una serie su cui si è iniziato a leggere passa da sola in "In corso"
 
 **Da sapere**: "In corso" per serie assomiglia a "In corso di lettura" della scheda Lettore, che è per capitolo. Convivono. Da tenere presente per la guida (31).
 
