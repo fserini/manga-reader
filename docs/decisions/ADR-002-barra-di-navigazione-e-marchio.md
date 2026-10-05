@@ -21,6 +21,7 @@ Esplorate con un mockup interattivo (strumento di discussione, non versionato), 
 
 - **Marchio predefinito: Sigillo.** Il nome resta **"Manga Reader"**: Yomihon rimane il nome della direzione grafica, non dell'app.
 - **Menu predefinito: icone in barra** (libreria, lettore, impostazioni; quella attiva piena in azzurro).
+- *Aggiornamento (Fase 35)*: la terza scheda non si chiama più "Impostazioni" ma **"Profilo"** (icona della persona, indirizzo `/profilo`). Le impostazioni descritte qui (marchio, menu, pagina iniziale) stanno ora in una pagina "Aspetto" raggiungibile dalla chiave inglese in cima al Profilo; il resto del documento resta valido.
 - **Scelta dell'utente in Impostazioni**: il marchio (Dorso / Sigillo / Blueline) e il menu (icone in barra / a tendina / laterale) sono preferenze modificabili, salvate in locale sul dispositivo. Vanno quindi realizzate **tutte e tre** le varianti di entrambi, non solo quelle predefinite.
 - **Importazione**: un'unica icona "+" con una tendina "File" / "Cartella" (con l'elenco dei formati accettati), al posto dei due pulsanti di testo.
 - **Lettore a vuoto**: al posto del selettore singolo, "Continua a leggere" (ultimo capitolo, avanzamento, "Riprendi"), i letti di recente e "Apri un file…". Un file aperto da qui viene **cercato in libreria per nome**: se c'è, si apre quel capitolo con tutti i suoi dati (pagina, segnalibro, preferiti, statistiche); se non c'è, viene importato con le stesse regole dell'import dalla Libreria (validazione, duplicati) e poi aperto. Il percorso "file letto a vuoto" sparisce.

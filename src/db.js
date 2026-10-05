@@ -113,6 +113,14 @@ db.version(3)
     }
   });
 
+// Versione 4 (Fase 35): una piccola tabella chiave/valore, "meta", per i dati
+// dell'app che non sono né serie né capitoli. Oggi contiene una sola riga, il
+// punto di partenza delle statistiche (vedi resetReadingStats). Aggiungere una
+// tabella non cambia le altre: Dexie non richiede un "upgrade" dei dati.
+db.version(4).stores({
+  meta: 'key',
+});
+
 // Dà alle righe dei capitoli la loro miniatura (campo `thumbnail`, come prima
 // della v3), leggendola dalla tabella a parte. Si usa solo dove le miniature
 // servono davvero: la griglia dei capitoli di un volume, la scelta della
@@ -632,13 +640,21 @@ export async function renumberVolume(volumeId, number) {
   });
 }
 
-// --- Statistiche di lettura (Fase 27) ---
+// --- Statistiche di lettura (Fase 27, semplificate nella 35) ---
 //
 // Il database non registra il TEMPO di lettura, solo fino a che pagina si è
 // arrivati in ogni capitolo: le pagine lette sono quindi una stima (l'ultima
-// pagina raggiunta, non quante volte si è tornati indietro) e il tempo è un
-// calcolo su un tempo medio per pagina, dichiarato come tale.
-export const SECONDS_PER_PAGE = 20;
+// pagina raggiunta, non quante volte si è tornati indietro). Per questo la
+// scheda Profilo non mostra più il tempo.
+//
+// Il reset azzera solo il CONTATORE, non il progresso di lettura ("Continua a
+// leggere", "In corso", le pagine raggiunte restano): le pagine lette sono
+// calcolate dal progresso, quindi al reset si salva un "punto di partenza" (le
+// pagine lette in quel momento) e si mostra la differenza. Se il progresso poi
+// scende sotto il punto di partenza (si toglie un capitolo da "In corso"), il
+// punto di partenza scende con lui: altrimenti le pagine lette dopo non
+// conterebbero finché non si recupera la differenza.
+const STATS_BASELINE_KEY = 'statsBaseline';
 
 // Un capitolo è finito se letto fino in fondo oppure segnato a mano (Fase 25).
 function isFinished(chapter, progress) {
@@ -646,69 +662,39 @@ function isFinished(chapter, progress) {
   return Boolean(progress && progress.totalPages > 0 && progress.lastPageRead >= progress.totalPages - 1);
 }
 
-export async function getReadingStats({ topCount = 5 } = {}) {
-  const [progressRows, seriesRows, volumeCount, chapterCount, markedRead] = await Promise.all([
-    db.readingProgress.toArray(),
-    db.series.toArray(),
+// Pagine lette secondo il progresso attuale, senza il punto di partenza.
+async function countPagesRead() {
+  const progressRows = await db.readingProgress.toArray();
+  const chapters = await db.chapters.bulkGet(progressRows.map((progress) => progress.chapterId));
+  let pagesRead = 0;
+  progressRows.forEach((progress, index) => {
+    const chapter = chapters[index];
+    if (!chapter) return; // un progresso rimasto senza capitolo
+    pagesRead += isFinished(chapter, progress) && progress.totalPages ? progress.totalPages : progress.lastPageRead + 1;
+  });
+  return pagesRead;
+}
+
+export async function getReadingStats() {
+  const [series, volumes, chapters, current, baselineRow] = await Promise.all([
+    db.series.count(),
     db.volumes.count(),
     db.chapters.count(),
-    // Segnati come letti a mano: nessun indice, ma sono righe leggere (le
-    // miniature stanno in un'altra tabella, Fase 30a).
-    db.chapters.filter((chapter) => Boolean(chapter.markedRead)).toArray(),
+    countPagesRead(),
+    db.meta.get(STATS_BASELINE_KEY),
   ]);
 
-  const chapters = await db.chapters.bulkGet(progressRows.map((progress) => progress.chapterId));
-  const progressById = new Map(progressRows.map((progress) => [progress.chapterId, progress]));
-  const seriesTitle = new Map(seriesRows.map((series) => [series.id, series.title]));
-
-  let pagesRead = 0;
-  let chaptersStarted = 0;
-  let chaptersFinished = 0;
-  const perSeries = new Map();
-
-  function addToSeries(seriesId, pages, finished) {
-    if (seriesId == null || !seriesTitle.has(seriesId)) return;
-    const entry = perSeries.get(seriesId) ?? { id: seriesId, title: seriesTitle.get(seriesId), pages: 0, chaptersRead: 0 };
-    entry.pages += pages;
-    if (finished) entry.chaptersRead += 1;
-    perSeries.set(seriesId, entry);
+  let baseline = baselineRow?.pagesRead ?? 0;
+  if (baseline > current) {
+    baseline = current;
+    await db.meta.put({ key: STATS_BASELINE_KEY, pagesRead: baseline, at: Date.now() });
   }
+  return { library: { series, volumes, chapters }, pagesRead: current - baseline };
+}
 
-  chapters.forEach((chapter) => {
-    if (!chapter) return; // un progresso rimasto senza capitolo
-    const progress = progressById.get(chapter.id);
-    const finished = isFinished(chapter, progress);
-    const pages = finished && progress?.totalPages ? progress.totalPages : (progress?.lastPageRead ?? 0) + 1;
-    pagesRead += pages;
-    chaptersStarted += 1;
-    if (finished) chaptersFinished += 1;
-    addToSeries(chapter.seriesId, pages, finished);
-  });
-
-  // Segnati a mano e senza un progresso proprio: contano come capitoli finiti
-  // (le loro pagine non si conoscono, quindi non si sommano).
-  markedRead.forEach((chapter) => {
-    if (progressById.has(chapter.id)) return;
-    chaptersStarted += 1;
-    chaptersFinished += 1;
-    addToSeries(chapter.seriesId, 0, true);
-  });
-
-  const topSeries = [...perSeries.values()]
-    .filter((entry) => entry.pages > 0 || entry.chaptersRead > 0)
-    .sort((a, b) => b.pages - a.pages || b.chaptersRead - a.chaptersRead)
-    .slice(0, topCount);
-
-  return {
-    library: { series: seriesRows.length, volumes: volumeCount, chapters: chapterCount },
-    reading: {
-      pagesRead,
-      chaptersStarted,
-      chaptersFinished,
-      estimatedMinutes: Math.round((pagesRead * SECONDS_PER_PAGE) / 60),
-    },
-    topSeries,
-  };
+// Azzera il contatore delle pagine lette (non il progresso).
+export async function resetReadingStats() {
+  await db.meta.put({ key: STATS_BASELINE_KEY, pagesRead: await countPagesRead(), at: Date.now() });
 }
 
 // --- Backup e ripristino (Fase 30b) ---
@@ -726,6 +712,7 @@ export async function getReadingStats({ topCount = 5 } = {}) {
 //   "series":[…],
 //   "volumes":[…],
 //   "readingProgress":[…],
+//   "meta":[…],
 //   "chapters":[
 //   {capitolo},
 //   {capitolo}
@@ -795,10 +782,11 @@ export async function estimateBackupSize() {
 // significato altrove — dopo un ripristino i capitoli vanno ricollegati
 // re-importando gli stessi file (vedi getChapterByFileName/setChapterHandle).
 export async function* exportBackupParts({ light = false, onProgress } = {}) {
-  const [seriesRows, volumeRows, progressRows, chapterCount] = await Promise.all([
+  const [seriesRows, volumeRows, progressRows, metaRows, chapterCount] = await Promise.all([
     db.series.toArray(),
     db.volumes.toArray(),
     db.readingProgress.toArray(),
+    db.meta.toArray(),
     db.chapters.count(),
   ]);
   const header = {
@@ -813,6 +801,7 @@ export async function* exportBackupParts({ light = false, onProgress } = {}) {
   yield `"series":${JSON.stringify(await rowsWithCoverAsDataUrl(seriesRows))},\n`;
   yield `"volumes":${JSON.stringify(await rowsWithCoverAsDataUrl(volumeRows))},\n`;
   yield `"readingProgress":${JSON.stringify(progressRows)},\n`;
+  yield `"meta":${JSON.stringify(metaRows)},\n`;
   yield '"chapters":[\n';
 
   // I capitoli si leggono a blocchi, in ordine di id: "dopo l'ultimo id visto"
@@ -910,7 +899,9 @@ export async function inspectBackupFile(file) {
 // Dalle righe del file ai pezzi che servono al ripristino: serie, volumi,
 // progressi (righe piccole, una volta sola) e i capitoli, uno alla volta.
 async function readLinesBackup(file) {
-  const parts = { series: [], volumes: [], readingProgress: [] };
+  // meta resta undefined se il file non la contiene (backup precedenti alla
+  // Fase 35): in quel caso il ripristino lascia la tabella com'è.
+  const parts = { series: [], volumes: [], readingProgress: [], meta: undefined };
   // Iteratore manuale: con un `for await … break` il generatore verrebbe
   // chiuso, e i capitoli non si potrebbero più leggere dopo l'intestazione.
   const lines = readLines(file)[Symbol.asyncIterator]();
@@ -921,7 +912,7 @@ async function readLinesBackup(file) {
       inChapters = true;
       break;
     }
-    const match = /^"(series|volumes|readingProgress)":(.*?),?$/.exec(step.value);
+    const match = /^"(series|volumes|readingProgress|meta)":(.*?),?$/.exec(step.value);
     if (match) parts[match[1]] = JSON.parse(match[2]);
   }
   if (!inChapters) throw Object.assign(new Error('invalid'), { code: 'invalid' });
@@ -959,6 +950,7 @@ export async function restoreBackupFile(file, inspected, { onProgress } = {}) {
           series: inspected.legacy.series ?? [],
           volumes: inspected.legacy.volumes ?? [],
           readingProgress: inspected.legacy.readingProgress ?? [],
+          meta: inspected.legacy.meta,
           chapters: chaptersOf(inspected.legacy.chapters ?? []),
         };
 
@@ -997,7 +989,7 @@ export async function restoreBackupFile(file, inspected, { onProgress } = {}) {
 
   await db.transaction(
     'rw',
-    [db.series, db.volumes, db.chapters, db.readingProgress, db.thumbnails],
+    [db.series, db.volumes, db.chapters, db.readingProgress, db.thumbnails, db.meta],
     async () => {
       await Promise.all([
         db.series.clear(),
@@ -1005,6 +997,7 @@ export async function restoreBackupFile(file, inspected, { onProgress } = {}) {
         db.chapters.clear(),
         db.readingProgress.clear(),
         db.thumbnails.clear(),
+        ...(source.meta ? [db.meta.clear()] : []),
       ]);
       await Promise.all([
         db.series.bulkAdd(series),
@@ -1012,6 +1005,7 @@ export async function restoreBackupFile(file, inspected, { onProgress } = {}) {
         db.chapters.bulkAdd(chapters),
         db.readingProgress.bulkAdd(source.readingProgress),
         db.thumbnails.bulkAdd(thumbnails),
+        ...(source.meta ? [db.meta.bulkAdd(source.meta)] : []),
       ]);
     },
   );

@@ -289,7 +289,9 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 - **Categorizzazione: niente più informazioni ricavate dal nome del file** (decisione di Federico, vale per il **form singolo e per il multiplo**). Via la pre-compilazione introdotta dalla Fase 23: serie suggerita o nuova, volume e numero di capitolo. Tornano i campi vuoti con l'esempio scritto ("Es. One Piece", "Es. 1"). Restano il form multiplo (selezione, serie unica, "stesso volume per tutti", numero per riga) e il salvataggio in blocco. A implementazione: il parser dei nomi (`chapterNameParser.js`) resta inutilizzato per questo scopo; `normalizeTitle` serve ancora alla rinomina, il resto si può togliere; aggiornare il documento didattico della Fase 23
 - **Lettore: il pulsante del cambio di direzione deve mostrare il suo stato.** Risposta di Federico: l'"overlay" è uno sfondo sul pulsante che renda evidente in ogni momento lo stato, premuto o no (come già fanno i pulsanti delle modalità di lettura e il filtro notte quando sono attivi). La direzione ha due stati e nessuno è "spento": proposta da confermare — sfondo sempre presente più una sigla (RTL / LTR) o l'icona che si inverte
 
-### Fase 35 — Scheda Profilo: il guscio, le Impostazioni e le statistiche
+### Fase 35 — Scheda Profilo: il guscio, le Impostazioni e le statistiche — completata
+
+> **Completata**: dettagli in [`docs/didattica/fase35-scheda-profilo.md`](../didattica/fase35-scheda-profilo.md). Nuova versione 4 dello schema con la tabella `meta` (punto di partenza delle statistiche), inclusa nel backup; indirizzi `/profilo` e `/profilo/<sezione>`, con `/settings` che reindirizza.
 
 > Si fa **prima della 34**: crea la scheda che la 34 riempie. Disegno concordato con Federico (2026-10-05).
 

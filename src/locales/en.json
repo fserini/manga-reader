@@ -2,12 +2,12 @@
   "nav": {
     "library": "Library",
     "reader": "Reader",
-    "settings": "Settings",
     "home": "Manga Reader: go to Library",
     "menu": "Open menu",
     "close": "Close menu",
     "sections": "Sections",
-    "drawerTitle": "Navigate"
+    "drawerTitle": "Navigate",
+    "profile": "Profile"
   },
   "library": {
     "title": "Library",
@@ -264,8 +264,6 @@
     "unsupportedFile": "Unsupported format ({{format}}). Accepted formats: {{formats}}."
   },
   "settings": {
-    "title": "Settings",
-    "appearanceHeading": "Appearance",
     "appearanceHint": "Choose how the logo at the top and the navigation menu look. Your choices stay on this device.",
     "logoLabel": "Logo",
     "menuLabel": "Navigation menu",
@@ -279,30 +277,11 @@
       "pop": "Dropdown",
       "drawer": "Side drawer"
     },
-    "languageHeading": "Language",
     "languageHint": "Choose the interface language.",
     "language": {
       "it": "Italiano",
       "en": "English"
     },
-    "statsHeading": "Reading statistics",
-    "statsHint": "Calculated from your reading progress. The time is an estimate: the app doesn't measure it, it works it out at {{seconds}} seconds per page.",
-    "statsLoading": "Calculating…",
-    "statsEmpty": "You haven't read anything yet: statistics appear after the first pages.",
-    "statsPages": "Pages read",
-    "statsChaptersFinished": "Chapters finished",
-    "statsChaptersStarted": "Chapters started",
-    "statsTime": "Estimated time",
-    "statsLibrary": "In the library: {{series}} series, {{volumes}} volumes, {{chapters}} chapters.",
-    "statsTopHeading": "Most read series",
-    "statsTopRow": "{{pages}} · {{chapters}}",
-    "statsTopPages_one": "{{count}} page",
-    "statsTopPages_other": "{{count}} pages",
-    "statsTopChapters_one": "{{count}} chapter read",
-    "statsTopChapters_other": "{{count}} chapters read",
-    "statsHours": "{{hours}} h {{minutes}} min",
-    "statsMinutes": "{{minutes}} min",
-    "backupHeading": "Backup and restore",
     "backupHint": "Export your entire library (series, volumes, chapters, reading progress, favorites) to a file you can keep or transfer to another device.",
     "backupModeLabel": "Backup type",
     "backupMode": {
@@ -374,5 +353,29 @@
     "openFile": "Open a file…",
     "opening": "Opening…",
     "hint": "If the file is already in the library I recognize it by name: you get your page, bookmark and favorites back. Otherwise I import it and open it."
+  },
+  "profile": {
+    "title": "Profile",
+    "settings": "Settings",
+    "menu": {
+      "aspetto": "Appearance",
+      "lingua": "Language",
+      "backup": "Backup and restore"
+    }
+  },
+  "stats": {
+    "title": "Statistics",
+    "loading": "Calculating…",
+    "series": "Series",
+    "volumes": "Volumes",
+    "chapters": "Chapters",
+    "pages": "Pages read",
+    "resetAria": "Reset the statistics",
+    "resetTitle": "Reset the statistics?",
+    "resetNote": "Only the reading counters (pages read) are reset. Your progress, \"Continue reading\" and \"In progress\" stay as they are.",
+    "resetConfirm": "Reset",
+    "cancel": "Cancel",
+    "resetDone": "Statistics reset. Your reading progress has not changed.",
+    "resetError": "Reset failed. Try again."
   }
 }

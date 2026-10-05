@@ -1,0 +1,91 @@
+/* Card Statistiche del Profilo (Fase 35). */
+.stats-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.stats-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* Il titolo di sezione globale (h2) ha un bordo e un margine pensati per le
+   sezioni di pagina: qui no. */
+.stats-card .stats-card-head h2 {
+  margin: 0;
+  padding: 0;
+  border: none;
+  font-size: 19px;
+}
+
+.stats-card-reset {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.stats-card-reset:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.stats-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.stats-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.stats-tile dt {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.stats-tile dd {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-card-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.stats-card-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: 14px;
+}

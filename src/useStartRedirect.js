@@ -12,7 +12,7 @@ import { getContinueTarget } from './db.js';
 //   `ready` non torna mai a false. Toccare "Libreria" dopo, dentro l'app,
 //   non rimanda al Lettore;
 // - scatta solo se l'indirizzo di avvio è la radice: i link diretti
-//   (/settings, /reader/12) restano dove sono;
+//   (/profilo, /reader/12) restano dove sono;
 // - `replace` al posto di una navigazione normale, così il tasto indietro non
 //   resta intrappolato tra la radice e il Lettore.
 //
