@@ -371,7 +371,9 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 - **Popup dei preferiti**: un avviso breve in basso, non bloccante, che sparisce da solo ("Aggiunta ai preferiti" / "Rimossa dai preferiti"); per la rimozione c'è "Annulla". Vale ovunque ci sia la stella (Catalogo, lista). Un componente di avviso unico, riusabile
 - Aggiornati i testi dei chip e il documento didattico della 34 (dove dicevano "Da leggere: solo voci manuali")
 
-### Fase 38 — Importazione e categorizzazione più comode
+### Fase 38 — Importazione e categorizzazione più comode — completata
+
+> **Completata**: dettagli in [`docs/didattica/fase38-import-categorizzazione.md`](../didattica/fase38-import-categorizzazione.md). Il mockup ha mostrato che la serie si sceglie da un menu a tendina (non si scrive): "l'ultimo titolo" è l'ultima **serie** usata; Federico ha scelto la **variante A** (riquadro tratteggiato sotto il menu, tocco o Tab). L'ultima serie si ricorda in locale (id, non entra nel backup) dopo ogni categorizzazione, singola o multipla.
 
 - **Caricamento visibile nell'importazione massiva** di una cartella: basta un'**icona di caricamento** (decisione di Federico, niente barra con contatori) finché l'operazione non finisce, che impedisce di toccare altro; in fondo un messaggio con il **numero di file importati**
 - **Categorizzazione multipla: suggerimento dell'ultimo titolo categorizzato**. Federico vuole **vederlo prima di decidere se gli piace**: a inizio fase si mostra un mockup. Idea di partenza: sotto il campo Titolo, un tocco rapido "Ultimo: One Piece"; con la tastiera fisica, **Tab** compila il campo con quel titolo (sul tablet senza tastiera resta il tocco). Solo per il titolo, non per gli altri campi

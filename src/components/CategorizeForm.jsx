@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAllSeries, getVolumesForSeries, addSeries, addVolume, categorizeChapter } from '../db.js';
+import { guessChapterNumber } from '../chapterNumber.js';
+import { saveLastSeriesId } from '../lastSeries.js';
 import './CategorizeForm.css';
 
 // Valore speciale usato nei menu a tendina per la voce "crea nuovo".
@@ -19,15 +21,19 @@ function CategorizeForm({ chapter, onCancel, onDone }) {
   const [volumeChoice, setVolumeChoice] = useState('');
   const [newSeriesTitle, setNewSeriesTitle] = useState('');
   const [newVolumeNumber, setNewVolumeNumber] = useState('');
-  const [chapterNumber, setChapterNumber] = useState('');
+  // Il numero del capitolo si precompila dal nome del file, quando lo si capisce
+  // (Fase 38); titolo e volume restano vuoti. Resta modificabile.
+  const [guessedNumber] = useState(() => guessChapterNumber(chapter.fileName));
+  const [chapterNumber, setChapterNumber] = useState(guessedNumber);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
   const creatingNewSeries = seriesChoice === NEW;
 
-  // Carica le serie esistenti all'apertura del form. I campi partono vuoti: dal
-  // nome del file non si ricava più nulla (decisione di Federico, Fase 33).
+  // Carica le serie esistenti all'apertura del form. Serie e volume partono
+  // vuoti: dal nome del file non si ricava più nulla (decisione di Federico, Fase
+  // 33), salvo il numero del capitolo (Fase 38).
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -109,6 +115,7 @@ function CategorizeForm({ chapter, onCancel, onDone }) {
       }
 
       await categorizeChapter(chapter.id, { seriesId, volumeId, number });
+      saveLastSeriesId(seriesId);
       onDone();
     } catch {
       setError(t('categorizeForm.errors.saveFailed'));
@@ -188,6 +195,9 @@ function CategorizeForm({ chapter, onCancel, onDone }) {
             min="0"
             step="any"
           />
+          {guessedNumber !== '' && chapterNumber === guessedNumber && (
+            <small className="cf-hint">{t('categorizeForm.numberFromFile')}</small>
+          )}
         </label>
 
         {error && (

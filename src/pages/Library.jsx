@@ -14,6 +14,7 @@ import Catalog from '../components/Catalog.jsx';
 import ImportMenu from '../components/ImportMenu.jsx';
 import { SkeletonPage } from '../components/Skeleton.jsx';
 import FileCheckDialog from '../components/FileCheckDialog.jsx';
+import BusyOverlay from '../components/BusyOverlay.jsx';
 import './Library.css';
 
 const supported = isFileSystemAccessSupported();
@@ -57,6 +58,9 @@ function Library() {
   // Cambia dopo ogni categorizzazione: usato come `key` del Catalogo per
   // forzarne il ri-montaggio (e quindi il ricaricamento dei dati).
   const [catalogVersion, setCatalogVersion] = useState(0);
+  // Importazione in corso (Fase 38): vero dal momento in cui i file o la cartella
+  // sono scelti fino alla fine, con un'attesa a schermo che blocca i tocchi.
+  const [importing, setImporting] = useState(false);
   // Ricontrollo dei file collegati (Fase 26): dialog aperto o no.
   const [checkingFiles, setCheckingFiles] = useState(false);
 
@@ -85,7 +89,10 @@ function Library() {
     setResult(null);
     setError(null);
     try {
-      const handles = await picker();
+      // Una cartella la si legge dentro il picker: `onPicked` accende l'attesa
+      // appena è scelta. Per i file basta accenderla dopo.
+      const handles = await picker({ onPicked: () => setImporting(true) });
+      setImporting(true);
       const summary = await importHandles(handles);
       await refresh();
       setResult(summary);
@@ -93,6 +100,8 @@ function Library() {
       // L'utente ha chiuso il picker senza scegliere: non è un errore.
       if (err.name === 'AbortError') return;
       setError(t('library.importError'));
+    } finally {
+      setImporting(false);
     }
   }
 
@@ -121,8 +130,13 @@ function Library() {
       {result?.invalid > 0 && <Notice>{t('library.notice.corrupted', { count: result.invalid })}</Notice>}
       {result?.encrypted > 0 && <Notice>{t('library.notice.encrypted', { count: result.encrypted })}</Notice>}
       {result?.timeout > 0 && <Notice>{t('library.notice.timeout', { count: result.timeout })}</Notice>}
+      {result?.imported > 0 && <Notice icon="check">{t('library.notice.imported', { count: result.imported })}</Notice>}
       {result && <p className="library-feedback">{t('library.feedback', result)}</p>}
     </>
+  );
+
+  const busyOverlay = importing && (
+    <BusyOverlay title={t('library.importing.title')} note={t('library.importing.note')} />
   );
 
   if (!supported) {
@@ -159,6 +173,7 @@ function Library() {
           {t('library.importFolderLink')}
         </button>
         {feedbackBlock}
+        {busyOverlay}
       </div>
     );
   }
@@ -207,6 +222,8 @@ function Library() {
         <h2 id="catalog-heading">{t('library.catalogHeading')}</h2>
         <Catalog key={catalogVersion} initialSeriesId={openSeriesId} onProgressChanged={refresh} />
       </section>
+
+      {busyOverlay}
 
       {checkingFiles && (
         <FileCheckDialog

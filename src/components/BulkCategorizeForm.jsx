@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAllSeries, getVolumesForSeries, categorizeChaptersBatch } from '../db.js';
+import { guessChapterNumber } from '../chapterNumber.js';
+import { loadLastSeriesId, saveLastSeriesId } from '../lastSeries.js';
 import './CategorizeForm.css';
 import './BulkCategorizeForm.css';
 
@@ -16,9 +18,15 @@ function toNumber(text) {
 
 // Categorizzazione di più capitoli insieme (Fase 23). Serie unica per tutti;
 // il volume è uno solo per tutti ("stesso volume", attivo di default) oppure
-// uno per riga; il numero di capitolo è sempre per riga. I campi partono vuoti,
-// con l'esempio come segnaposto: dal nome dei file non si ricava più nulla
-// (decisione di Federico, Fase 33).
+// uno per riga; il numero di capitolo è sempre per riga. Serie e volume partono
+// vuoti, con l'esempio come segnaposto: dal nome dei file non si ricava più nulla
+// (decisione di Federico, Fase 33), salvo il numero del capitolo di ogni riga,
+// quando lo si capisce (Fase 38).
+//
+// La serie parte da scegliere, ma se ne propone una: l'ultima in cui si è
+// categorizzato qualcosa (Fase 38). Si accetta toccando il riquadro tratteggiato
+// sotto il menu, oppure premendo Tab sul menu ancora vuoto; non si sceglie mai
+// al posto dell'utente.
 //
 // Il volume si indica per NUMERO, non scegliendolo da un elenco: se la serie ha
 // già quel volume lo si usa, altrimenti si crea (vedi categorizeChaptersBatch).
@@ -28,6 +36,8 @@ function BulkCategorizeForm({ chapters, onCancel, onDone }) {
   const { t } = useTranslation();
   const [series, setSeries] = useState([]);
   const [seriesChoice, setSeriesChoice] = useState('');
+  const seriesSelectRef = useRef(null);
+  const [lastSeriesId] = useState(loadLastSeriesId);
   const [newSeriesTitle, setNewSeriesTitle] = useState('');
   // I volumi della serie scelta, con la serie a cui appartengono: se nel
   // frattempo la scelta è cambiata, l'elenco non è più quello giusto.
@@ -38,13 +48,24 @@ function BulkCategorizeForm({ chapters, onCancel, onDone }) {
   // Una riga per capitolo: il suo volume (usato solo se sameVolume è falso) e
   // il suo numero, entrambi come testo dei campi.
   const [rows, setRows] = useState(() =>
-    chapters.map((chapter) => ({ id: chapter.id, fileName: chapter.fileName, volume: '', number: '' })),
+    chapters.map((chapter) => ({
+      id: chapter.id,
+      fileName: chapter.fileName,
+      volume: '',
+      number: guessChapterNumber(chapter.fileName),
+    })),
   );
+  // Quanti numeri sono stati precompilati, per dirlo una volta sola sopra l'elenco.
+  const [prefilledCount] = useState(() => rows.filter((row) => row.number !== '').length);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
   const creatingNewSeries = seriesChoice === NEW;
+  // La serie da suggerire: l'ultima usata, se esiste ancora. Solo finché non se
+  // ne è scelta una.
+  const suggestedSeries = series.find((item) => item.id === lastSeriesId);
+  const showSuggestion = seriesChoice === '' && suggestedSeries !== undefined;
   const existingVolumes = loadedVolumes.seriesChoice === seriesChoice ? loadedVolumes.list : [];
 
   // All'apertura: carica le serie tra cui scegliere.
@@ -71,6 +92,25 @@ function BulkCategorizeForm({ chapters, onCancel, onDone }) {
       cancelled = true;
     };
   }, [seriesChoice]);
+
+  function chooseSeries(value) {
+    setSeriesChoice(value);
+    setError(null);
+  }
+
+  function acceptSuggestion() {
+    chooseSeries(String(suggestedSeries.id));
+    seriesSelectRef.current?.focus();
+  }
+
+  // Tab sul menu ancora vuoto sceglie il suggerimento e resta sul menu; il Tab
+  // successivo passa al campo dopo, come sempre. Con Maiusc+Tab non si interviene.
+  function handleSeriesKeyDown(event) {
+    if (event.key === 'Tab' && !event.shiftKey && showSuggestion) {
+      event.preventDefault();
+      acceptSuggestion();
+    }
+  }
 
   function updateRow(id, patch) {
     setRows((current) => current.map((row) => (row.id === id ? { ...row, ...patch } : row)));
@@ -121,11 +161,12 @@ function BulkCategorizeForm({ chapters, onCancel, onDone }) {
 
     setSaving(true);
     try {
-      await categorizeChaptersBatch({
+      const savedSeriesId = await categorizeChaptersBatch({
         seriesId: creatingNewSeries ? null : Number(seriesChoice),
         newSeriesTitle: creatingNewSeries ? newSeriesTitle.trim() : null,
         assignments,
       });
+      saveLastSeriesId(savedSeriesId);
       onDone();
     } catch {
       setError(t('categorizeForm.errors.saveFailed'));
@@ -143,11 +184,11 @@ function BulkCategorizeForm({ chapters, onCancel, onDone }) {
         <label className="cf-field">
           <span>{t('categorizeForm.series')}</span>
           <select
+            ref={seriesSelectRef}
             value={seriesChoice}
-            onChange={(event) => {
-              setSeriesChoice(event.target.value);
-              setError(null);
-            }}
+            onChange={(event) => chooseSeries(event.target.value)}
+            onKeyDown={handleSeriesKeyDown}
+            autoFocus
           >
             <option value="">{t('categorizeForm.chooseOption')}</option>
             {series.map((item) => (
@@ -158,6 +199,22 @@ function BulkCategorizeForm({ chapters, onCancel, onDone }) {
             <option value={NEW}>{t('categorizeForm.newSeries')}</option>
           </select>
         </label>
+
+        {showSuggestion && (
+          <button
+            type="button"
+            className="bcf-suggest"
+            aria-label={t('bulkCategorize.useLastSeries', { title: suggestedSeries.title })}
+            onClick={acceptSuggestion}
+          >
+            <span>
+              {t('bulkCategorize.lastSeries')} <b>{suggestedSeries.title}</b>
+            </span>
+            <span className="bcf-suggest-key" aria-hidden="true">
+              TAB
+            </span>
+          </button>
+        )}
 
         {creatingNewSeries && (
           <label className="cf-field">
@@ -193,6 +250,10 @@ function BulkCategorizeForm({ chapters, onCancel, onDone }) {
           <p className="bcf-hint">
             {t('bulkCategorize.existingVolumes', { numbers: existingVolumes.map((volume) => volume.number).join(', ') })}
           </p>
+        )}
+
+        {prefilledCount > 0 && (
+          <p className="bcf-hint">{t('bulkCategorize.numbersFromFiles', { count: prefilledCount })}</p>
         )}
 
         <ul className="bcf-rows">

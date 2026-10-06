@@ -82,3 +82,39 @@
   color: var(--text);
   font: inherit;
 }
+
+/* Suggerimento dell'ultima serie usata, sotto il menu della serie (Fase 38). */
+.bcf-suggest {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  margin-top: -8px;
+  padding: 8px 12px;
+  border: 1px dashed var(--accent);
+  border-radius: 9px;
+  background: rgba(95, 180, 222, 0.12);
+  color: var(--accent);
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bcf-suggest span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.bcf-suggest b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.bcf-suggest-key {
+  flex-shrink: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}

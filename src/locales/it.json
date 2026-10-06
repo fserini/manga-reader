@@ -28,7 +28,9 @@
       "encrypted_one": "1 archivio è protetto da password e non può essere letto: è stato saltato.",
       "encrypted_other": "{{count}} archivi sono protetti da password e non possono essere letti: sono stati saltati.",
       "timeout_one": "Il lettore di archivi non si è avviato in tempo per 1 file, che è stato saltato: riprova o ricarica l'app.",
-      "timeout_other": "Il lettore di archivi non si è avviato in tempo per {{count}} file, che sono stati saltati: riprova o ricarica l'app."
+      "timeout_other": "Il lettore di archivi non si è avviato in tempo per {{count}} file, che sono stati saltati: riprova o ricarica l'app.",
+      "imported_one": "1 file importato.",
+      "imported_other": "{{count}} file importati."
     },
     "feedback": "Importati: {{imported}} · Ricollegati: {{relinked}} · Duplicati saltati: {{duplicates}} · Non leggibili: {{unreadable}} · Non supportati: {{ignored}}",
     "importError": "Import non riuscito: qualcosa è andato storto durante l'accesso ai file.",
@@ -52,7 +54,11 @@
     "import": "Importa",
     "importFileLabel": "File",
     "importFolderLabel": "Cartella",
-    "importFolderHint": "Anche le sottocartelle"
+    "importFolderHint": "Anche le sottocartelle",
+    "importing": {
+      "title": "Importazione in corso…",
+      "note": "Una cartella grande può richiedere qualche minuto. Lascia l’app aperta."
+    }
   },
   "catalog": {
     "path": "Percorso",
@@ -140,7 +146,11 @@
     "errors": {
       "rowVolume": "Inserisci un numero di volume valido per «{{fileName}}».",
       "rowNumber": "Inserisci un numero di capitolo valido per «{{fileName}}»."
-    }
+    },
+    "numbersFromFiles_one": "Ho precompilato il numero del capitolo di 1 file leggendolo dal nome: controllalo.",
+    "numbersFromFiles_other": "Ho precompilato il numero del capitolo di {{count}} file leggendolo dal nome: controllali.",
+    "lastSeries": "Ultima serie usata:",
+    "useLastSeries": "Usa {{title}}, l’ultima serie usata"
   },
   "fileCheck": {
     "title": "Ricontrollo dei file",
@@ -205,7 +215,8 @@
       "newSeriesNameRequired": "Inserisci il nome della nuova serie.",
       "newVolumeNumberInvalid": "Inserisci un numero di volume valido.",
       "saveFailed": "Salvataggio non riuscito. Riprova."
-    }
+    },
+    "numberFromFile": "Numero ricavato dal nome del file: controllalo."
   },
   "readingSections": {
     "inProgressHeading": "In corso di lettura",
