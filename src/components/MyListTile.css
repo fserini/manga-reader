@@ -89,10 +89,6 @@
   color: #d8d2c4;
 }
 
-.mlt-tag--lib {
-  color: var(--accent);
-}
-
 .mlt-star {
   position: absolute;
   top: 5px;

@@ -31,11 +31,17 @@
 }
 
 .my-list-count {
+  white-space: nowrap;
   margin-left: 10px;
   font-family: var(--mono);
   font-size: 13px;
   font-weight: 400;
   color: var(--text-muted);
+}
+
+.my-list-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .my-list-edit {
@@ -132,29 +138,4 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   gap: 16px 10px;
-}
-
-.my-list-add {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  font-size: 13px;
-  text-align: left;
-  cursor: pointer;
-}
-
-.my-list-add-cover {
-  display: grid;
-  place-items: center;
-  aspect-ratio: 2 / 3;
-  border: 1px dashed var(--accent);
-  border-radius: 8px;
-  background: rgba(95, 180, 222, 0.08);
-  color: var(--accent);
 }

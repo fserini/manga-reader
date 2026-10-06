@@ -6,6 +6,7 @@ import './i18n.js';
 import App from './App.jsx';
 import { AppChromeProvider } from './AppChromeContext.jsx';
 import { UiPreferencesProvider } from './UiPreferencesContext.jsx';
+import { ToastProvider } from './ToastContext.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -16,7 +17,9 @@ createRoot(document.getElementById('root')).render(
             è quello stesso valore, esposto da Vite a runtime; in sviluppo è "/",
             quindi qui non cambia nulla rispetto a prima. */}
         <BrowserRouter basename={import.meta.env.BASE_URL}>
-          <App />
+          <ToastProvider>
+            <App />
+          </ToastProvider>
         </BrowserRouter>
       </AppChromeProvider>
     </UiPreferencesProvider>

@@ -107,9 +107,9 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 34 — Lista unica "Le mie serie" nel Profilo (chip Preferiti / In corso / Finiti / Da leggere, ricerca, ordinamento) — 34a e 34b fatte
 - [x] Fase 35 — Scheda Profilo: guscio, impostazioni con chiave inglese, statistiche (serie, volumi, capitoli, pagine lette) con reset
 - [x] Fase 36 — Schermo intero nel Lettore (Fullscreen API, filo di avanzamento visibile/trasparente/nascosto) — da provare sul tablet
-- [ ] Fase 37 — Lista "Le mie serie": serie sempre presenti ("Da leggere" di partenza), "+" sempre visibile, modifica delle serie in libreria, avviso temporaneo dei preferiti — pianificata
+- [x] Fase 37 — Lista "Le mie serie": serie sempre presenti ("Da leggere" di partenza), "+" sempre visibile, modifica delle serie in libreria, avviso temporaneo dei preferiti — da provare sul tablet
 - [ ] Fase 38 — Importazione e categorizzazione: icona di caricamento, ultimo titolo suggerito (mockup prima), via "Categorizza" dalle righe, numero del capitolo dal nome del file — pianificata
-- [ ] Fase 39 — Effetto sfoglio nel Lettore (Nessuno / Scorrimento / Libro, impostazione in Aspetto) — pianificata
+- [ ] Fase 39 — Effetto sfoglio nel Lettore (Nessuno / Scorrimento / Libro, impostazione in Aspetto) e pulsante "Torna alla libreria" — pianificata
 - [ ] Fase 31 — Guida interattiva — pianificata, non ancora iniziata
 - [ ] Fase 32 — Riassunto "dove eravamo rimasti" con l'IA — ultima fase, da studiare a tempo debito
 

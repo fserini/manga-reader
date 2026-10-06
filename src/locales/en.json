@@ -387,13 +387,13 @@
       "fav": "No favorites yet. Tap the star next to a series to find it here.",
       "progress": "No series in progress. As soon as you start one, you'll find it here.",
       "done": "No finished series. Series read to the end appear here, and so do the ones you mark as read by hand.",
-      "toread": "Nothing to read yet. Open the list, tap the pencil and the + to add one."
+      "toread": "Nothing to read yet. Tap the + to add a title."
     },
     "hint": {
       "fav": "Favorites: series with a star. Tap the star to remove it, the series to open it in the Library.",
       "progress": "In progress: series you started and haven't finished. Tap one to resume where you left off.",
       "done": "Finished: series read to the end appear on their own; MANUAL entries are the ones you add.",
-      "toread": "To read: manga you want to read. The ones already in the library are marked."
+      "toread": "To read: library series you haven’t opened yet, and the titles you add yourself with the +."
     },
     "openAria": "Open the full list",
     "searchPlaceholder": "Search for a title",
@@ -405,10 +405,8 @@
       "alpha": "Alphabetical"
     },
     "editAria": "Edit the list",
-    "editBanner": "Edit mode: tap the x to remove a manual entry, the + to add one, or a manual entry to change it.",
-    "add": "Add",
+    "editBanner": "Edit mode: tap a title to change its title, status and note; the x removes a manual entry, or the star and note of a library series.",
     "tagManual": "MANUAL",
-    "tagInLibrary": "IN LIBRARY",
     "starAdd": "Add {{title}} to favorites",
     "starRemove": "Remove {{title}} from favorites",
     "deleteAria": "Remove {{title}} from the list",
@@ -438,8 +436,7 @@
       "cancel": "Cancel",
       "save": "Save",
       "saving": "Saving…",
-      "suggestionsAria": "Series in the library",
-      "linked": "Linked to a series in the library"
+      "readStateHint": "From your reading this series counts as “{{state}}”: the status chosen here only matters until you start it."
     },
     "errors": {
       "titleRequired": "Enter the title.",
@@ -447,6 +444,17 @@
       "saveFailed": "Save failed. Try again."
     },
     "tagRemoved": "REMOVED",
-    "removedFromLibrary": "“{{title}}” was removed from the library."
+    "removedFromLibrary": "“{{title}}” was removed from the library.",
+    "addAria": "Add a title",
+    "clear": {
+      "title": "Remove star and note?",
+      "note": "“{{title}}” stays in the library and in the list, with its reading status: only the star and what you wrote here (note and status you chose) go away.",
+      "confirm": "Remove"
+    }
+  },
+  "favorites": {
+    "added": "“{{title}}” added to favorites",
+    "removed": "“{{title}}” removed from favorites",
+    "undo": "UNDO"
   }
 }

@@ -372,10 +372,14 @@ export async function removeSeries(seriesId) {
 // deve tenere traccia del valore corrente. Un livello per tabella, stesso
 // schema per tutte e tre.
 
+// Restituisce il nuovo valore (true se ora è preferita), o undefined se la
+// serie non esiste più: chi chiama lo usa per l'avviso "aggiunta/rimossa".
 export async function toggleSeriesFavorite(seriesId) {
   const series = await db.series.get(seriesId);
-  if (!series) return;
-  await db.series.update(seriesId, { favorite: !series.favorite });
+  if (!series) return undefined;
+  const favorite = !series.favorite;
+  await db.series.update(seriesId, { favorite });
+  return favorite;
 }
 
 export async function getFavoriteSeries() {
@@ -648,13 +652,16 @@ function titleKey(title) {
 
 export async function renameSeries(seriesId, title) {
   const clean = title.trim();
-  return db.transaction('rw', db.series, async () => {
+  return db.transaction('rw', [db.series, db.readingList], async () => {
     const key = titleKey(clean);
     const others = await db.series.toArray();
     if (others.some((series) => series.id !== seriesId && titleKey(series.title) === key)) {
       throw duplicateError();
     }
     await db.series.update(seriesId, { title: clean });
+    // La voce della lista collegata a questa serie ne porta una copia del titolo
+    // (serve se la serie un giorno viene rimossa): la si tiene allineata.
+    await db.readingList.filter((entry) => entry.seriesId === seriesId).modify({ title: clean });
   });
 }
 
@@ -730,19 +737,19 @@ export async function resetReadingStats() {
 // --- Le mie serie (Fase 34) ---
 //
 // Una sola lista di titoli, con filtri: Preferiti, In corso, Finiti, Da leggere.
-// I titoli vengono da due fonti: le serie della libreria (con la stella, o con
-// uno stato ricavato dalla lettura) e le voci scritte a mano (tabella
-// readingList). Una voce manuale il cui titolo coincide (confronto normalizzato)
-// con una serie della libreria si unisce a quella serie invece di comparire due
-// volte: lo stato che conta è quello ricavato dalla lettura, e solo se la serie
-// non ne ha uno vale quello scelto a mano.
+// I titoli vengono da due fonti: le serie della libreria (TUTTE, dalla Fase 37)
+// e le voci scritte a mano (tabella readingList). Una voce manuale il cui titolo
+// coincide (confronto normalizzato) con una serie della libreria si unisce a
+// quella serie invece di comparire due volte: porta con sé la nota e uno stato
+// scelto a mano.
 //
-// Stato di una serie in libreria: "finita" se tutti i suoi capitoli sono finiti,
-// "in corso" se ne ha iniziato qualcuno, altrimenti nessuno stato.
+// Stato di una serie in libreria, ricavato dalla lettura: "finita" se tutti i
+// suoi capitoli sono finiti, "in corso" se ne ha iniziato qualcuno, altrimenti
+// "da leggere" (una serie mai aperta, o senza capitoli).
 function seriesReadingState(stats) {
-  if (!stats || stats.total === 0) return null;
+  if (!stats || stats.total === 0) return 'toread';
   if (stats.finished === stats.total) return 'done';
-  return stats.started > 0 ? 'progress' : null;
+  return stats.started > 0 ? 'progress' : 'toread';
 }
 
 export async function getMyListItems() {
@@ -781,6 +788,10 @@ export async function getMyListItems() {
       manual: false,
       fav: Boolean(series.favorite),
       state: seriesReadingState(stats),
+      // Lo stato ricavato dalla lettura (resta uguale dopo l'unione con una voce
+      // manuale) e quello scelto a mano (null se non c'è una voce manuale).
+      readState: seriesReadingState(stats),
+      manualState: null,
       note: '',
       last: series.lastReadAt ?? 0,
       added: Number.isFinite(stats?.firstImport) ? stats.firstImport : 0,
@@ -809,7 +820,10 @@ export async function getMyListItems() {
       match.storedSeriesId = match.seriesId;
       match.manual = true;
       match.note = entry.note ?? '';
-      if (match.state === null) match.state = entry.state;
+      match.manualState = entry.state;
+      // Lo stato della lettura vince (In corso, Finiti); "Da leggere" cede solo a
+      // un "Letto" scelto a mano (serie letta altrove, mai aperta qui).
+      if (match.readState === 'toread' && entry.state === 'done') match.state = 'done';
       return;
     }
     items.push({
@@ -823,6 +837,8 @@ export async function getMyListItems() {
       manual: true,
       fav: false,
       state: entry.state,
+      readState: null,
+      manualState: entry.state,
       note: entry.note ?? '',
       last: 0,
       added: entry.createdAt ?? 0,
@@ -835,9 +851,9 @@ export async function getMyListItems() {
     await Promise.all(newLinks.map((link) => db.readingList.update(link.id, { seriesId: link.seriesId })));
   }
 
-  // Fanno parte della lista solo le serie con la stella o uno stato, e le voci
-  // manuali: le altre serie della libreria stanno solo nel Catalogo.
-  return items.filter((item) => item.fav || item.state !== null || item.manual);
+  // Dalla Fase 37 ogni serie della libreria ha uno stato, quindi sono tutte
+  // nella lista, insieme alle voci manuali.
+  return items;
 }
 
 function duplicateEntryError() {
@@ -845,9 +861,8 @@ function duplicateEntryError() {
 }
 
 // Aggiunge una voce manuale. Un titolo già presente nella lista (come voce
-// manuale, o come serie della libreria con la stella o con uno stato) è
-// rifiutato; una serie in libreria che non fa ancora parte della lista, invece,
-// può essere aggiunta: la voce si unisce a lei.
+// manuale o come serie della libreria: dalla Fase 37 sono tutte in lista) è
+// rifiutato. Per una serie in libreria si usa saveSeriesListInfo.
 export async function addListEntry({ title, state, note = '', seriesId = null }) {
   const clean = title.trim();
   const key = titleKey(clean);
@@ -872,6 +887,31 @@ export async function updateListEntry(id, { title, state, note = '', seriesId = 
 
 export async function removeListEntry(id) {
   await db.readingList.delete(id);
+}
+
+// Nota e stato scelto a mano di una serie IN LIBRERIA (Fase 37). Se la serie ha
+// già una voce (manualId) la si aggiorna, altrimenti se ne crea una collegata: lo
+// stato "da leggere" senza nota non è niente da ricordare, quindi in quel caso
+// non si crea nulla. Il titolo della voce è una copia di quello della serie.
+export async function saveSeriesListInfo(seriesId, manualId, { state, note = '' }) {
+  const series = await db.series.get(seriesId);
+  if (!series) return;
+  const cleanNote = note.trim();
+  if (manualId != null) {
+    await db.readingList.update(manualId, { title: series.title, state, note: cleanNote, seriesId });
+  } else if (state !== 'toread' || cleanNote) {
+    await db.readingList.add({ title: series.title, state, note: cleanNote, seriesId, createdAt: Date.now() });
+  }
+}
+
+// "Togliere" una serie in libreria dalla lista (Fase 37) non la toglie dalla
+// libreria né dalla lista (ci sono tutte): toglie la stella e la voce manuale con
+// la sua nota. La serie resta, col solo stato della lettura.
+export async function clearSeriesListInfo(seriesId, manualId) {
+  await db.transaction('rw', [db.series, db.readingList], async () => {
+    if (manualId != null) await db.readingList.delete(manualId);
+    await db.series.update(seriesId, { favorite: false });
+  });
 }
 
 // --- Backup e ripristino (Fase 30b) ---

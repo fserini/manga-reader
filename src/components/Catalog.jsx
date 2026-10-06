@@ -13,7 +13,6 @@ import {
   removeSeries,
   removeVolume,
   removeChapter,
-  toggleSeriesFavorite,
 } from '../db.js';
 import {
   verifyPermission,
@@ -22,6 +21,7 @@ import {
   deleteFileFromHandle,
 } from '../fileAccess.js';
 import { useObjectUrl } from '../useObjectUrl.js';
+import { useFavoriteToggle } from '../useFavoriteToggle.js';
 import Icon from './Icon.jsx';
 import DeleteDialog from './DeleteDialog.jsx';
 import ConfirmDialog from './ConfirmDialog.jsx';
@@ -94,6 +94,7 @@ function Cover({ blob, alt, title }) {
 function Catalog({ onProgressChanged, initialSeriesId = null }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const toggleSeriesFavoriteWithToast = useFavoriteToggle();
 
   const [series, setSeries] = useState([]);
   const [volumes, setVolumes] = useState([]);
@@ -274,10 +275,12 @@ function Catalog({ onProgressChanged, initialSeriesId = null }) {
     setDeleteTarget({ kind, item, label, note });
   }
 
-  // Dalla Fase 33 solo le serie si segnano come preferite.
-  async function toggleFavorite(id) {
-    await toggleSeriesFavorite(id);
-    await reloadCurrentLevel();
+  // Dalla Fase 33 solo le serie si segnano come preferite; dalla 37 un avviso lo
+  // dice, con "Annulla" alla rimozione. Si ricarica l'elenco delle serie con il
+  // suo setter (sempre quello giusto) e non con reloadCurrentLevel: "Annulla" può
+  // arrivare quando si è già scesi in un volume.
+  async function toggleFavorite(item) {
+    await toggleSeriesFavoriteWithToast(item.id, item.title, async () => setSeries(await getAllSeries()));
   }
 
   // "Segna come letto" su un volume intero. Se è già tutto letto il gesto
@@ -574,7 +577,7 @@ function Catalog({ onProgressChanged, initialSeriesId = null }) {
                       : t('catalog.addFavorite', { title: item.title })
                   }
                   aria-pressed={Boolean(item.favorite)}
-                  onClick={() => toggleFavorite(item.id)}
+                  onClick={() => toggleFavorite(item)}
                 >
                   <Icon name="star" filled={Boolean(item.favorite)} />
                 </button>
