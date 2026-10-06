@@ -17,6 +17,9 @@ export const FULLSCREEN_OPTIONS = ['on', 'off'];
 // nascosti: 'visible' come prima, 'transparent' sovrapposto alla pagina senza
 // sfondo, 'hidden' sparito del tutto. Da provare sul tablet.
 export const THREAD_OPTIONS = ['visible', 'transparent', 'hidden'];
+// Come si vede il cambio pagina nel Lettore (Fase 39): 'none' = la pagina
+// cambia di colpo; 'slide' = scorre di lato; 'book' = si volta come in un libro.
+export const PAGE_TURN_OPTIONS = ['none', 'slide', 'book'];
 
 export const DEFAULT_PREFS = {
   logo: 'sigillo',
@@ -24,6 +27,7 @@ export const DEFAULT_PREFS = {
   startPage: 'auto',
   fullscreen: 'on',
   thread: 'transparent',
+  pageTurn: 'book',
 };
 
 // Un valore sconosciuto o rovinato (storage manomesso, opzione rimossa in
@@ -39,6 +43,7 @@ export function loadPrefs() {
       startPage: START_PAGE_OPTIONS.includes(stored?.startPage) ? stored.startPage : DEFAULT_PREFS.startPage,
       fullscreen: FULLSCREEN_OPTIONS.includes(stored?.fullscreen) ? stored.fullscreen : DEFAULT_PREFS.fullscreen,
       thread: THREAD_OPTIONS.includes(stored?.thread) ? stored.thread : DEFAULT_PREFS.thread,
+      pageTurn: PAGE_TURN_OPTIONS.includes(stored?.pageTurn) ? stored.pageTurn : DEFAULT_PREFS.pageTurn,
     };
   } catch {
     return DEFAULT_PREFS;

@@ -380,7 +380,9 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 - **Categorizzazione multipla: via il pulsante "Categorizza" dalle singole righe** quando la lista ha più di un elemento; resta solo quello generale. Con **un solo elemento** nella lista il pulsante sulla riga resta
 - **Numero del capitolo precompilato dal nome del file** (solo quello: il titolo e il volume restano senza suggerimenti, decisione della Fase 33). Si cerca prima un numero preceduto da "cap", "ch", "chapter", "c" o "#"; se non c'è, l'ultimo numero del nome, escludendo gli anni; se è ambiguo il campo resta vuoto. Vale per il form singolo e per ogni riga del multiplo, sempre modificabile. Da provare ("proviamo", Federico): si valuta sull'uso reale
 
-### Fase 39 — Effetto "sfoglio" nel Lettore e pulsante "Torna alla libreria"
+### Fase 39 — Effetto "sfoglio" nel Lettore e pulsante "Torna alla libreria" — completata
+
+> **Completata**: dettagli in [`docs/didattica/fase39-sfoglio-torna-libreria.md`](../didattica/fase39-sfoglio-torna-libreria.md). Tre scelte in Aspetto (Nessuno / Scorrimento / Libro, predefinito Libro); il pulsante "Torna alla Libreria" sta nel pannello dei controlli e porta alla Libreria. **Da provare sul tablet**: fluidità e aspetto reali del voltapagina.
 
 - **Pulsante per tornare alla Libreria mentre si legge** (richiesta di Federico, 2026-10-06): oggi il Lettore non ha nessun pulsante per uscire (si usa la barra dell'app, che sparisce quando si nascondono i controlli, o il tasto indietro di Android). Da decidere a inizio fase: dove sta (barra dei controlli del Lettore), se torna alla Libreria o alla pagina da cui si è arrivati (Profilo, "Continua"), e che cosa succede in schermo intero
 

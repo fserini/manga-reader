@@ -265,7 +265,8 @@
     "next": "Next ›",
     "pageAlt": "Page {{number}}",
     "pageBroken": "{{alt}}: damaged image",
-    "unsupportedFile": "Unsupported format ({{format}}). Accepted formats: {{formats}}."
+    "unsupportedFile": "Unsupported format ({{format}}). Accepted formats: {{formats}}.",
+    "backToLibrary": "Back to the Library"
   },
   "settings": {
     "appearanceHint": "Choose how the logo at the top and the navigation menu look. Your choices stay on this device.",
@@ -334,7 +335,14 @@
       "transparent": "Transparent",
       "hidden": "Hidden"
     },
-    "threadHint": "The strip with the page number when the controls are hidden: visible as before, transparent over the page, or hidden altogether."
+    "threadHint": "The strip with the page number when the controls are hidden: visible as before, transparent over the page, or hidden altogether.",
+    "pageTurnLabel": "Page turn in the Reader",
+    "pageTurn": {
+      "none": "None",
+      "slide": "Slide",
+      "book": "Book"
+    },
+    "pageTurnHint": "How moving from one page to the next looks: instantly, with a sideways slide, or turning the page like a book. With the system’s reduced motion setting there is no animation."
   },
   "pwa": {
     "updateAvailable": "A new version of the app is available.",
