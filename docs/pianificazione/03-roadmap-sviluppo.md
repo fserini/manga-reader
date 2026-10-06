@@ -354,6 +354,39 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 
 ---
 
+## Fasi 37–39 — Nuove note dai test su tablet (2026-10-06)
+
+> Raccolte da Federico dopo aver verificato sul tablet tutte le fasi fino alla 36 (esito: tutto positivo). Domande chiarite e risposte concordate il 2026-10-06. **Non ancora iniziate.** Ordine: 37 → 38 → 39, tutte **prima della 31** (la guida descrive l'interfaccia, che deve smettere di cambiare); la **32 (IA) resta ultima**.
+
+### Fase 37 — Lista "Le mie serie": serie sempre presenti e modifica più chiara
+
+**Da riprodurre prima di toccare il codice**: Federico segnala che una serie **preferita e in lettura** compare sotto Preferiti ma non sotto "In corso". Dal codice (`matchesFilter` in `src/myList.js`, `seriesReadingState` in `src/db.js`) dovrebbe comparire in **entrambi** i chip: l'obiettivo è capire il caso reale (capitoli aperti solo a metà? già finiti? quale chip o quale etichetta sulla card?) e correggere la causa, non il sintomo.
+
+- **"Da leggere" diventa lo stato di partenza di ogni serie in libreria**: una serie importata e mai aperta (nessun capitolo iniziato) ha lo stato derivato "Da leggere". Prima non aveva stato e non entrava nella lista, a meno di una stella. Conseguenza voluta: **tutte le serie in libreria compaiono nella lista**, ognuna in un chip tra In corso / Finiti / Da leggere (la stella resta un'etichetta a parte)
+- **Precedenza degli stati**: lo stato calcolato dalla lettura (In corso, Finiti) vince sempre; "Da leggere" calcolato **cede** a uno stato manuale "Letto" (serie letta altrove ma mai aperta qui). Le voci manuali non in libreria restano come oggi
+- **Il "+" sempre visibile** accanto al tasto Modifica (non più solo dentro la modalità Modifica). Resta la finestra con titolo, stato e nota
+- **Modifica** (matita): su ogni titolo compaiono i controlli
+  - voce manuale: come oggi, si modifica e si toglie
+  - **serie in libreria**: si può **cambiare il titolo** (stessa rinomina del Catalogo, stessi controlli sui duplicati), la **nota** e lo **stato manuale** ("Da leggere" / "Letto", utile se letta altrove). La "x" **non cancella la serie dalla libreria**: toglie la **stella** e la voce manuale con la sua nota, e la serie resta in lista col suo stato di lettura. La conferma lo dice chiaramente
+- **Popup dei preferiti**: un avviso breve in basso, non bloccante, che sparisce da solo ("Aggiunta ai preferiti" / "Rimossa dai preferiti"); per la rimozione c'è "Annulla". Vale ovunque ci sia la stella (Catalogo, lista). Un componente di avviso unico, riusabile
+- Aggiornare i testi dei chip e il documento didattico della 34 dove dicevano "Da leggere: solo voci manuali"
+
+### Fase 38 — Importazione e categorizzazione più comode
+
+- **Caricamento visibile nell'importazione massiva** di una cartella: basta un'**icona di caricamento** (decisione di Federico, niente barra con contatori) finché l'operazione non finisce, che impedisce di toccare altro; in fondo un messaggio con il **numero di file importati**
+- **Categorizzazione multipla: suggerimento dell'ultimo titolo categorizzato**. Federico vuole **vederlo prima di decidere se gli piace**: a inizio fase si mostra un mockup. Idea di partenza: sotto il campo Titolo, un tocco rapido "Ultimo: One Piece"; con la tastiera fisica, **Tab** compila il campo con quel titolo (sul tablet senza tastiera resta il tocco). Solo per il titolo, non per gli altri campi
+- **Categorizzazione multipla: via il pulsante "Categorizza" dalle singole righe** quando la lista ha più di un elemento; resta solo quello generale. Con **un solo elemento** nella lista il pulsante sulla riga resta
+- **Numero del capitolo precompilato dal nome del file** (solo quello: il titolo e il volume restano senza suggerimenti, decisione della Fase 33). Si cerca prima un numero preceduto da "cap", "ch", "chapter", "c" o "#"; se non c'è, l'ultimo numero del nome, escludendo gli anni; se è ambiguo il campo resta vuoto. Vale per il form singolo e per ogni riga del multiplo, sempre modificabile. Da provare ("proviamo", Federico): si valuta sull'uso reale
+
+### Fase 39 — Effetto "sfoglio" nel Lettore
+
+- Il cambio pagina, in **pagina singola e doppia**, mostra un **voltapagina 3D**: la pagina ruota sul dorso (a destra nel verso di lettura RTL, a sinistra nell'LTR), circa mezzo secondo. Non l'angolo che segue il dito: troppo complesso e rischioso per le prestazioni con immagini grandi e PDF
+- **Impostazione in Aspetto** con tre scelte: **Nessuno**, **Scorrimento**, **Libro** (il predefinito si decide in implementazione; la scelta resta ricordata sul dispositivo). Rispetta `prefers-reduced-motion` (con il movimento ridotto si usa Nessuno)
+- Da non rompere: precaricamento delle pagine, pagine PDF disegnate al volo, il salvataggio del progresso e le modalità a scorrimento verticale (dove l'effetto non si applica)
+- Da provare sul tablet (fluidità): in sandbox si verifica solo che funzioni e non rompa il Lettore
+
+---
+
 ## Fase 31 — Guida interattiva
 
 > Nata dalla richiesta di un tutorial per chi usa l'app per la prima volta. Un video non si può generare qui, e invecchierebbe a ogni modifica dell'interfaccia: la guida vive dentro l'app, resta offline ed è bilingue (italiano/inglese).
@@ -364,7 +397,7 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 - **Dati di prova** ammessi nel giro (decisione di Federico): generati dall'app, senza manga con diritti d'autore
 - **Guida utente** leggibile con calma: pagina dedicata, aperta da un pulsante "Guida utente" nel menu della chiave inglese del Profilo (oltre al giro e al "?" nella barra)
 - **Contenuto come dati, non scritto nel codice dei componenti** (sezioni e domande/risposte in file separati, in italiano e inglese): così la guida può essere aggiornata senza toccare l'interfaccia, e un giorno può diventare la base di conoscenza di un assistente IA che risponda alle domande dell'utente sull'app (idea da valutare insieme alla Fase 32, con la stessa gestione della chiave e il vincolo "solo online, su richiesta")
-- Ordine deciso da Federico: la Fase 31 parte **dopo** aver concluso le fasi 33-36 (correzioni, schermo intero, scheda Profilo, lista unica), così la guida descrive l'interfaccia definitiva
+- Ordine deciso da Federico: la Fase 31 parte **dopo** aver concluso le fasi 33-36 (correzioni, schermo intero, scheda Profilo, lista unica) **e le 37-39** (rifiniture della lista, importazione, effetto sfoglio), così la guida descrive l'interfaccia definitiva
 
 ---
 
