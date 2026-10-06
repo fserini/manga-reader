@@ -148,7 +148,9 @@
       "rowNumber": "Inserisci un numero di capitolo valido per «{{fileName}}»."
     },
     "numbersFromFiles_one": "Ho precompilato il numero del capitolo di 1 file leggendolo dal nome: controllalo.",
-    "numbersFromFiles_other": "Ho precompilato il numero del capitolo di {{count}} file leggendolo dal nome: controllali."
+    "numbersFromFiles_other": "Ho precompilato il numero del capitolo di {{count}} file leggendolo dal nome: controllali.",
+    "lastSeries": "Ultima serie usata:",
+    "useLastSeries": "Usa {{title}}, l’ultima serie usata"
   },
   "fileCheck": {
     "title": "Ricontrollo dei file",

@@ -148,7 +148,9 @@
       "rowNumber": "Enter a valid chapter number for “{{fileName}}”."
     },
     "numbersFromFiles_one": "The chapter number of 1 file was filled in from its name: please check it.",
-    "numbersFromFiles_other": "The chapter number of {{count}} files was filled in from their names: please check them."
+    "numbersFromFiles_other": "The chapter number of {{count}} files was filled in from their names: please check them.",
+    "lastSeries": "Last series used:",
+    "useLastSeries": "Use {{title}}, the last series used"
   },
   "fileCheck": {
     "title": "File check",

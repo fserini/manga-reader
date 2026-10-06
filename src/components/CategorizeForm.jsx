@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAllSeries, getVolumesForSeries, addSeries, addVolume, categorizeChapter } from '../db.js';
 import { guessChapterNumber } from '../chapterNumber.js';
+import { saveLastSeriesId } from '../lastSeries.js';
 import './CategorizeForm.css';
 
 // Valore speciale usato nei menu a tendina per la voce "crea nuovo".
@@ -114,6 +115,7 @@ function CategorizeForm({ chapter, onCancel, onDone }) {
       }
 
       await categorizeChapter(chapter.id, { seriesId, volumeId, number });
+      saveLastSeriesId(seriesId);
       onDone();
     } catch {
       setError(t('categorizeForm.errors.saveFailed'));
