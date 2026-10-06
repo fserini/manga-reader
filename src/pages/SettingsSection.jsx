@@ -8,7 +8,14 @@ import { formatBytes } from '../formatBytes.js';
 import Brand from '../components/Brand.jsx';
 import Icon from '../components/Icon.jsx';
 import { useUiPreferences } from '../UiPreferencesContext.jsx';
-import { LOGO_OPTIONS, MENU_OPTIONS, START_PAGE_OPTIONS, FULLSCREEN_OPTIONS, THREAD_OPTIONS } from '../uiPreferences.js';
+import {
+  LOGO_OPTIONS,
+  MENU_OPTIONS,
+  START_PAGE_OPTIONS,
+  FULLSCREEN_OPTIONS,
+  THREAD_OPTIONS,
+  PAGE_TURN_OPTIONS,
+} from '../uiPreferences.js';
 import { isFullscreenSupported } from '../fullscreen.js';
 import './Settings.css';
 
@@ -236,6 +243,25 @@ function SettingsSectionPage({ section }) {
           ))}
         </div>
         <p className="settings-hint settings-hint--small">{t('settings.threadHint')}</p>
+
+        <h3 id="page-turn-label" className="settings-subheading">
+          {t('settings.pageTurnLabel')}
+        </h3>
+        <div className="settings-pill-options" role="radiogroup" aria-labelledby="page-turn-label">
+          {PAGE_TURN_OPTIONS.map((option) => (
+            <button
+              key={option}
+              type="button"
+              role="radio"
+              aria-checked={prefs.pageTurn === option}
+              className={prefs.pageTurn === option ? 'settings-pill-active' : ''}
+              onClick={() => setPref('pageTurn', option)}
+            >
+              {t(`settings.pageTurn.${option}`)}
+            </button>
+          ))}
+        </div>
+        <p className="settings-hint settings-hint--small">{t('settings.pageTurnHint')}</p>
       </section>
       )}
 

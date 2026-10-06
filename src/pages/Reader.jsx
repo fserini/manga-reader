@@ -28,6 +28,9 @@ const SWIPE_MAX_VERTICAL_PX = 60;
 // situazioni comuni senza la complessità di uno slider su un pannello già
 // piccolo — vedi Fase 24.
 const DIM_LEVELS = [0, 0.3, 0.6];
+// Durata del cambio pagina animato (Fase 39), in millisecondi: più lungo il
+// voltapagina (deve leggersi come un gesto), più breve lo scorrimento.
+const TURN_DURATION_MS = { slide: 280, book: 520 };
 
 const READING_MODES = [
   { value: 'single', key: 'reader.mode.single' },
@@ -260,6 +263,14 @@ function Reader() {
   const [manualBookmarkPage, setManualBookmarkPage] = useState(null);
   // Capitolo successivo nello stesso volume, per l'invito a fine lettura — o null.
   const [nextChapter, setNextChapter] = useState(null);
+  // Cambio pagina in corso (Fase 39): { dir: 'next' | 'prev', fromIndex, id } oppure
+  // null. Finché c'è, accanto alla vista nuova resta quella di partenza, che
+  // l'animazione fa sparire (scorrimento) o voltare (libro).
+  const [turn, setTurn] = useState(null);
+  const turnIdRef = useRef(0);
+  // La pagina corrente leggibile da gestori creati prima di un cambio (il tocco
+  // singolo scatta dopo un ritardo): stesso trucco di modeRef.
+  const currentIndexRef = useRef(0);
 
   const tapTimeoutRef = useRef(null);
   const pinchStateRef = useRef(null);
@@ -292,6 +303,22 @@ function Reader() {
   useEffect(() => {
     modeRef.current = mode;
   }, [mode]);
+
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+
+  // L'animazione dura TURN_DURATION_MS: allo scadere (con un piccolo margine) la
+  // vista di partenza non serve più. Un timer e non l'evento "animationend", che
+  // non scatta se la scheda è in secondo piano.
+  useEffect(() => {
+    if (!turn) return undefined;
+    const timer = setTimeout(
+      () => setTurn((current) => (current?.id === turn.id ? null : current)),
+      TURN_DURATION_MS[prefs.pageTurn] + 80,
+    );
+    return () => clearTimeout(timer);
+  }, [turn, prefs.pageTurn]);
 
   const pages = pageGroups.flatMap((group) => (readingDirection === 'rtl' ? [...group].reverse() : group));
 
@@ -378,6 +405,7 @@ function Reader() {
       setPageGroups([]);
       setLoadedChapterId(null);
       setCurrentIndex(0);
+      setTurn(null);
       setManualBookmarkPage(null);
       setNextChapter(null);
       setError(null);
@@ -521,15 +549,31 @@ function Reader() {
     return clamp(index, 0, pages.length - 1);
   }
 
-  function goToPrevious() {
-    setCurrentIndex((index) => clampIndex(index - step));
+  // Cambia pagina di un passo (uno, o due in doppia pagina), con l'animazione
+  // scelta in Impostazioni: nessuna se la scelta è "Nessuno", se il sistema chiede
+  // meno movimento (prefers-reduced-motion), in modalità scroll o se non c'è una
+  // pagina dove andare.
+  function turnPage(dir) {
+    const from = currentIndexRef.current;
+    const to = clampIndex(dir === 'next' ? from + step : from - step);
+    setCurrentIndex(to);
     setZoomScale(1);
+
+    const animate =
+      to !== from &&
+      mode !== 'scroll' &&
+      prefs.pageTurn !== 'none' &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (animate) {
+      turnIdRef.current += 1;
+      setTurn({ dir, fromIndex: from, id: turnIdRef.current });
+    } else {
+      setTurn(null);
+    }
   }
 
-  function goToNext() {
-    setCurrentIndex((index) => clampIndex(index + step));
-    setZoomScale(1);
-  }
+  const goToPrevious = () => turnPage('prev');
+  const goToNext = () => turnPage('next');
 
   function toggleReadingDirection() {
     setReadingDirection((direction) => {
@@ -546,6 +590,7 @@ function Reader() {
   function handleModeChange(nextMode) {
     explicitModeThisChapterRef.current = true;
     setMode(nextMode);
+    setTurn(null);
     setZoomScale(1);
     updateReadingPrefs({ mode: nextMode });
   }
@@ -692,6 +737,39 @@ function Reader() {
   }
 
   const secondPageOfSpread = pages[currentIndex + 1];
+
+  // La vista di singola o doppia pagina che parte dall'indice dato. Con `key` per
+  // indice: durante un cambio pagina le due viste (quella di partenza e quella
+  // nuova) restano ognuna se stessa, senza rimontarsi l'una sull'altra.
+  function renderView(index, extraClass = '') {
+    const second = pages[index + 1];
+    const firstPage = (
+      <Page key="first" page={pages[index]} alt={t('reader.pageAlt', { number: index + 1 })} style={zoomStyle} />
+    );
+    const secondPage =
+      mode === 'spread' && second !== undefined ? (
+        <Page key="second" page={second} alt={t('reader.pageAlt', { number: index + 2 })} style={zoomStyle} />
+      ) : null;
+    const className = `reader-pages reader-pages--${mode} reader-view ${extraClass}`;
+    return (
+      <div key={`view-${index}`} className={className}>
+        {mode === 'spread' && readingDirection === 'rtl' ? [secondPage, firstPage] : [firstPage, secondPage]}
+      </div>
+    );
+  }
+
+  // Il cambio pagina in corso, tradotto in CSS (Fase 39): le variabili dicono da
+  // che parte entra la pagina nuova (scorrimento) e verso quale lato gira il
+  // foglio (libro). In lettura da destra a sinistra il dorso è a destra: il
+  // foglio che si volta è quello di sinistra e passa sopra il dorso verso destra.
+  const isRtl = readingDirection === 'rtl';
+  const turnStyle = turn
+    ? {
+        '--turn-ms': `${TURN_DURATION_MS[prefs.pageTurn]}ms`,
+        '--slide-from': (turn.dir === 'next') === isRtl ? '-100%' : '100%',
+        '--leaf-angle': isRtl ? '180deg' : '-180deg',
+      }
+    : undefined;
   const pagesInteractionProps = {
     onClick: handlePagesClick,
     onTouchStart: handleTouchStart,
@@ -740,27 +818,41 @@ function Reader() {
         </div>
       )}
 
-      {pages.length > 0 && mode === 'single' && (
-        <div className="reader-pages reader-pages--single" {...pagesInteractionProps}>
-          <Page page={pages[currentIndex]} alt={t('reader.pageAlt', { number: currentIndex + 1 })} style={zoomStyle} />
-        </div>
-      )}
+      {/* Singola e doppia pagina: un "palco" che riceve i gesti e contiene le viste.
+          Senza cambio pagina in corso c'è una vista sola; durante l'animazione le
+          viste sono due (vedi turnStyle). */}
+      {pages.length > 0 && mode !== 'scroll' && (
+        <div
+          className={`reader-stage${turn ? ` reader-stage--turning reader-stage--${prefs.pageTurn}` : ''}`}
+          style={turnStyle}
+          {...pagesInteractionProps}
+        >
+          {!turn && renderView(currentIndex)}
 
-      {pages.length > 0 && mode === 'spread' && (
-        <div className="reader-pages reader-pages--spread" {...pagesInteractionProps}>
-          {readingDirection === 'rtl' ? (
+          {turn && prefs.pageTurn === 'slide' && (
             <>
-              {secondPageOfSpread !== undefined && (
-                <Page page={secondPageOfSpread} alt={t('reader.pageAlt', { number: currentIndex + 2 })} style={zoomStyle} />
-              )}
-              <Page page={pages[currentIndex]} alt={t('reader.pageAlt', { number: currentIndex + 1 })} style={zoomStyle} />
+              {renderView(turn.fromIndex, 'reader-view--out')}
+              {renderView(currentIndex, 'reader-view--in')}
             </>
-          ) : (
+          )}
+
+          {/* Libro: sotto resta una vista ferma, sopra il "foglio" che gira. Avanti:
+              sotto la pagina nuova, il foglio è quella vecchia che se ne va. Indietro:
+              sotto la pagina vecchia, il foglio è quella nuova che ritorna. */}
+          {turn && prefs.pageTurn === 'book' && (
             <>
-              <Page page={pages[currentIndex]} alt={t('reader.pageAlt', { number: currentIndex + 1 })} style={zoomStyle} />
-              {secondPageOfSpread !== undefined && (
-                <Page page={secondPageOfSpread} alt={t('reader.pageAlt', { number: currentIndex + 2 })} style={zoomStyle} />
-              )}
+              {renderView(turn.dir === 'next' ? currentIndex : turn.fromIndex)}
+              <div
+                className={`reader-leaf reader-leaf--${isRtl ? 'left' : 'right'} reader-leaf--${turn.dir} reader-leaf--${mode}`}
+                aria-hidden="true"
+              >
+                <div className="reader-leaf-face reader-leaf-front">
+                  <div className="reader-leaf-content">
+                    {renderView(turn.dir === 'next' ? turn.fromIndex : currentIndex, 'reader-view--flat')}
+                  </div>
+                </div>
+                <div className="reader-leaf-face reader-leaf-back" />
+              </div>
             </>
           )}
         </div>
@@ -818,6 +910,20 @@ function Reader() {
 
       {interfaceVisible && pages.length > 0 && (
         <div className="reader-controls">
+          {/* Uscire dal Lettore senza passare dalla barra dell'app (che sparisce a
+              controlli nascosti): torna alla Libreria. Fase 39. */}
+          <button
+            type="button"
+            className="reader-back"
+            onClick={() => navigate('/')}
+            aria-label={t('reader.backToLibrary')}
+            title={t('reader.backToLibrary')}
+          >
+            <Icon name="library" size={16} />
+          </button>
+
+          <div className="reader-controls-divider" />
+
           <div className="reader-controls-group" role="group" aria-label={t('reader.modeGroupAria')}>
             {READING_MODES.map(({ value, key }) => {
               const Icon = MODE_ICONS[value];
