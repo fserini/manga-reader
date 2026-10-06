@@ -1,5 +1,7 @@
 # Fase 34 — La lista "Le mie serie"
 
+> **Aggiornamento (Fase 37)**: da allora ogni serie in libreria ha uno stato ("da leggere" se mai aperta), quindi sono tutte nella lista; i suggerimenti della 34b nel "+" non ci sono più e la modifica vale anche per le serie in libreria. Vedi [`fase37-lista-rifiniture.md`](fase37-lista-rifiniture.md).
+>
 > La scheda Profilo (Fase 35) aveva il guscio e le statistiche. Qui arriva il contenuto: **una sola card, una sola lista** di titoli con quattro filtri a chip (Preferiti, In corso, Finiti, Da leggere). I Preferiti escono dalla Libreria e vengono qui. Il disegno è stato approvato su un mockup prima di scrivere codice.
 
 ---

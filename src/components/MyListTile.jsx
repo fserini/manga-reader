@@ -29,7 +29,8 @@ function Cover({ item }) {
 // - anteprima nella card del Profilo (preview): non interattiva, il tocco va
 //   alla card intera;
 // - griglia della pagina completa: tocco per aprire, stella per i titoli in
-//   libreria, "x" per togliere le voci manuali in modalità Modifica.
+//   libreria, "x" in modalità Modifica per togliere una voce manuale, oppure la
+//   stella e la nota di una serie della libreria (Fase 37).
 function MyListTile({ item, preview = false, editing = false, onOpen, onStar, onDelete }) {
   const { t } = useTranslation();
   const body = (
@@ -41,10 +42,8 @@ function MyListTile({ item, preview = false, editing = false, onOpen, onStar, on
             <i style={{ width: `${item.pct}%` }} />
           </span>
         )}
-        {!preview && item.manual && (
-          <span className={`mlt-tag${item.lib ? ' mlt-tag--lib' : ''}`}>
-            {t(item.lib ? 'myList.tagInLibrary' : item.linkRemoved ? 'myList.tagRemoved' : 'myList.tagManual')}
-          </span>
+        {!preview && item.manual && !item.lib && (
+          <span className="mlt-tag">{t(item.linkRemoved ? 'myList.tagRemoved' : 'myList.tagManual')}</span>
         )}
         {preview && item.fav && (
           <span className="mlt-star mlt-star--on mlt-star--mini" aria-hidden="true">
@@ -75,7 +74,7 @@ function MyListTile({ item, preview = false, editing = false, onOpen, onStar, on
           <Icon name="star" size={15} />
         </button>
       )}
-      {editing && item.manual && (
+      {editing && (item.lib ? item.fav || item.manual : item.manual) && (
         <button
           type="button"
           className="mlt-delete"

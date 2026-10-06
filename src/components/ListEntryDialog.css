@@ -24,53 +24,11 @@
   color: var(--accent-contrast);
 }
 
-/* Suggerimenti di serie in libreria mentre si scrive il titolo (Fase 34b). */
-.led-suggest {
-  display: flex;
-  flex-direction: column;
-  margin: -6px 0 0;
-  padding: 0;
-  list-style: none;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  overflow: hidden;
-}
-
-.led-suggest button {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  width: 100%;
-  padding: 10px 12px;
-  border: none;
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-size: 14px;
-  text-align: left;
-  cursor: pointer;
-}
-
-.led-suggest button:hover {
-  background: var(--surface-hover);
-}
-
-.led-suggest small {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: 0.06em;
-  color: var(--accent);
-}
-
-.led-linked {
-  margin: -6px 0 0;
-  padding: 8px 10px;
-  border: 1px solid var(--accent);
-  border-radius: 9px;
-  background: rgba(95, 180, 222, 0.1);
-  font-size: 13px;
-  color: var(--accent);
+/* Nota sotto lo stato: perché quello scelto qui può non contare (Fase 37). */
+.led-hint {
+  margin: -4px 0 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
 }
 
 .cf-field textarea {

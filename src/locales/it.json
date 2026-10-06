@@ -387,13 +387,13 @@
       "fav": "Nessun preferito ancora. Tocca la stella accanto a una serie per ritrovarla qui.",
       "progress": "Nessuna serie in corso. Appena inizi a leggerne una la trovi qui.",
       "done": "Nessuna serie finita. Compaiono quelle lette fino in fondo e quelle che segni come lette a mano.",
-      "toread": "Nessun titolo da leggere. Apri la lista, tocca la matita e il + per aggiungerne uno."
+      "toread": "Nessun titolo da leggere. Tocca il + per aggiungerne uno."
     },
     "hint": {
       "fav": "Preferiti: le serie con la stella. Tocca la stella per toglierla, la serie per aprirla in Libreria.",
       "progress": "In corso: serie che hai iniziato e non finito. Tocca una serie per riprendere dal punto in cui eri.",
       "done": "Finiti: le serie lette fino in fondo compaiono da sole; le voci MANUALE le aggiungi tu.",
-      "toread": "Da leggere: i manga che vuoi leggere. Quelli già in libreria sono segnati."
+      "toread": "Da leggere: le serie in libreria che non hai ancora aperto e i titoli che aggiungi tu con il +."
     },
     "openAria": "Apri la lista completa",
     "searchPlaceholder": "Cerca un titolo",
@@ -405,10 +405,8 @@
       "alpha": "Alfabetico"
     },
     "editAria": "Modifica la lista",
-    "editBanner": "Modifica attiva: tocca la x per togliere una voce manuale, il + per aggiungerne una, o una voce manuale per cambiarla.",
-    "add": "Aggiungi",
+    "editBanner": "Modifica attiva: tocca un titolo per cambiarne titolo, stato e nota; la x toglie la voce manuale, o la stella e la nota di una serie in libreria.",
     "tagManual": "MANUALE",
-    "tagInLibrary": "IN LIBRERIA",
     "starAdd": "Aggiungi {{title}} ai preferiti",
     "starRemove": "Togli {{title}} dai preferiti",
     "deleteAria": "Togli {{title}} dalla lista",
@@ -438,8 +436,7 @@
       "cancel": "Annulla",
       "save": "Salva",
       "saving": "Salvataggio…",
-      "suggestionsAria": "Serie in libreria",
-      "linked": "Collegato a una serie in libreria"
+      "readStateHint": "Dalla lettura questa serie risulta «{{state}}»: lo stato scelto qui conta solo finché non l’hai iniziata."
     },
     "errors": {
       "titleRequired": "Scrivi il titolo.",
@@ -447,6 +444,17 @@
       "saveFailed": "Salvataggio non riuscito. Riprova."
     },
     "tagRemoved": "RIMOSSA",
-    "removedFromLibrary": "«{{title}}» è stato rimosso dalla libreria."
+    "removedFromLibrary": "«{{title}}» è stato rimosso dalla libreria.",
+    "addAria": "Aggiungi un titolo",
+    "clear": {
+      "title": "Togliere stella e nota?",
+      "note": "«{{title}}» resta nella libreria e nella lista, con lo stato della lettura: spariscono solo la stella e quello che hai scritto qui (nota e stato scelto a mano).",
+      "confirm": "Togli"
+    }
+  },
+  "favorites": {
+    "added": "«{{title}}» aggiunta ai preferiti",
+    "removed": "«{{title}}» rimossa dai preferiti",
+    "undo": "ANNULLA"
   }
 }
