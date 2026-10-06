@@ -110,6 +110,7 @@ Una fase della roadmap si considera completata quando:
 - [x] Fase 37 — Lista "Le mie serie": serie sempre presenti ("Da leggere" di partenza), "+" sempre visibile, modifica delle serie in libreria, avviso temporaneo dei preferiti — da provare sul tablet
 - [x] Fase 38 — Importazione e categorizzazione: icona di caricamento, ultima serie suggerita (variante A, tocco o Tab), via "Categorizza" dalle righe, numero del capitolo dal nome del file — da provare sul tablet
 - [x] Fase 39 — Effetto sfoglio nel Lettore (Nessuno / Scorrimento / Libro, impostazione in Aspetto) e pulsante "Torna alla libreria" — da provare sul tablet
+- [ ] Fase 40 — Catalogo: serie a griglia con copertine (volumi e capitoli ad elenco) — pianificata, da chiarire il livello Capitoli
 - [ ] Fase 31 — Guida interattiva — pianificata, non ancora iniziata
 - [ ] Fase 32 — Riassunto "dove eravamo rimasti" con l'IA — ultima fase, da studiare a tempo debito
 

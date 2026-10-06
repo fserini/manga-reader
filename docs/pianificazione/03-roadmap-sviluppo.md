@@ -393,6 +393,18 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 
 ---
 
+## Fase 40 — Catalogo: serie a griglia con copertine
+
+> Idea di Federico (2026-10-06), dopo aver provato le fasi 37-39. Concordata la forma: **griglia con copertine solo per il livello Serie** della Libreria; **Volumi e Capitoli restano ad elenco**. Non ancora iniziata. Va **prima della 31**: la guida interattiva deve descrivere l'interfaccia definitiva.
+
+- **Serie a griglia**: le copertine ci sono già (`series.coverThumbnail`, la prima pagina del primo capitolo importato; le copertine personalizzate sono state tolte nella Fase 33). Griglia fluida come nella lista "Le mie serie" (circa 3 colonne sul telefono, 5-6 sul tablet), titolo su due righe con i puntini, segnaposto con l'iniziale colorata quando manca la copertina
+- **La stella** sempre visibile in un angolo della copertina; **rinomina, tag e cestino** dietro una **modalità Modifica** (matita, come in "Le mie serie"), con le stesse conferme di oggi, per non avere icone piccole e facili da toccare per sbaglio. I **tag** (oggi sotto il titolo) vanno ripensati: da vedere su mockup prima di decidere
+- Ricerca, ordinamento e filtro per tag restano come oggi
+- **Da chiarire con Federico a inizio fase**: il livello **Capitoli** oggi è già una griglia con le copertine dei capitoli; "capitoli ad elenco" vuol dire passare a righe di testo (perdendo le miniature) oppure righe con una piccola miniatura a sinistra? Proposta: righe con miniatura
+- Prima di scrivere codice: **mockup** (come per le Fasi 34 e 38)
+
+---
+
 ## Fase 31 — Guida interattiva
 
 > Nata dalla richiesta di un tutorial per chi usa l'app per la prima volta. Un video non si può generare qui, e invecchierebbe a ogni modifica dell'interfaccia: la guida vive dentro l'app, resta offline ed è bilingue (italiano/inglese).
@@ -403,7 +415,7 @@ Lo spazio non è un problema (i file non vengono copiati: ~19 KB per capitolo, s
 - **Dati di prova** ammessi nel giro (decisione di Federico): generati dall'app, senza manga con diritti d'autore
 - **Guida utente** leggibile con calma: pagina dedicata, aperta da un pulsante "Guida utente" nel menu della chiave inglese del Profilo (oltre al giro e al "?" nella barra)
 - **Contenuto come dati, non scritto nel codice dei componenti** (sezioni e domande/risposte in file separati, in italiano e inglese): così la guida può essere aggiornata senza toccare l'interfaccia, e un giorno può diventare la base di conoscenza di un assistente IA che risponda alle domande dell'utente sull'app (idea da valutare insieme alla Fase 32, con la stessa gestione della chiave e il vincolo "solo online, su richiesta")
-- Ordine deciso da Federico: la Fase 31 parte **dopo** aver concluso le fasi 33-36 (correzioni, schermo intero, scheda Profilo, lista unica) **e le 37-39** (rifiniture della lista, importazione, effetto sfoglio), così la guida descrive l'interfaccia definitiva
+- Ordine deciso da Federico: la Fase 31 parte **dopo** aver concluso le fasi 33-36 (correzioni, schermo intero, scheda Profilo, lista unica) **e le 37-40** (rifiniture della lista, importazione, effetto sfoglio, Catalogo a griglia), così la guida descrive l'interfaccia definitiva
 
 ---
 
