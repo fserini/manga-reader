@@ -2,6 +2,8 @@
 
 > Nata dalle note di Federico dopo aver provato sul tablet le fasi 23-30. Qui quasi tutto è **togliere**: meno funzioni, meno interfaccia, meno codice. Togliere è un lavoro vero: va fatto senza lasciare riferimenti orfani, e senza perdere i dati dell'utente.
 
+> **Aggiornamento (Fase 38)**: del nome del file si usa di nuovo **solo il numero del capitolo** (precompilato e modificabile, nel dubbio vuoto); serie e volume restano senza suggerimenti. Vedi [`fase38-import-categorizzazione.md`](fase38-import-categorizzazione.md).
+
 ---
 
 ## 1. Principio: togliere una funzione non vuol dire cancellare i dati

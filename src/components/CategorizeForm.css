@@ -96,7 +96,14 @@
   cursor: not-allowed;
 }
 
-/* Avviso "compilato dal nome del file" (Fase 23): un suggerimento, non un dato. */
+/* Nota sotto un campo precompilato dal nome del file (Fase 38): un suggerimento, non un dato. */
+.cf-hint {
+  font-size: 13px;
+  color: var(--accent);
+}
+
+
+/* Nota evidenziata sotto un campo (usata anche da Rinomina e dal ricontrollo dei file). */
 .cf-prefilled {
   margin-top: -8px;
   font-size: 13px;

@@ -28,7 +28,9 @@
       "encrypted_one": "1 archive is password-protected and can't be read: it was skipped.",
       "encrypted_other": "{{count}} archives are password-protected and can't be read: they were skipped.",
       "timeout_one": "The archive reader didn't start in time for 1 file, which was skipped: try again or reload the app.",
-      "timeout_other": "The archive reader didn't start in time for {{count}} files, which were skipped: try again or reload the app."
+      "timeout_other": "The archive reader didn't start in time for {{count}} files, which were skipped: try again or reload the app.",
+      "imported_one": "1 file imported.",
+      "imported_other": "{{count}} files imported."
     },
     "feedback": "Imported: {{imported}} · Reconnected: {{relinked}} · Duplicates skipped: {{duplicates}} · Unreadable: {{unreadable}} · Unsupported: {{ignored}}",
     "importError": "Import failed: something went wrong while accessing the files.",
@@ -52,7 +54,11 @@
     "import": "Import",
     "importFileLabel": "File",
     "importFolderLabel": "Folder",
-    "importFolderHint": "Including subfolders"
+    "importFolderHint": "Including subfolders",
+    "importing": {
+      "title": "Importing…",
+      "note": "A large folder can take a few minutes. Keep the app open."
+    }
   },
   "catalog": {
     "path": "Path",
@@ -140,7 +146,11 @@
     "errors": {
       "rowVolume": "Enter a valid volume number for “{{fileName}}”.",
       "rowNumber": "Enter a valid chapter number for “{{fileName}}”."
-    }
+    },
+    "numbersFromFiles_one": "The chapter number of 1 file was filled in from its name: please check it.",
+    "numbersFromFiles_other": "The chapter number of {{count}} files was filled in from their names: please check them.",
+    "lastSeries": "Last series used:",
+    "useLastSeries": "Use {{title}}, the last series used"
   },
   "fileCheck": {
     "title": "File check",
@@ -205,7 +215,8 @@
       "newSeriesNameRequired": "Enter the new series name.",
       "newVolumeNumberInvalid": "Enter a valid volume number.",
       "saveFailed": "Save failed. Please try again."
-    }
+    },
+    "numberFromFile": "Number taken from the file name: please check it."
   },
   "readingSections": {
     "inProgressHeading": "In progress",
