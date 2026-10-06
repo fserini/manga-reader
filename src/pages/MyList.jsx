@@ -1,14 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  getMyListItems,
-  getSeriesResumeTarget,
-  toggleSeriesFavorite,
-  removeListEntry,
-} from '../db.js';
+import { getMyListItems, getSeriesResumeTarget, removeListEntry, clearSeriesListInfo } from '../db.js';
 import { LIST_SORTS, loadListFilter, saveListFilter, matchesFilter, sortItems } from '../myList.js';
 import { useChapterOpener } from '../useChapterOpener.js';
+import { useFavoriteToggle } from '../useFavoriteToggle.js';
 import { chapterLabel } from '../chapterLabel.js';
 import ListChips from '../components/ListChips.jsx';
 import MyListTile from '../components/MyListTile.jsx';
@@ -21,8 +17,9 @@ import './MyList.css';
 
 // La lista "Le mie serie" a pagina intera (Fase 34), a /profilo/serie: i
 // quattro filtri, la ricerca, l'ordinamento e la griglia dei titoli. Il tocco su
-// un titolo dipende dal suo stato (vedi openItem); con la matita si entra nella
-// modalità Modifica, dove si aggiungono e si tolgono le voci manuali.
+// un titolo dipende dal suo stato (vedi openItem). Il "+" in alto aggiunge un
+// titolo; con la matita si entra nella modalità Modifica, dove si cambiano titolo,
+// stato e nota di ogni titolo e si tolgono le voci (Fase 37).
 function MyList() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -38,6 +35,7 @@ function MyList() {
   const [resume, setResume] = useState(null);
   const [warning, setWarning] = useState(null);
   const { open: openChapter, notice } = useChapterOpener();
+  const toggleFavorite = useFavoriteToggle();
 
   const reload = useCallback(async () => {
     setItems(await getMyListItems());
@@ -64,14 +62,14 @@ function MyList() {
   }
 
   // Cosa fa il tocco su un titolo:
-  // - in modalità Modifica, su una voce manuale: la finestra di modifica;
+  // - in modalità Modifica: la finestra di modifica (titolo, stato, nota);
   // - "in corso" e in libreria: la conferma per riprendere la lettura;
   // - in libreria: porta alla Libreria, direttamente sulla serie;
   // - altrimenti: un avviso giallo, il titolo non è in libreria.
   async function openItem(item) {
     setWarning(null);
     if (editing) {
-      if (item.manual) setDialog({ entry: item });
+      setDialog({ entry: item });
       return;
     }
     if (item.state === 'progress' && item.lib) {
@@ -88,15 +86,19 @@ function MyList() {
     setWarning(t(item.linkRemoved ? 'myList.removedFromLibrary' : 'myList.notInLibrary', { title: item.title }));
   }
 
-  async function toggleStar(item) {
-    await toggleSeriesFavorite(item.seriesId);
-    await reload();
+  // La stella cambia e un avviso lo dice (con "Annulla" alla rimozione).
+  function toggleStar(item) {
+    return toggleFavorite(item.seriesId, item.title, reload);
   }
 
+  // La "x" su una voce manuale la cancella; su una serie della libreria toglie
+  // solo la stella e la voce manuale (la nota e lo stato scelto a mano): la serie
+  // resta in libreria e nella lista, col suo stato di lettura.
   async function confirmDelete() {
     const target = deleting;
     setDeleting(null);
-    await removeListEntry(target.manualId);
+    if (target.lib) await clearSeriesListInfo(target.seriesId, target.manualId);
+    else await removeListEntry(target.manualId);
     await reload();
   }
 
@@ -108,9 +110,13 @@ function MyList() {
     await openChapter(target);
   }
 
+  // Un titolo appena aggiunto si va a vedere nel suo filtro; una modifica lascia
+  // il filtro com'è (la serie potrebbe non essere nel filtro dello stato scelto:
+  // lo stato della lettura vince su quello scelto a mano).
   function handleSaved(state) {
+    const wasNew = dialog.entry == null;
     setDialog(null);
-    chooseFilter(state);
+    if (wasNew) chooseFilter(state);
     reload();
   }
 
@@ -154,19 +160,30 @@ function MyList() {
             {items && <span className="my-list-count">{t('myList.count', { count: rows.length })}</span>}
           </h1>
         </div>
-        <button
-          type="button"
-          className="my-list-edit"
-          aria-pressed={editing}
-          aria-label={t('myList.editAria')}
-          title={t('myList.editAria')}
-          onClick={() => {
-            setEditing((current) => !current);
-            setWarning(null);
-          }}
-        >
-          <Icon name={editing ? 'check' : 'edit'} size={18} />
-        </button>
+        <div className="my-list-actions">
+          <button
+            type="button"
+            className="my-list-edit"
+            aria-label={t('myList.addAria')}
+            title={t('myList.addAria')}
+            onClick={() => setDialog({ entry: null })}
+          >
+            <Icon name="plus" size={20} />
+          </button>
+          <button
+            type="button"
+            className="my-list-edit"
+            aria-pressed={editing}
+            aria-label={t('myList.editAria')}
+            title={t('myList.editAria')}
+            onClick={() => {
+              setEditing((current) => !current);
+              setWarning(null);
+            }}
+          >
+            <Icon name={editing ? 'check' : 'edit'} size={18} />
+          </button>
+        </div>
       </div>
 
       {items === null ? (
@@ -200,21 +217,13 @@ function MyList() {
           {warning && <WarningNotice>{warning}</WarningNotice>}
           {notice && <WarningNotice>{notice}</WarningNotice>}
 
-          {rows.length === 0 && !editing ? (
+          {rows.length === 0 ? (
             <p className="my-list-empty">
               <Icon name="inbox" size={22} />
               <span>{normalizedQuery ? t('myList.noResults') : t(`myList.empty.${filter}`)}</span>
             </p>
           ) : (
             <div className="my-list-grid">
-              {editing && (
-                <button type="button" className="my-list-add" onClick={() => setDialog({ entry: null })}>
-                  <span className="my-list-add-cover">
-                    <Icon name="plus" size={28} />
-                  </span>
-                  <span>{t('myList.add')}</span>
-                </button>
-              )}
               {rows.map((item) => (
                 <MyListTile
                   key={item.key}
@@ -241,9 +250,9 @@ function MyList() {
 
       {deleting && (
         <ConfirmDialog
-          title={t('myList.delete.title')}
-          note={t('myList.delete.note', { title: deleting.title })}
-          confirmLabel={t('myList.delete.confirm')}
+          title={t(deleting.lib ? 'myList.clear.title' : 'myList.delete.title')}
+          note={t(deleting.lib ? 'myList.clear.note' : 'myList.delete.note', { title: deleting.title })}
+          confirmLabel={t(deleting.lib ? 'myList.clear.confirm' : 'myList.delete.confirm')}
           cancelLabel={t('myList.entry.cancel')}
           onConfirm={confirmDelete}
           onCancel={() => setDeleting(null)}
