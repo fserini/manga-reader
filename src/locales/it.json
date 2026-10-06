@@ -265,7 +265,8 @@
     "next": "Successiva ›",
     "pageAlt": "Pagina {{number}}",
     "pageBroken": "{{alt}}: immagine danneggiata",
-    "unsupportedFile": "Formato non supportato ({{format}}). Formati accettati: {{formats}}."
+    "unsupportedFile": "Formato non supportato ({{format}}). Formati accettati: {{formats}}.",
+    "backToLibrary": "Torna alla Libreria"
   },
   "settings": {
     "appearanceHint": "Scegli come appaiono il marchio in alto e il menu di navigazione. Le scelte restano su questo dispositivo.",
@@ -334,7 +335,14 @@
       "transparent": "Trasparente",
       "hidden": "Nascosto"
     },
-    "threadHint": "La striscia con il numero di pagina quando i controlli sono nascosti: visibile come prima, trasparente sopra la pagina, oppure nascosta del tutto."
+    "threadHint": "La striscia con il numero di pagina quando i controlli sono nascosti: visibile come prima, trasparente sopra la pagina, oppure nascosta del tutto.",
+    "pageTurnLabel": "Cambio pagina nel Lettore",
+    "pageTurn": {
+      "none": "Nessuno",
+      "slide": "Scorrimento",
+      "book": "Libro"
+    },
+    "pageTurnHint": "Come si vede il passaggio da una pagina all’altra: di colpo, con uno scorrimento laterale, oppure voltando la pagina come in un libro. Con il movimento ridotto del sistema non c’è animazione."
   },
   "pwa": {
     "updateAvailable": "È disponibile una nuova versione dell'app.",

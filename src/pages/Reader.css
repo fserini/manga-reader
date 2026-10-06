@@ -131,6 +131,24 @@
   height: 100%;
 }
 
+/* Il palco di singola e doppia pagina (Fase 39): riceve i tocchi e i gesti, e
+   tiene le viste una sopra l'altra. La prospettiva serve al voltapagina in 3D. */
+.reader-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  perspective: 2200px;
+  touch-action: none;
+  cursor: pointer;
+  background: var(--bg);
+}
+
+.reader-view {
+  position: absolute;
+  inset: 0;
+}
+
 .reader-pages--single,
 .reader-pages--spread {
   align-items: center;
@@ -280,4 +298,167 @@
 
 .reader-next-chapter:hover {
   border-color: var(--accent);
+}
+
+/* --- Cambio pagina animato (Fase 39) --- */
+
+/* Scorrimento: la vista di partenza esce di lato, quella nuova entra dall'altra.
+   --slide-from è il punto da cui entra la nuova (-100% o 100%). */
+.reader-stage--slide .reader-view--out {
+  animation: reader-slide-out var(--turn-ms) ease-in-out both;
+}
+
+.reader-stage--slide .reader-view--in {
+  animation: reader-slide-in var(--turn-ms) ease-in-out both;
+}
+
+@keyframes reader-slide-in {
+  from {
+    transform: translateX(var(--slide-from));
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes reader-slide-out {
+  from {
+    transform: none;
+  }
+  to {
+    transform: translateX(calc(var(--slide-from) * -1));
+  }
+}
+
+/* Libro: il "foglio" è una copia della pagina che gira attorno al dorso, con il
+   davanti (la pagina) e un dietro (la carta). In singola pagina il foglio è tutta
+   la pagina e il dorso è sul bordo; in doppia è una metà e il dorso è al centro.
+   Il foglio "left" (lettura da destra a sinistra) ha il dorso sul suo bordo
+   destro e gira verso destra; il foglio "right", al contrario. */
+.reader-leaf {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 100%;
+  left: 0;
+  transform-style: preserve-3d;
+  animation: reader-leaf-turn var(--turn-ms) ease-in-out both;
+  box-shadow: 0 0 36px rgba(0, 0, 0, 0.55);
+}
+
+.reader-leaf--spread {
+  width: 50%;
+}
+
+.reader-leaf--spread.reader-leaf--right {
+  left: 50%;
+}
+
+.reader-leaf--left {
+  transform-origin: right center;
+}
+
+.reader-leaf--right {
+  transform-origin: left center;
+}
+
+/* Tornando indietro il foglio fa il percorso inverso, dalla parte opposta del
+   dorso fino al suo posto. */
+.reader-leaf--prev {
+  animation-direction: reverse;
+}
+
+.reader-leaf-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  backface-visibility: hidden;
+}
+
+.reader-leaf-front {
+  background: var(--bg);
+}
+
+.reader-leaf-back {
+  transform: rotateY(180deg);
+  background: linear-gradient(90deg, #14120f, #1f1c17 60%, #14120f);
+}
+
+/* Il contenuto del foglio è una vista intera: tutta la larghezza del palco,
+   anche se il foglio è mezzo palco (si mostra la metà giusta). */
+.reader-leaf-content {
+  height: 100%;
+}
+
+.reader-leaf--spread .reader-leaf-content {
+  width: 200%;
+}
+
+.reader-leaf--spread.reader-leaf--right .reader-leaf-content {
+  margin-left: -100%;
+}
+
+.reader-view--flat {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  height: 100%;
+}
+
+/* Il foglio gira soltanto: un'opacità sul foglio stesso spianerebbe la scena 3D
+   e farebbe vedere il davanti rovesciato. */
+@keyframes reader-leaf-turn {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(var(--leaf-angle));
+  }
+}
+
+/* In doppia pagina il foglio, a fine corsa, copre l'altra metà: le sue due facce
+   sfumano negli ultimi istanti (e, al ritorno, compaiono nei primi) invece di
+   sparire di colpo. Si sfumano le facce, non il foglio: vedi sopra. */
+.reader-leaf--spread .reader-leaf-face {
+  animation: reader-leaf-fade var(--turn-ms) linear both;
+}
+
+.reader-leaf--spread.reader-leaf--prev .reader-leaf-face {
+  animation-direction: reverse;
+}
+
+@keyframes reader-leaf-fade {
+  from {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Il pulsante per tornare alla Libreria, a sinistra del pannello controlli. */
+.reader-controls .reader-back {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reader-stage--slide .reader-view--out,
+  .reader-stage--slide .reader-view--in,
+  .reader-leaf,
+  .reader-leaf-face {
+    animation: none;
+  }
 }
