@@ -137,9 +137,14 @@ function Uncategorized() {
                 </span>
                 <span className="uncategorized-name">{chapter.fileName}</span>
               </label>
-              <button type="button" className="uncategorized-button" onClick={() => setCategorizing(chapter)}>
-                {t('library.categorize')}
-              </button>
+              {/* Con più file si categorizza selezionandoli (anche uno solo) e usando
+                  il pulsante in basso; il pulsante sulla riga resta solo se il file
+                  è l'unico della lista (Fase 38). */}
+              {chapters.length === 1 && (
+                <button type="button" className="uncategorized-button" onClick={() => setCategorizing(chapter)}>
+                  {t('library.categorize')}
+                </button>
+              )}
               <button
                 type="button"
                 className="uncategorized-delete"

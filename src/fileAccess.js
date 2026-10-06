@@ -65,8 +65,12 @@ export async function pickFile() {
 // altri file che non sono "rumore" noto (vedi IGNORED_IN_FOLDERS). Questi
 // ultimi non verranno importati: li passiamo alla Libreria perché possa
 // avvisare che quel formato non è supportato, invece di saltarli in silenzio.
-export async function pickDirectory() {
+//
+// `onPicked` (facoltativo) viene chiamata appena la cartella è scelta, PRIMA di
+// leggerla: una cartella grande richiede tempo, e la Libreria vi mostra l'attesa.
+export async function pickDirectory({ onPicked } = {}) {
   const directoryHandle = await window.showDirectoryPicker();
+  onPicked?.();
   return collectCandidateHandles(directoryHandle);
 }
 

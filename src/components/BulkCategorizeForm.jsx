@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAllSeries, getVolumesForSeries, categorizeChaptersBatch } from '../db.js';
+import { guessChapterNumber } from '../chapterNumber.js';
 import './CategorizeForm.css';
 import './BulkCategorizeForm.css';
 
@@ -16,9 +17,10 @@ function toNumber(text) {
 
 // Categorizzazione di più capitoli insieme (Fase 23). Serie unica per tutti;
 // il volume è uno solo per tutti ("stesso volume", attivo di default) oppure
-// uno per riga; il numero di capitolo è sempre per riga. I campi partono vuoti,
-// con l'esempio come segnaposto: dal nome dei file non si ricava più nulla
-// (decisione di Federico, Fase 33).
+// uno per riga; il numero di capitolo è sempre per riga. Serie e volume partono
+// vuoti, con l'esempio come segnaposto: dal nome dei file non si ricava più nulla
+// (decisione di Federico, Fase 33), salvo il numero del capitolo di ogni riga,
+// quando lo si capisce (Fase 38).
 //
 // Il volume si indica per NUMERO, non scegliendolo da un elenco: se la serie ha
 // già quel volume lo si usa, altrimenti si crea (vedi categorizeChaptersBatch).
@@ -38,8 +40,15 @@ function BulkCategorizeForm({ chapters, onCancel, onDone }) {
   // Una riga per capitolo: il suo volume (usato solo se sameVolume è falso) e
   // il suo numero, entrambi come testo dei campi.
   const [rows, setRows] = useState(() =>
-    chapters.map((chapter) => ({ id: chapter.id, fileName: chapter.fileName, volume: '', number: '' })),
+    chapters.map((chapter) => ({
+      id: chapter.id,
+      fileName: chapter.fileName,
+      volume: '',
+      number: guessChapterNumber(chapter.fileName),
+    })),
   );
+  // Quanti numeri sono stati precompilati, per dirlo una volta sola sopra l'elenco.
+  const [prefilledCount] = useState(() => rows.filter((row) => row.number !== '').length);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -193,6 +202,10 @@ function BulkCategorizeForm({ chapters, onCancel, onDone }) {
           <p className="bcf-hint">
             {t('bulkCategorize.existingVolumes', { numbers: existingVolumes.map((volume) => volume.number).join(', ') })}
           </p>
+        )}
+
+        {prefilledCount > 0 && (
+          <p className="bcf-hint">{t('bulkCategorize.numbersFromFiles', { count: prefilledCount })}</p>
         )}
 
         <ul className="bcf-rows">
